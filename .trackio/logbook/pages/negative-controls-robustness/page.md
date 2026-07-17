@@ -16,3 +16,10 @@ Every 'verified' cell in this logbook is paired with a negative control that dem
 **Robustness (Arm C, Claim 1):** controlled score-noise injection verifies the KL floor scales exactly as ε² (ratio to the paper's Σ η_k ε²_{k,score} term = 0.593, constant to 4 decimals over four decades of ε). Raw: `results/exp1/arm_c.csv`.
 
 NC-3 (heavy-tailed ∇m target vs the √d schedule, Claim 4) and NC-4 (ULA bias plateau vs FORS-proximal, Claim 5) land with their claim pages.
+
+
+---
+<!-- trackio-cell
+{"type": "markdown", "id": "cell_af0ff6cbe5fc", "created_at": "2026-07-17T22:32:38+00:00", "title": "NC-4: ULA bias plateaus (Claim 5)"}
+-->
+ULA at step sizes h ∈ {1e-1, 1e-2, 1e-3} on the logcosh target plateaus at χ² = 2.5e-2 / 2.1e-4 / 2.1e-6 — the O(h) discretization-bias wall (χ² ~ h²) — while the FORS-proximal chain on the identical target and query model decays exponentially to 1.3e-11. Money plot #3 on the Claim 5 page; raw `results/exp5/ula_logcosh.csv`. This is the entire point of the paper made visible: prior first-order high-accuracy samplers pay poly(1/ε) because of discretization bias; FORS removes the bias.

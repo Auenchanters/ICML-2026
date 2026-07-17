@@ -1,0 +1,10 @@
+[A(a)] logcosh tau=0.05: sup ||grad m||_op = 0.952381
+[A(a)] logcosh tau=0.2: sup ||grad m||_op = 0.833333
+[A(a)] logcosh tau=1.0: sup ||grad m||_op = 0.498996
+[A(a)] logcosh tau=5.0: sup ||grad m||_op = 0.072348
+[A(b,c)] H=2 tau=0.1: L_op(1-d)=0.71 L_F(1-d)=2.86 C=1.09
+[A(b,c)] H=2 tau=0.5: L_op(1-d)=0.33 L_F(1-d)=1.33 C=0.75
+[A(b,c)] H=8 tau=0.1: L_op(1-d)=0.71 L_F(1-d)=2.86 C=1.02
+[A(b,c)] H=8 tau=0.5: L_op(1-d)=0.33 L_F(1-d)=1.33 C=0.70
+[A(b,c)] H=32 tau=0.1: L_op(1-d)=0.71 L_F(1-d)=2.86 C=0.96
+[A(b,c)] H=32 tau=0.5: L_op(1-d)=1.25 L_F(1-d)=1.80 C=0.46

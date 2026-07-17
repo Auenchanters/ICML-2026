@@ -1,0 +1,61 @@
+[RGO logcosh] 1/eta=2: chi2 = 6.982e-02
+[RGO logcosh] 1/eta=4: chi2 = 1.501e-02
+[RGO logcosh] 1/eta=8: chi2 = 9.055e-04
+[RGO logcosh] 1/eta=16: chi2 = 6.511e-06
+[RGO logcosh] 1/eta=32: chi2 = 1.322e-09
+[RGO logcosh] 1/eta=64: chi2 = 2.220e-16
+[RGO logcosh] 1/eta=128: chi2 = 0.000e+00
+[RGO pseudohuber] 1/eta=2: chi2 = 2.002e-02
+[RGO pseudohuber] 1/eta=4: chi2 = 2.649e-03
+[RGO pseudohuber] 1/eta=8: chi2 = 1.035e-04
+[RGO pseudohuber] 1/eta=16: chi2 = 4.911e-07
+[RGO pseudohuber] 1/eta=32: chi2 = 5.295e-11
+[RGO pseudohuber] 1/eta=64: chi2 = -3.331e-16
+[RGO pseudohuber] 1/eta=128: chi2 = 2.220e-16
+[CHAIN logcosh] kernels built in 76s (min acceptance 0.368)
+[CHAIN logcosh] n=10: chi2 = 6.054e-01
+[CHAIN logcosh] n=20: chi2 = 1.436e-01
+[CHAIN logcosh] n=30: chi2 = 3.511e-02
+[CHAIN logcosh] n=40: chi2 = 8.690e-03
+[CHAIN logcosh] n=50: chi2 = 2.163e-03
+[CHAIN logcosh] n=60: chi2 = 5.393e-04
+[CHAIN logcosh] n=70: chi2 = 1.346e-04
+[CHAIN logcosh] n=80: chi2 = 3.362e-05
+[CHAIN logcosh] n=90: chi2 = 8.396e-06
+[CHAIN logcosh] n=100: chi2 = 2.097e-06
+[CHAIN logcosh] n=110: chi2 = 5.237e-07
+[CHAIN logcosh] n=120: chi2 = 1.308e-07
+[CHAIN logcosh] n=130: chi2 = 3.266e-08
+[CHAIN logcosh] n=140: chi2 = 8.158e-09
+[CHAIN logcosh] n=150: chi2 = 2.043e-09
+[CHAIN logcosh] n=160: chi2 = 5.179e-10
+[CHAIN logcosh] n=170: chi2 = 1.382e-10
+[CHAIN logcosh] n=180: chi2 = 4.399e-11
+[CHAIN logcosh] n=190: chi2 = 2.077e-11
+[CHAIN logcosh] n=200: chi2 = 1.512e-11
+[CHAIN logcosh] n=210: chi2 = 1.378e-11
+[CHAIN logcosh] n=220: chi2 = 1.349e-11
+[CHAIN logcosh] n=230: chi2 = 1.344e-11
+[CHAIN logcosh] n=240: chi2 = 1.343e-11
+[CHAIN logcosh] n=250: chi2 = 1.344e-11
+[CHAIN logcosh] n=260: chi2 = 1.344e-11
+[CHAIN logcosh] n=270: chi2 = 1.344e-11
+[CHAIN logcosh] n=280: chi2 = 1.344e-11
+[CHAIN logcosh] n=290: chi2 = 1.344e-11
+[CHAIN logcosh] n=300: chi2 = 1.344e-11
+[CHAIN logcosh] n=310: chi2 = 1.344e-11
+[CHAIN logcosh] n=320: chi2 = 1.344e-11
+[CHAIN logcosh] n=330: chi2 = 1.344e-11
+[CHAIN logcosh] n=340: chi2 = 1.344e-11
+[CHAIN logcosh] n=350: chi2 = 1.344e-11
+[CHAIN logcosh] n=360: chi2 = 1.344e-11
+[CHAIN logcosh] n=370: chi2 = 1.344e-11
+[CHAIN logcosh] n=380: chi2 = 1.344e-11
+[CHAIN logcosh] n=390: chi2 = 1.344e-11
+[CHAIN logcosh] n=400: chi2 = 1.344e-11
+[ULA logcosh] h=0.1: plateau chi2 = 2.508e-02 after n=24
+[ULA logcosh] h=0.01: plateau chi2 = 2.114e-04 after n=600
+[ULA logcosh] h=0.001: plateau chi2 = 2.081e-06 after n=3800
+[FIT] chain chi2 ~ exp(-0.139 n) over n <= 153, R^2 = 0.99998
+[FLOOR] chain chi2 floor = 1.344e-11 (target <= 1e-10)
+done in 79s -> C:\Users\Utkarsh\Desktop\Project\ICML 2026\results\exp5
