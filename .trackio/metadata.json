@@ -9,7 +9,7 @@
     "icml2026-repro",
     "paper-71132"
   ],
-  "last_page": "negative-controls-robustness",
+  "last_page": "claim-3-intrinsic-dimension-d-corollary-4-4",
   "local_path_artifacts": [
     {
       "path": "results/exp0/acceptance_identity.csv",
