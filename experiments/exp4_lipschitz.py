@@ -100,8 +100,8 @@ def check_mixture_tails(d=16, n=20000 if True else 100000, seed=0):
             C = q_f / np.sqrt(q_op * (dstar + np.log(1 / delta)))
             rows.append(dict(H=H, d=d, tau=tau, q_op=q_op, q_fro=q_f,
                              prop47_C=C, n=n))
-            print(f"[A(b,c)] H={H} tau={tau}: L_op(1-δ)={q_op:.2f} "
-                  f"L_F(1-δ)={q_f:.2f} C={C:.2f}", flush=True)
+            print(f"[A(b,c)] H={H} tau={tau}: L_op(1-d)={q_op:.2f} "
+                  f"L_F(1-d)={q_f:.2f} C={C:.2f}", flush=True)
     pd.DataFrame(rows).to_csv(OUT / "mixture_tails.csv", index=False)
 
 

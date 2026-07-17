@@ -149,18 +149,19 @@ def main():
     ph = pseudo_huber_potential()
     rgo_sweep(lc, "logcosh")
     rgo_sweep(ph, "pseudohuber")
-    eta = 1.0 / 32.0
-    df = chain_run(lc, "logcosh", eta, n_iter=30 if QUICK else 120)
+    eta = 1.0 / 32.0 if QUICK else 1.0 / 64.0
+    df = chain_run(lc, "logcosh", eta, n_iter=30 if QUICK else 400)
     ula_run(lc, "logcosh", n_iter=2000 if QUICK else 100000)
 
-    # fits: exponential decay rate + queries vs log(1/eps)
-    d = df[df.chi2 > 1e-14]
+    # fits: exponential decay on the PRE-FLOOR segment only
+    floor = df.chi2.iloc[-10:].mean()
+    d = df[df.chi2 > max(100 * floor, 1e-13)]
     if len(d) >= 5:
         fit = np.polyfit(d.n, np.log(d.chi2), 1)
         r2 = 1 - (np.sum((np.log(d.chi2) - np.polyval(fit, d.n))**2)
                   / np.sum((np.log(d.chi2) - np.log(d.chi2).mean())**2))
-        print(f"[FIT] chain chi2 ~ exp({fit[0]:.3f} n), R^2 = {r2:.5f}")
-        floor = df.chi2.iloc[-5:].mean()
+        print(f"[FIT] chain chi2 ~ exp({fit[0]:.3f} n) over n <= {d.n.max()}, "
+              f"R^2 = {r2:.5f}")
         print(f"[FLOOR] chain chi2 floor = {floor:.3e} (target <= 1e-10)")
     json.dump(dict(B=B, eta=eta, grid=[LO, HI, NG],
                    runtime_s=time.time() - t0),
