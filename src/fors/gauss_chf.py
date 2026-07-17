@@ -69,34 +69,35 @@ def mean_vw(mu_v, mu_w, s_vw):
     return mu_v * mu_w + s_vw
 
 
-def _tail_h_integral(T, f, B):
-    """int h(T) f(T) dT with h = clip_B - id (zero on |T| <= B): trapezoid on
-    the grid points strictly outside [-B, B] plus EXACT kink sub-cell pieces
-    (f linear on the kink cell) — removes the O(dT^2 f(B)) kink error.
-    f batched (m, n); returns (m,).
+def _tail_h_integral(T, f, cL, cR):
+    """int h(T) f(T) dT for h(T) = (cR - T) on T > cR, (cL - T) on T < cL,
+    0 between: Simpson on the strictly-outside grid points plus EXACT kink
+    sub-cell pieces (f linear across the kink cell). f (m, n); returns (m,).
 
-    Right piece over [B, T_j] (L = T_j - B, f linear fB -> f_j):
-        int_0^L (-u) [fB + (f_j - fB) u/L] du = -L^2 (fB/6 + f_j/3);
-    left piece symmetric with +L^2 (fB/6 + f_k/3).
+    Right piece over [cR, T_j] (L = T_j - cR, f linear fC -> f_j):
+        int_0^L (-u)[fC + (f_j - fC) u/L] du = -L^2 (fC/6 + f_j/3);
+    left piece symmetric with +L^2.
     """
     from scipy.integrate import simpson
     dT = T[1] - T[0]
     n = len(T)
-    j = int(np.searchsorted(T, B, side="right"))       # first T_j > B
-    k = int(np.searchsorted(T, -B, side="right")) - 1  # last T_k <= -B
     total = np.zeros(f.shape[0])
+    j = int(np.searchsorted(T, cR, side="right"))      # first T_j > cR
     if j < n - 1:
-        hr = B - T[j:]
+        hr = cR - T[j:]
         total += simpson(f[:, j:] * hr[None, :], dx=dT, axis=-1)
-        L = T[j] - B
-        fB = f[:, j - 1] + (f[:, j] - f[:, j - 1]) * (B - T[j - 1]) / dT
-        total += -(L * L) * (fB / 6.0 + f[:, j] / 3.0)
+        if j >= 1:
+            L = T[j] - cR
+            fC = f[:, j - 1] + (f[:, j] - f[:, j - 1]) * (cR - T[j - 1]) / dT
+            total += -(L * L) * (fC / 6.0 + f[:, j] / 3.0)
+    k = int(np.searchsorted(T, cL, side="right")) - 1  # last T_k <= cL
     if k >= 1:
-        hl = -B - T[: k + 1]
+        hl = cL - T[: k + 1]
         total += simpson(f[:, : k + 1] * hl[None, :], dx=dT, axis=-1)
-        L = -B - T[k]
-        fB = f[:, k] + (f[:, k + 1] - f[:, k]) * (-B - T[k]) / dT
-        total += (L * L) * (fB / 6.0 + f[:, k] / 3.0)
+        if k + 1 < n:
+            L = cL - T[k]
+            fC = f[:, k] + (f[:, k + 1] - f[:, k]) * (cL - T[k]) / dT
+            total += (L * L) * (fC / 6.0 + f[:, k] / 3.0)
     return total
 
 
@@ -167,12 +168,20 @@ class GaussStep:
         e2 = 0.5 * (ms[2] + ms[0]) - ms[1]
         return (c0, c1, c2), (e0, e1, e2)
 
-    def defect_batch(self, x1, S1, S2, x_plus_norm, n_r=16, nt=2048,
-                     t_half=None):
-        """defect(x1, S1, S2) for batched triples (arrays of shape (m,)).
+    def defect_batch(self, x1, S1, S2, x_plus_norm, n_r=16, nt=4096,
+                     n_sigmas=40.0):
+        """defect(x1, S1, S2) = E[Clip_B W] - E[W] for batched triples.
 
-        E[Clip_B T] - E[T], integrated over r with GL nodes. The t-grid half
-        width is chosen so the conjugate T-window covers mean +- ~15 sd."""
+        Per r-node, each row is classified by (mean, sd) of T:
+          * |mu| + n_sigmas*sd <= B  -> the clip never binds: contributes 0
+            (tail bound e^{-n_sigmas^2/2} ~ e^{-338});
+          * mu -+ n_sigmas*sd beyond +-B on one side -> whole density in one
+            linear branch of h: E[h(T)] = +-B - mu exactly;
+          * straddling rows (the only ones carrying signal): per-row FFT of
+            the MEAN-SHIFTED chf e^{-i mu t} phi(t) on a local window
+            +- n_sigmas*sd — the window always resolves the density, so no
+            truncation ringing regardless of how narrow the row is.
+        """
         x1, S1, S2 = (np.asarray(v, dtype=np.float64).ravel()
                       for v in (x1, S1, S2))
         m = len(x1)
@@ -180,47 +189,59 @@ class GaussStep:
         q_axis = -self.lam * self.abar_n * x_plus_norm
         xbar_axis = self.kappa * x_plus_norm
         dm1 = self.d - 1
-
-        # window sizing from exact mean and Var(T) (chf curvature at 0)
-        h = 1e-4
-        var_max, mean_absmax = 1e-300, 0.0
-        for r in (r_nodes[0], r_nodes[n_r // 2], r_nodes[-1]):
-            (c0, c1, c2), (e0, e1, e2) = self._class_coeffs(
-                r, np.array([-h, 0.0, h]), xbar_axis, q_axis)
-            (o0, o1, o2), (f0, f1, f2) = self._class_coeffs(
-                r, np.array([-h, 0.0, h]), 0.0, 0.0)
-            lp = (c0[None, :] + np.outer(x1, c1) + np.outer(x1**2, c2)
-                  + dm1 * o0[None, :] + np.outer(S1, o1) + np.outer(S2, o2))
-            e2nd = np.real(-(lp[:, 0] - 2 * lp[:, 1] + lp[:, 2]) / h**2)
-            mu = (e0 + e1 * x1 + e2 * x1**2 + dm1 * f0 + f1 * S1 + f2 * S2)
-            var_max = max(var_max, float((e2nd - mu**2).max()))
-            mean_absmax = max(mean_absmax, float(np.abs(mu).max()))
-        sd = np.sqrt(max(var_max, 1e-300))
-        T_half = mean_absmax + 24.0 * sd
-        if self.B >= T_half:
-            # clip never binds within 24 sd of every T: defect is bounded by
-            # E|T| tail mass < e^{-250}; exactly zero at working precision
-            return np.zeros(m)
-        dt = np.pi / T_half if t_half is None else 2 * t_half / nt
-        t = (np.arange(nt) - nt // 2) * dt
+        B = self.B
+        hfd = 1e-4
 
         out = np.zeros(m)
         for r, w in zip(r_nodes, r_w):
-            ax_c, _ = self._class_coeffs(r, t, xbar_axis, q_axis)
-            of_c, _ = self._class_coeffs(r, t, 0.0, 0.0)
-            logphi = (ax_c[0][None, :]
-                      + np.outer(x1, ax_c[1]) + np.outer(x1**2, ax_c[2])
-                      + dm1 * of_c[0][None, :]
-                      + np.outer(S1, of_c[1]) + np.outer(S2, of_c[2]))
-            T, f = centered_density_from_chf(np.exp(logphi), dt)
-            # defect_r = E[h(T)], h = clip - id, supported on |T| > B only:
-            # the bulk |T| < B contributes exactly zero, so its discretization
-            # error never enters the result.
-            out += w * _tail_h_integral(T, f, self.B)
+            # exact means and (FD) variances per row
+            (c0, c1, c2), (e0, e1, e2) = self._class_coeffs(
+                r, np.array([-hfd, 0.0, hfd]), xbar_axis, q_axis)
+            (o0, o1, o2), (f0, f1, f2) = self._class_coeffs(
+                r, np.array([-hfd, 0.0, hfd]), 0.0, 0.0)
+            lp = (c0[None, :] + np.outer(x1, c1) + np.outer(x1**2, c2)
+                  + dm1 * o0[None, :] + np.outer(S1, o1) + np.outer(S2, o2))
+            mu = (e0 + e1 * x1 + e2 * x1**2 + dm1 * f0 + f1 * S1 + f2 * S2)
+            # -d2 log phi/dt2 at 0 is the second CUMULANT = Var(T) directly
+            var = np.real(-(lp[:, 0] - 2 * lp[:, 1] + lp[:, 2]) / hfd**2)
+            sd = np.sqrt(np.maximum(var, 1e-16))
+            wid = n_sigmas * sd
+
+            below = mu + wid < -B          # fully in the left branch
+            above = mu - wid > B           # fully in the right branch
+            inside = (np.abs(mu) + wid <= B)
+            out[below] += w * (-B - mu[below])
+            out[above] += w * (B - mu[above])
+            straddle = ~(below | above | inside)
+            if not np.any(straddle):
+                continue
+            idx = np.nonzero(straddle)[0]
+            # bucket rows by sd (factor-1.3 bands): after the mean shift the
+            # window depends only on sd, so each bucket shares one t-grid and
+            # the FFT is batched; only the O(nt) tail integral is per-row.
+            keys = np.floor(np.log(sd[idx]) / np.log(1.3)).astype(int)
+            for key in np.unique(keys):
+                rows = idx[keys == key]
+                T_half = n_sigmas * sd[rows].max()
+                dt = np.pi / T_half
+                t = (np.arange(nt) - nt // 2) * dt
+                ax_c, _ = self._class_coeffs(r, t, xbar_axis, q_axis)
+                lphi = (ax_c[0][None, :] + np.outer(x1[rows], ax_c[1])
+                        + np.outer(x1[rows]**2, ax_c[2]))
+                if dm1 > 0:
+                    of_c, _ = self._class_coeffs(r, t, 0.0, 0.0)
+                    lphi += (dm1 * of_c[0][None, :]
+                             + np.outer(S1[rows], of_c[1])
+                             + np.outer(S2[rows], of_c[2]))
+                lphi -= 1j * np.outer(mu[rows], t)          # mean shift
+                T, f = centered_density_from_chf(np.exp(lphi), dt)
+                for jj, i in enumerate(rows):
+                    out[i] += w * _tail_h_integral(
+                        T, f[jj:jj + 1], -B - mu[i], B - mu[i])[0]
         return out
 
     # -------------------------------------------------------------------
-    def chi2_given_xplus(self, x_plus_norm, n_r=16, nt=2048,
+    def chi2_given_xplus(self, x_plus_norm, n_r=16, nt=4096,
                          n_x1=16, n_s1=16, n_q=16):
         """chi^2(rho || rho_hat) for one conditioning norm ||x_plus||."""
         g1, w1 = gh_nodes(n_x1)

@@ -1,0 +1,6 @@
+[B] delta=1e-01 seed=0: hist-KL=3.76e-04 (floor 3.0e-04), q/step/chain=5.44, acc=0.368, 3114s
+[B] delta=1e-01 seed=1: hist-KL=2.65e-04 (floor 3.0e-04), q/step/chain=5.44, acc=0.368, 2215s
+[B] delta=1e-01 seed=2: hist-KL=3.39e-04 (floor 3.0e-04), q/step/chain=5.44, acc=0.368, 2198s
+[B] delta=1e-02 seed=0: hist-KL=7.45e-04 (floor 1.0e-03), q/step/chain=5.44, acc=0.368, 11777s
+[B] delta=1e-02 seed=1: hist-KL=6.71e-04 (floor 1.0e-03), q/step/chain=5.44, acc=0.368, 803s
+all done in 20108s
