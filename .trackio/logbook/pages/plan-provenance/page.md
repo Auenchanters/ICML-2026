@@ -9,13 +9,13 @@
 
 **Summary.** The paper introduces FORS (first-order rejection sampling), a Bernoulli-factory-based rejection sampler that produces samples from a tilted proposal q·e^w using only *unbiased estimates* of w — no density or zeroth-order access (Algorithm 1, Theorem 3.1, an exact identity). Applying it to the backward kernels of a diffusion process with a path-integral estimator built from score/denoiser differences (Algorithm 2, Eqs. 13–14), it achieves δ-accurate sampling in **polylog(1/δ)** steps — an exponential improvement in δ over all prior diffusion samplers, which pay poly(1/δ) for their per-step Gaussian-approximation bias (Theorem 4.3, Corollary 4.4). Complexity depends on the data distribution only through its intrinsic dimension d⋆ (≤ ambient d), and refines to Frobenius-norm-Lipschitz rates under a non-uniform smoothness condition (Theorem 4.9, Props 4.7/4.10). The same machinery implements the restricted Gaussian oracle of the proximal sampler, yielding the first polylog(1/ε) high-accuracy log-concave/isoperimetric samplers from **first-order queries only** (Section 5, Theorem G.1). The paper is purely theoretical: *"Although this is a primarily theoretical work, we are working toward implementation and experimental evaluation, which will be left for future work"* (Conclusion, v2) — **no code and no experiments exist**, so a faithful independent numerical implementation verified against closed-form ground truth constitutes the reproduction.
 
-**The five registered claims (verbatim):**
+**The five challenge claims (paper #10218, OpenReview GW3umRqsZZ, verbatim):** — note they quote the paper's **v1** theorem numbering (Thm 4.1/4.4/4.6); the v1↔v2 mapping is established in the version audit below.
 
-> **C1.** The diffusion sampler attains delta-error in polylog(1/delta) steps given sufficiently accurate score estimates (Theorem 4.3)
-> **C2.** Under minimal data assumptions, the diffusion sampling complexity is stated as Õ(d polylog(1/delta)), where d is the data dimension (Theorem 4.3)
-> **C3.** When the data distribution has intrinsic dimension d*, the complexity reduces to Õ(d* polylog(1/delta)) (Corollary 4.4)
-> **C4.** Under a non-uniform Lipschitz condition, the diffusion sampling complexity is refined to Õ(sqrt(dL) polylog(1/delta)) (Theorem 4.9)
-> **C5.** The same framework yields a polylog(1/delta)-accuracy sampler for log-concave and more general isoperimetric distributions using first-order gradient queries (Section 5)
+> **Claim 1.** The paper's First-Order Rejection Sampling (FORS) meta-algorithm (Theorem 3.1) produces samples with error δ using sample complexity bounded by 3Be^(2B)log(2/δ) with probability 1-δ (Theorem 3.1).
+> **Claim 2.** Under only a finite second-moment assumption (minimal assumptions), the diffusion sampler achieves query complexity O(d·log²(1/δ) + log³(1/δ)), giving polylog(1/δ) dependence rather than the poly(1/δ) of prior work (Theorem 4.1, Section 4).
+> **Claim 3.** Under a non-uniform Lipschitz condition on the score (Assumption 4.3), a DDPM-like sampler achieves total-variation error controlled via chi-squared divergence with complexity O(√(dL_δ log(d/δ))·log(d/δ) + L_δ log²(d/δ)) (Theorem 4.4).
+> **Claim 4.** For distributions with low intrinsic dimension d★, an adaptive-step-size method attains complexity O(d★·log²((d+M₂²)/δ²)), replacing the ambient dimension d with d★ (Theorem 4.6).
+> **Claim 5.** Section 5 extends the FORS framework to sample from general log-concave distributions using only gradient evaluations (no density evaluations), giving the first polylog(1/δ) sampler in this setting (Section 5).
 
 **Reproduction strategy.** Every theorem is tested at its own level of generality on analytic targets (Gaussian mixtures, log-concave 1D/2D potentials) with **exact scores** (ε_score = 0), so the theorems' preconditions hold by construction. Per-step error is **certified by deterministic quadrature** through the paper's own chain-rule decomposition (Sec. F.2): KL(p₁‖p̂₁) ≤ KL(p_K‖p̂_K) + Σₖ E KL(ρₖ‖ρ̂ₖ), each term computable to numerical precision with zero Monte-Carlo noise — the strongest available notion of "verified" for a theory paper. End-to-end sampling runs corroborate the certified bounds and measure query counts; negative controls (DDPM baseline, condition-(16) violation, biased estimators, ULA bias floor) demonstrate the tests have power. The conditional clause of C1 ("sufficiently accurate scores") is tested directly by controlled score-noise injection against the paper's Σ η̄ₖ ε²ₖ robustness term.
 
@@ -52,17 +52,17 @@ simple straight-line estimator) is dropped in v2; v2 adds `appdx_structural.tex`
 | Log-concave (Sec. 5) | analogous summary via proximal sampler | LSI: `Õ(κ(d^{1/2}log^{3/2}(R/ε²) + log²(R/ε²)))`; PI; log-concave `Õ(β₁d^{1/2}W₂²/ε²)`; s=0 variants; v2 adds KLS remark (`C_PI ≤ O(log d)·‖E XXᵀ‖_op`) | **Essentially unchanged**, remark added |
 | FORS core (Thm 3.1) | `thm:fors` | `thm:fors` — identical statement: output density ∝ q·e^{E[W₁|x]}; ≤ 3Be^{2B}log(2/δ) draws w.p. 1−δ; O(Be^{2B}(T+log(1/δ))) over T calls | **Identical** |
 
-## Claim-by-claim provenance (challenge claims, orid 71132, verbatim)
+## Claim-by-claim provenance (challenge claims, paper #10218 / GW3umRqsZZ, verbatim)
 
-| # | Claim text | Verdict of audit |
+| # | Claim (abridged) | Verdict of audit |
 |---|---|---|
-| 1 | "delta-error in polylog(1/delta) steps given sufficiently accurate score estimates (Theorem 4.3)" | Matches v2 Thm 4.3 + Cor 4.4 directly. Note the conditional clause ("given sufficiently accurate scores") maps to the `Σ η_k ε²_{k,score}` robustness term — tested in EXP-1 Arm C. |
-| 2 | "complexity … Õ(d polylog(1/delta)), where d is the data dimension (Theorem 4.3)" | Claim wording matches **v1** `thm:DM-clip-simple` / boxed `max{d, log(1/δ)}log²(...)`. v2's Thm 4.3 states the sharper d⋆ bound; since d⋆ ≤ d always, the claim as written is **implied a fortiori** by v2. No contradiction. |
-| 3 | "intrinsic dimension d*, complexity reduces to Õ(d* polylog(1/delta)) (Corollary 4.4)" | Matches v2 Cor 4.4 (boxed d⋆·log³) exactly; in v1 this was the separate adaptive theorem. |
-| 4 | "Õ(sqrt(dL) polylog(1/delta)) (Theorem 4.9)" | "√(dL)" appears **verbatim** in v1 `thm:DM-clip-path`'s boxed bound. v2's Thm 4.9 is stated as `L_F·log³` with Prop 4.7 giving `L_F ≲ √(L_op·d⋆)` and Prop 4.10 giving `min{√(d·L_op), d⋆^{2/3}L_op^{1/3}}` — so √(dL) is a true (weaker) consequence of the v2 statements. **No falsification available; do not chase one.** |
-| 5 | "polylog(1/delta)-accuracy sampler for log-concave and more general isoperimetric distributions using first-order gradient queries (Section 5)" | Matches v2 Section 5 / Theorem G.1 (appendix `appdx_log_concave.tex`). Unchanged between versions. |
+| 1 | FORS (Thm 3.1): error δ with draw complexity 3Be^(2B)log(2/δ) w.p. 1−δ | Theorem 3.1 is **identical in v1 and v2** (`thm:fors`). Directly and exactly testable — verified on the Claim 1 page. |
+| 2 | minimal assumptions: O(d·log²(1/δ) + log³(1/δ)), polylog vs poly of prior work (Thm 4.1) | Quotes v1 `thm:DM-clip-simple`'s boxed bound `max{d, log(1/δ)}·log²((d+M₂²)/δ²)` **verbatim** (= d·log² + log³). v2 sharpens d → d★ (Thm 4.3/Cor 4.4); the claim as written is implied a fortiori. δ-dependence and d-sufficiency verified on the Claim 2 page. |
+| 3 | non-uniform Lipschitz (Asmp 4.3): TV via χ², O(√(dL_δ log(d/δ))·log(d/δ) + L_δ log²(d/δ)) (Thm 4.4) | Quotes v1 `thm:DM-clip-path`'s boxed bound **verbatim** (incl. the TV² ≤ 2H² route via χ²-type analysis). v2 restates as Thm 4.9 (`L_F·log³`, Frobenius assumption) + Prop 4.7/4.10, fixing v1's degraded score-error term. The claim is a true consequence of both versions; verified on the Claim 3 page. |
+| 4 | low intrinsic dimension: adaptive step size, O(d★·log²((d+M₂²)/δ²)) (Thm 4.6) | Quotes v1 `thm:DM-clip-path-adapt`'s boxed bound **verbatim**; the "adaptive-step-size method" is the geometric η_k = σ_k²/G schedule. v2 mainlines this into Thm 4.3/Cor 4.4 (boxed d★·log³). Verified on the Claim 4 page. |
+| 5 | Section 5: log-concave sampling from gradient evaluations only, first polylog(1/δ) | Section 5 essentially unchanged v1 → v2 (v2 adds a KLS remark). Verified on the Claim 5 page. |
 
-**Conclusion.** Claims 2 and 4 were phrased against v1's statements; v2 sharpened both
+**Conclusion.** Claims 2, 3, and 4 are phrased against v1's statements; v2 sharpened both
 (d → d⋆, √(dL·log) → L_F with a clean KL bound). Every claim as written is a true
 consequence of the v2 theorems. The reproduction targets the paper's actual (sharper) v2
 statements and reports both readings on the relevant claim pages.

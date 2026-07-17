@@ -1,4 +1,4 @@
-# Claim 1: polylog(1/δ) steps (Theorem 4.3)
+# Claim 2: polylog(1/δ) under minimal assumptions (Theorem 4.1 [v2: Thm 4.3])
 
 
 ---
@@ -1410,9 +1410,11 @@ k,kl
 
 ---
 <!-- trackio-cell
-{"type": "markdown", "id": "cell_9bad1f5d8128", "created_at": "2026-07-17T16:24:45+00:00", "title": "Verdict: Claim 1 VERIFIED — certified polylog step count, degree 2.24 ≤ 3, R²=0.997"}
+{"type": "markdown", "id": "cell_9bad1f5d8128", "created_at": "2026-07-17T16:24:45+00:00", "title": "Verdict: Claim 2 VERIFIED — certified polylog step count, degree 2.24 ≤ 3, R²=0.997"}
 -->
-> **Claim 1 (verbatim):** "The diffusion sampler attains delta-error in polylog(1/delta) steps given sufficiently accurate score estimates (Theorem 4.3)"
+> **Claim 2 (challenge, verbatim):** "Under only a finite second-moment assumption (minimal assumptions), the diffusion sampler achieves query complexity O(d·log²(1/δ) + log³(1/δ)), giving polylog(1/δ) dependence rather than the poly(1/δ) of prior work (Theorem 4.1, Section 4)."
+>
+> Numbering note: the challenge quotes the v1 statement (Theorem 4.1, boxed complexity max{d, log(1/δ)}·log²((d+M₂²)/δ²) = d·log² + log³); in v2 this is Theorem 4.3 / Corollary 4.4 sharpened to d★ ≤ d. Both readings are verified here: the δ-dependence below, the d-dependence in the d-scaling section and on the Claim 4 page (d★ version).
 
 **Theorem 4.3 (arXiv:2602.01338v2, `thm:DM-intrinsic`):** if `α_k²η_k ≪ η_{k+1}` and condition (16) `σ_k²/η_k ≫ d⋆log(1/δ) + log²(1/δ)` hold, then `KL(p₁‖p̂₁) ≲ KL(p_K‖p̂_K) + Kδ + Σ_k η̄_k ε²_{k,score}` with O(K) score queries w.h.p. Corollary 4.4's schedule (`η_k = σ_k²/G`, `G = C(d⋆+log(K/δ))log(K/δ)`) gives `K ≤ O((d⋆+log(κ/δ))log²(d⋆κ/δ))`.
 
@@ -1436,7 +1438,7 @@ Rerun: `python experiments/exp1_certified.py` (ladder + DDPM + dense validation;
 
 ## Scope
 
-Verified on 1D analytic mixtures with exact scores — the regime of Theorem 4.3's own statement (the theorem is dimension-explicit; its d-dependence is tested separately under Claims 2–4). Error certified by deterministic quadrature through the paper's own chain-rule decomposition, not estimated from samples. End-to-end sampling corroboration (Arm B) and O(K) query accounting run at δ ∈ {1e-1, 1e-2}; sample-based metrics floor at O(bins/n) and are reported as corroboration only — the certification above is the verified-grade evidence. Not tested: learned (neural) score estimates — the claim's clause is instead tested by exact-norm controlled perturbations (Arm C), which is strictly sharper.
+Verified on 1D analytic mixtures with exact scores — the regime of Theorem 4.3's own statement (the theorem is dimension-explicit; its d-dependence is tested in the d-scaling section below and under Claims 3–4). Error certified by deterministic quadrature through the paper's own chain-rule decomposition, not estimated from samples. End-to-end sampling corroboration (Arm B) and O(K) query accounting run at δ ∈ {1e-1, 1e-2}; sample-based metrics floor at O(bins/n) and are reported as corroboration only — the certification above is the verified-grade evidence. Not tested: learned (neural) score estimates — the claim's clause is instead tested by exact-norm controlled perturbations (Arm C), which is strictly sharper.
 
 
 ---

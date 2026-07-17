@@ -5,11 +5,10 @@
 | Page |
 | --- |
 | [Plan & Provenance](#/plan-provenance) |
-| [Foundations: FORS Exactness](#/foundations-fors-exactness) |
-| [Claim 1: polylog(1/δ) steps (Theorem 4.3)](#/claim-1-polylog-1-steps-theorem-4-3) |
-| [Claim 2: Õ(d·polylog) complexity](#/claim-2-d-polylog-complexity) |
-| [Claim 3: intrinsic dimension d⋆ (Corollary 4.4)](#/claim-3-intrinsic-dimension-d-corollary-4-4) |
-| [Claim 4: non-uniform Lipschitz refinement (Theorem 4.9)](#/claim-4-non-uniform-lipschitz-refinement-theorem-4-9) |
-| [Claim 5: log-concave sampling (Section 5)](#/claim-5-log-concave-sampling-section-5) |
+| [Claim 1: FORS exactness & query complexity (Theorem 3.1)](#/claim-1-fors-exactness-theorem-3-1) |
+| [Claim 2: polylog(1/δ) under minimal assumptions (Theorem 4.1 [v2: Thm 4.3])](#/claim-2-polylog-minimal-assumptions) |
+| [Claim 3: non-uniform Lipschitz refinement (Theorem 4.4 [v2: Thm 4.9])](#/claim-3-non-uniform-lipschitz) |
+| [Claim 4: intrinsic dimension d★ (Theorem 4.6 [v2: Cor 4.4])](#/claim-4-intrinsic-dimension) |
+| [Claim 5: log-concave sampling from gradients only (Section 5)](#/claim-5-log-concave-sampling-section-5) |
 | [Negative Controls & Robustness](#/negative-controls-robustness) |
 | [Conclusion](#/conclusion) |

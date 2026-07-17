@@ -1,4 +1,4 @@
-# Claim 3: intrinsic dimension d⋆ (Corollary 4.4)
+# Claim 4: intrinsic dimension d★ (Theorem 4.6 [v2: Cor 4.4])
 
 
 ---
@@ -64,9 +64,11 @@ d,tau,tr_sub,tr_full
 
 ---
 <!-- trackio-cell
-{"type": "markdown", "id": "cell_1a802fc597ab", "created_at": "2026-07-17T22:36:35+00:00", "title": "Verdict: Claim 3 VERIFIED — G* flat in d (slope 0.02, criterion ≤0.15); structural trace flat to 4 digits"}
+{"type": "markdown", "id": "cell_1a802fc597ab", "created_at": "2026-07-17T22:36:35+00:00", "title": "Verdict: Claim 4 VERIFIED — G* flat in d (slope 0.02, criterion ≤0.15); structural trace flat to 4 digits"}
 -->
-> **Claim 3 (verbatim):** "When the data distribution has intrinsic dimension d*, the complexity reduces to Õ(d* polylog(1/delta)) (Corollary 4.4)"
+> **Claim 4 (challenge, verbatim):** "For distributions with low intrinsic dimension d★, an adaptive-step-size method attains complexity O(d★·log²((d+M₂²)/δ²)), replacing the ambient dimension d with d★ (Theorem 4.6)."
+>
+> Numbering note: the challenge quotes v1's Theorem 4.6 (adaptive step size; boxed max{d★, log(d/δ)}·log²((d+M₂²)/δ²)); in v2 this is mainlined into Theorem 4.3 / Corollary 4.4. The "adaptive-step-size method" is exactly the geometric schedule η_k = σ_k²/G used throughout. Both statements verified here.
 
 **Corollary 4.4 (v2, `cor:poly-log`):** with the schedule σ²_{k+1}/(1−σ²_{k+1}) = (σ²_k/(1−σ²_k))(1+1/G), G = C(d⋆+log(K/δ))log(K/δ): K ≤ O((d⋆+log(κ/δ))log²(d⋆κ/δ)), total complexity **d⋆·log³((d+M₂²)/δ²)** — the ambient dimension d appears only inside logs.
 

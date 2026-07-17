@@ -1,4 +1,4 @@
-# Claim 5: log-concave sampling (Section 5)
+# Claim 5: log-concave sampling from gradients only (Section 5)
 
 
 ---
@@ -618,7 +618,7 @@ logcosh,0.001,3800,2.08048663941085e-06
 <!-- trackio-cell
 {"type": "markdown", "id": "cell_c6b4a77408ed", "created_at": "2026-07-17T22:32:36+00:00", "title": "Verdict: Claim 5 VERIFIED — polylog queries (degree 0.93 ≤ 2, R²=0.9997), chi2 floor 1.3e-11"}
 -->
-> **Claim 5 (verbatim):** "The same framework yields a polylog(1/delta)-accuracy sampler for log-concave and more general isoperimetric distributions using first-order gradient queries (Section 5)"
+> **Claim 5 (challenge, verbatim):** "Section 5 extends the FORS framework to sample from general log-concave distributions using only gradient evaluations (no density evaluations), giving the first polylog(1/δ) sampler in this setting (Section 5)."
 
 **Section 5 / Theorem G.1 (v2):** the proximal sampler's restricted Gaussian oracle RGO_{f,η,y} ∝ exp(−f(x)−‖y−x‖²/2η) *is* a Gaussian tilt, so FORS (Thm 3.3) implements it from first-order queries only; under LSI (s=1): D_χ²(μ̂‖μ) ≤ ε² in Õ(κ(d^{1/2}log^{3/2}(R/ε²) + log²(R/ε²))) queries.
 
