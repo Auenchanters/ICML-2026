@@ -50,6 +50,7 @@ class DiffusionSampler:
 
     def __init__(self, target, sched, B=1.0, score_fn=None):
         self.t, self.s, self.B = target, sched, B
+        self._exact = score_fn is None
         self._score = score_fn or self.exact_score
 
     # exact score of p_k = law of abar_k X0 + sigma_k xi
@@ -58,8 +59,11 @@ class DiffusionSampler:
         return pk.score(x)
 
     def denoiser(self, k, x):
-        """D_k(x) = (x + sigma_k^2 s_k(x)) / abar_k, using the (possibly
-        perturbed) score estimate — matches the paper's D_k defined from s_k."""
+        """D_k(x): with exact scores, use the direct mixture posterior mean
+        (stable as abar_k -> 0 near the terminal step); with a perturbed
+        score ESTIMATE, use the paper's definition D_k = (x + sigma_k^2 s_k)/abar_k."""
+        if self._exact:
+            return self.t.denoiser(x, self.s.abar[k], self.s.sigma2[k])
         return (np.atleast_2d(x) + self.s.sigma2[k] * self._score(k, x)) / self.s.abar[k]
 
     # ---- one backward step ------------------------------------------------

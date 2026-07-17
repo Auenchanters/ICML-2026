@@ -3,6 +3,6 @@
  "B": 1.0,
  "dstar": 1.0,
  "floor": 3e-15,
- "quick": true,
- "runtime_s": 105.95605850219727
+ "quick": false,
+ "runtime_s": 26243.142117261887
 }

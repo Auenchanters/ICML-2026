@@ -115,9 +115,18 @@ class GaussianMixture:
         return cov / tau
 
     def denoiser(self, x, abar, sigma2):
-        """D*(x) = E[X0 | abar X0 + sigma Z = x] = (x + sigma2 * s_k(x))/abar."""
+        """D*(x) = E[X0 | abar X0 + sigma Z = x], computed directly from the
+        mixture posterior (numerically stable even when abar -> 0, unlike the
+        Tweedie form (x + sigma2 * s_k(x))/abar which cancels catastrophically
+        near the terminal step)."""
+        x = np.atleast_2d(np.asarray(x, dtype=np.float64))
         pk = self.noised(abar, sigma2)
-        return (np.atleast_2d(x) + sigma2 * pk.score(x)) / abar
+        r = pk.resp(x)                                        # (n, H)
+        denom = abar**2 * self.var + sigma2                   # (H, d)
+        # E[X0 | x, h] = mu_h + abar*var_h/(abar^2 var_h + sigma2) * (x - abar mu_h)
+        gain = abar * self.var / denom                        # (H, d)
+        mh = self.mu[None] + gain[None] * (x[:, None, :] - abar * self.mu[None])
+        return np.sum(r[:, :, None] * mh, axis=1)
 
 
 def bimodal_1d():

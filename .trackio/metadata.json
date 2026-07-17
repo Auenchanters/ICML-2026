@@ -9,7 +9,7 @@
     "icml2026-repro",
     "paper-71132"
   ],
-  "last_page": "claim-1-polylog-1-steps-theorem-4-3",
+  "last_page": "negative-controls-robustness",
   "local_path_artifacts": [
     {
       "path": "results/exp0/acceptance_identity.csv",
@@ -45,6 +45,48 @@
       "path": "results/exp0/nc0.csv",
       "abs_path": "C:\\Users\\Utkarsh\\Desktop\\Project\\ICML 2026\\results\\exp0\\nc0.csv",
       "size": 63,
+      "artifact_type": "dataset"
+    },
+    {
+      "path": "results/exp1/dense_rung_0p1.csv",
+      "abs_path": "C:\\Users\\Utkarsh\\Desktop\\Project\\ICML 2026\\results\\exp1\\dense_rung_0p1.csv",
+      "size": 27271,
+      "artifact_type": "dataset"
+    },
+    {
+      "path": "results/exp1/per_step_kls.csv",
+      "abs_path": "C:\\Users\\Utkarsh\\Desktop\\Project\\ICML 2026\\results\\exp1\\per_step_kls.csv",
+      "size": 21554,
+      "artifact_type": "dataset"
+    },
+    {
+      "path": "results/exp1/nc2.csv",
+      "abs_path": "C:\\Users\\Utkarsh\\Desktop\\Project\\ICML 2026\\results\\exp1\\nc2.csv",
+      "size": 1752,
+      "artifact_type": "dataset"
+    },
+    {
+      "path": "results/exp1/ddpm_sweep.csv",
+      "abs_path": "C:\\Users\\Utkarsh\\Desktop\\Project\\ICML 2026\\results\\exp1\\ddpm_sweep.csv",
+      "size": 1357,
+      "artifact_type": "dataset"
+    },
+    {
+      "path": "results/exp1/fors_ladder.csv",
+      "abs_path": "C:\\Users\\Utkarsh\\Desktop\\Project\\ICML 2026\\results\\exp1\\fors_ladder.csv",
+      "size": 1343,
+      "artifact_type": "dataset"
+    },
+    {
+      "path": "results/exp1/arm_c.csv",
+      "abs_path": "C:\\Users\\Utkarsh\\Desktop\\Project\\ICML 2026\\results\\exp1\\arm_c.csv",
+      "size": 414,
+      "artifact_type": "dataset"
+    },
+    {
+      "path": "results/exp1/arm_b.csv",
+      "abs_path": "C:\\Users\\Utkarsh\\Desktop\\Project\\ICML 2026\\results\\exp1\\arm_b.csv",
+      "size": 408,
       "artifact_type": "dataset"
     }
   ]

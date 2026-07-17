@@ -94,7 +94,11 @@ def make_perturbed_step(mix, sched, k, eps):
         return ds.exact_score(kk, x) + eps * np.sin(3 * np.atleast_2d(x))
 
     def denoiser(kk, x):
-        return (np.atleast_2d(x) + sched.sigma2[kk] * score(kk, x)) / sched.abar[kk]
+        # (x + sigma2 (s* + eps g))/abar = D*_exact + (sigma2/abar) eps g,
+        # with D*_exact in the cancellation-free posterior-mean form
+        x = np.atleast_2d(x)
+        return (mix.denoiser(x, sched.abar[kk], sched.sigma2[kk])
+                + (sched.sigma2[kk] / sched.abar[kk]) * eps * np.sin(3 * x))
 
     return StepQuad(
         alpha_k=sched.alpha[k], eta_k=sched.eta[k], sigma2_k=sched.sigma2[k],
@@ -190,7 +194,8 @@ def nc2():
 
 if __name__ == "__main__":
     t0 = time.time()
-    arm_c()
-    nc2()
+    if "--armb-only" not in sys.argv:
+        arm_c()
+        nc2()
     arm_b()
     print(f"all done in {time.time() - t0:.0f}s")

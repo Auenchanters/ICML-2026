@@ -113,18 +113,18 @@ def init_kl(mix, sched, grid_n=8001):
 
 
 def strata_indices(K, n_strata):
-    """Geometric strata over k = 0..K-2 (steps use score at k+1 <= K)."""
-    e = np.unique(np.geomspace(1, K - 1, n_strata + 1).astype(int))
-    e[0] = 0
-    return e
+    """Geometric strata over k = 1..K-1 (Algorithm 2 runs steps K-1 down to 1;
+    step k conditions on X_{k+1}, k+1 <= K)."""
+    return np.unique(np.geomspace(1, K - 1, n_strata + 1).astype(int))
 
 
 def certify(mix, sched, ddpm=False, n_strata=24, dense=False, **quad_kw):
-    """Chain-rule sum: dense (all steps) or stratified upper estimate."""
+    """Chain-rule sum over steps k = 1..K-1: dense (all steps) or stratified
+    upper estimate (max of stratum-endpoint values x stratum size)."""
     K = sched.K
     rows = []
     if dense:
-        ks = np.arange(K - 1)
+        ks = np.arange(1, K)
         vals = np.array([per_step_kl(mix, sched, int(k), ddpm, **quad_kw)
                          for k in ks])
         total = float(np.sum(np.maximum(vals, FLOOR)))
@@ -136,12 +136,13 @@ def certify(mix, sched, ddpm=False, n_strata=24, dense=False, **quad_kw):
     cache = {}
     for lo, hi in zip(edges[:-1], edges[1:]):
         for k in {int(lo), int(hi)}:
-            kk = min(k, K - 2)
-            if kk not in cache:
-                cache[kk] = per_step_kl(mix, sched, kk, ddpm, **quad_kw)
-                rows.append(dict(k=kk, kl=float(cache[kk])))
-        seg = max(cache[min(int(lo), K - 2)], cache[min(int(hi), K - 2)], FLOOR)
-        total += seg * (hi - lo)
+            if k not in cache:
+                cache[k] = per_step_kl(mix, sched, k, ddpm, **quad_kw)
+                rows.append(dict(k=k, kl=float(cache[k])))
+        seg = max(cache[int(lo)], cache[int(hi)], FLOOR)
+        total += seg * max(hi - lo, 1)
+    # the last stratum edge K-1 is itself a step; ensure it is counted once
+    total += max(cache[int(edges[-1])], FLOOR)
     return float(total), rows
 
 
