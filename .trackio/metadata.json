@@ -9,5 +9,43 @@
     "icml2026-repro",
     "paper-71132"
   ],
-  "last_page": "foundations-fors-exactness"
+  "last_page": "claim-1-polylog-1-steps-theorem-4-3",
+  "local_path_artifacts": [
+    {
+      "path": "results/exp0/acceptance_identity.csv",
+      "abs_path": "C:\\Users\\Utkarsh\\Desktop\\Project\\ICML 2026\\results\\exp0\\acceptance_identity.csv",
+      "size": 56028,
+      "artifact_type": "dataset"
+    },
+    {
+      "path": "results/exp0/law_histogram.csv",
+      "abs_path": "C:\\Users\\Utkarsh\\Desktop\\Project\\ICML 2026\\results\\exp0\\law_histogram.csv",
+      "size": 5489,
+      "artifact_type": "dataset"
+    },
+    {
+      "path": "results/exp0/query_complexity.csv",
+      "abs_path": "C:\\Users\\Utkarsh\\Desktop\\Project\\ICML 2026\\results\\exp0\\query_complexity.csv",
+      "size": 3843,
+      "artifact_type": "dataset"
+    },
+    {
+      "path": "results/exp0/gof.csv",
+      "abs_path": "C:\\Users\\Utkarsh\\Desktop\\Project\\ICML 2026\\results\\exp0\\gof.csv",
+      "size": 508,
+      "artifact_type": "dataset"
+    },
+    {
+      "path": "results/exp0/w1_scaling.csv",
+      "abs_path": "C:\\Users\\Utkarsh\\Desktop\\Project\\ICML 2026\\results\\exp0\\w1_scaling.csv",
+      "size": 157,
+      "artifact_type": "dataset"
+    },
+    {
+      "path": "results/exp0/nc0.csv",
+      "abs_path": "C:\\Users\\Utkarsh\\Desktop\\Project\\ICML 2026\\results\\exp0\\nc0.csv",
+      "size": 63,
+      "artifact_type": "dataset"
+    }
+  ]
 }
