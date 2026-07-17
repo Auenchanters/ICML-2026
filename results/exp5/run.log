@@ -1,0 +1,33 @@
+[RGO logcosh] 1/eta=2: chi2 = 6.982e-02
+[RGO logcosh] 1/eta=4: chi2 = 1.501e-02
+[RGO logcosh] 1/eta=8: chi2 = 9.055e-04
+[RGO logcosh] 1/eta=16: chi2 = 6.511e-06
+[RGO logcosh] 1/eta=32: chi2 = 1.322e-09
+[RGO logcosh] 1/eta=64: chi2 = 2.220e-16
+[RGO logcosh] 1/eta=128: chi2 = 0.000e+00
+[RGO pseudohuber] 1/eta=2: chi2 = 2.002e-02
+[RGO pseudohuber] 1/eta=4: chi2 = 2.649e-03
+[RGO pseudohuber] 1/eta=8: chi2 = 1.035e-04
+[RGO pseudohuber] 1/eta=16: chi2 = 4.911e-07
+[RGO pseudohuber] 1/eta=32: chi2 = 5.295e-11
+[RGO pseudohuber] 1/eta=64: chi2 = -3.331e-16
+[RGO pseudohuber] 1/eta=128: chi2 = 2.220e-16
+[CHAIN logcosh] kernels built in 69s (min acceptance 0.368)
+[CHAIN logcosh] n=10: chi2 = 1.475e-01
+[CHAIN logcosh] n=20: chi2 = 9.187e-03
+[CHAIN logcosh] n=30: chi2 = 5.872e-04
+[CHAIN logcosh] n=40: chi2 = 3.773e-05
+[CHAIN logcosh] n=50: chi2 = 2.433e-06
+[CHAIN logcosh] n=60: chi2 = 1.609e-07
+[CHAIN logcosh] n=70: chi2 = 1.368e-08
+[CHAIN logcosh] n=80: chi2 = 3.932e-09
+[CHAIN logcosh] n=90: chi2 = 3.230e-09
+[CHAIN logcosh] n=100: chi2 = 3.166e-09
+[CHAIN logcosh] n=110: chi2 = 3.157e-09
+[CHAIN logcosh] n=120: chi2 = 3.156e-09
+[ULA logcosh] h=0.1: plateau chi2 = 2.508e-02 after n=24
+[ULA logcosh] h=0.01: plateau chi2 = 2.114e-04 after n=600
+[ULA logcosh] h=0.001: plateau chi2 = 2.081e-06 after n=3800
+[FIT] chain chi2 ~ exp(-0.183 n), R^2 = 0.89914
+[FLOOR] chain chi2 floor = 3.156e-09 (target <= 1e-10)
+done in 71s -> C:\Users\Utkarsh\Desktop\Project\ICML 2026\results\exp5

@@ -1,0 +1,21 @@
+[S] d=8 tau=0.1: subspace 1.4296  full-rank 5.72
+[S] d=8 tau=0.5: subspace 0.7334  full-rank 2.73
+[S] d=8 tau=2.0: subspace 0.6187  full-rank 1.29
+[S] d=32 tau=0.1: subspace 1.4299  full-rank 22.86
+[S] d=32 tau=0.5: subspace 0.7334  full-rank 10.73
+[S] d=32 tau=2.0: subspace 0.6187  full-rank 3.95
+[S] d=128 tau=0.1: subspace 1.4308  full-rank 91.43
+[S] d=128 tau=0.5: subspace 0.7336  full-rank 42.73
+[S] d=128 tau=2.0: subspace 0.6188  full-rank 14.62
+[S] d=512 tau=0.1: subspace 1.4347  full-rank 365.72
+[S] d=512 tau=0.5: subspace 0.7344  full-rank 170.73
+[S] d=512 tau=2.0: subspace 0.6189  full-rank 57.29
+[G*sub] d=8 seed=0: G* = 5.4 [5.2, 5.7]
+[G*sub] d=8 seed=1: G* = 4.6 [4.4, 4.8]
+[G*sub] d=8 seed=2: G* = 5.0 [4.8, 5.2]
+[G*sub] d=32 seed=0: G* = 5.4 [5.2, 5.7]
+[G*sub] d=32 seed=1: G* = 5.0 [4.8, 5.2]
+[G*sub] d=32 seed=2: G* = 5.9 [5.7, 6.2]
+[G*sub] d=128 seed=0: G* = 4.6 [4.4, 4.8]
+[G*sub] d=128 seed=1: G* = 5.4 [5.2, 5.7]
+[G*sub] d=128 seed=2: G* = 5.9 [5.7, 6.2]
