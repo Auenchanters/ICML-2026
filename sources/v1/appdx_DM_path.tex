@@ -1,0 +1,846 @@
+\subsection{Analysis of a DDPM-like method}
+
+
+
+In this subsection, our goal is to sample from the tilt measure
+\begin{align}\label{eq:def-nu-xz}
+    \piz{x}\propto p(x) \exp\prn[\Big]{-\frac{\nrm{x-\xz}^2}{2\eta}}\,,
+\end{align}
+given an estimated score function $\scf\approx \nabla \log p$.
+We carry out our analysis under the following assumption, which will hold true in the diffusion model setting.
+
+\begin{assumption}\label{asmp:p-conv}
+The distribution $p$ takes the form $p=\pbar*\Nsigma$. We write $\breve p=p*\Neta$.
+\end{assumption}
+
+For the diffusion model applications, we take $p = p_t=\pbar_t*\Nsigma$, where $\pbar_t$ is the distribution of $\alpbar_t X_0$, $X_0\sim \pdata$. Further, under the true diffusion process, we have $\alpha_t^{-1}\xr{t+1}\sim p_t*\normal{0,\eta_t\Id}$.
+
+\paragraph{Notation}
+We decompose $\frac{1}{\eta} = \frac{1}{\bar\eta} - \lambda$ for some $\lambda \ge 0$.
+For~\cref{thm:DM-clip-path}, we can take the simple choice $\lambda = 0$, but our proof of~\cref{thm:DM-clip-path-adapt} requires taking $\lambda > 0$.
+To unify the analyses of the two results, we consider a general choice of $\lambda$ here.
+
+We fix the parameter $\lambda\geq 0$, and we denote $\scfs=\nabla \log p$,
+\begin{align*}
+    \tscf(x)=\scf(x)+\lambda x\,, \qquad
+    \tscfs(x)=\scfs(x)+\lambda x\,.
+\end{align*}
+We also write $\Bbar=\max\crl{B,B^{-1}}$.
+
+In the following, we abbreviate $\En_{\lr,z}[\cdot]\ldef \En_{\lr\sim \unif([0,1]),\,z\sim\Neta}[\cdot]$.
+
+\paragraph{Distributions}
+By~\cref{thm:fors}, \cref{alg:fors} instantiated with the choices $q = \normal{x_0+\bar\eta\scf(x_0),\bar\eta I}$ and
+\begin{align}\label{eq:def-DM-path-What}
+    \widehat W_{z,r,x} = \pclip{\langle \dot\gamma_{z,r,x_0}(x),\, \tscf(\gamma_{z,r,x_0}(x)) - \tscf(x_0)\rangle}
+\end{align}
+samples from the distribution $\rhohz{\cdot}$, where
+\begin{align}\label{eq:rhohz}
+    \log \rhohz{x}=\const+\En_{\lr,z}\pclip[\B]{\tri{\gamzp,\tscf(\gamz)-\tscf(\xz)}}-\frac{\nrm{x-\xz-\etabar\scf(\xz)}^2}{2\etabar}\,.
+\end{align}
+We write $\rhosz{\cdot}$ for the density corresponding to score $\scf=\scfs$, i.e.,
+\begin{align}\label{eq:rhosz}
+    \log \rhosz{x}=\const+\En_{\lr,z}\pclip[\B]{\tri{\gamzp,\tscfs(\gamz)-\tscfs(\xz)}}-\frac{\nrm{x-\xz-\etabar\scfs(\xz)}^2}{2\etabar}\,.
+\end{align}
+Using \cref{eq:path-integral}, we can also write
+\begin{align*}
+    \log \piz{x}+\frac{\nrm{x-\xz-\etabar\scfs(\xz)}^2}{2\etabar}
+    =&~\const+ \log p(x)-\tri{\scfs(\xz),x-\xz}+\frac{\lambda}{2}\,\nrm{x-\xz}^2 \\
+    =&~ \const+\En_{\lr,z}\tri{\gamzp,\tscfs(\gamz)-\tscfs(\xz)}\,,
+\end{align*}
+where we recall $\scfs=\nabla \log p$.
+
+
+
+
+
+
+
+\begin{proposition}[Convergence under true score]\label{prop:DM-path-scfs}
+Suppose that \cref{asmp:p-conv} holds and $\scf=\scfs$, $\B=\Theta(1)$, $G\geq K\geq 1$, $\eta\leq \frac{\sigma^2}{4\Bbar G}$.
+We define the set
+\begin{align*}
+    \cE_{G,K}=\Big\{ (\xbar,V)&: H=\nabla \tscfs(\xbar+V)\,, \;
+    \nrmop{H}\leq \frac{G}{K\sigma^2}\,,\; 
+    \nrmF{H} \leq \frac{G}{\sqrt{K}\sigma^2}\,, \\
+    &\qquad\qquad \abs{\tr(H)}\leq \frac{G^2}{\sigma^2}\,,\; \abs{V\tp HV}\leq G^2\,,\; \nrm{HV}^2\leq \frac{G^3}{K\sigma^2} \Big\}\,.
+\end{align*}
+
+Let $\rhosz{\cdot}$ be the probability density defined in~\eqref{eq:rhosz}. Then it holds that
+\begin{align*}
+\En_{\xz\sim \breve p} \Dkl{\piz{\cdot}}{\rhosz{\cdot}}
+\leqsim \frac{d^{4.5}\eta}{\sigma^2}\, \prn[\bigg]{ e^{-cK}+\sqrt{\max_{\eta'\in[0,2\eta]}\PP_{\xbar\sim \pbar,\, V\sim \normal{0,(\sigma^2+\eta')\Id}}\prn*{(\xbar,V)\not\in \cE_{G,K}}}}\,.
+\end{align*}
+\end{proposition}
+
+\begin{proposition}[Score error]\label{prop:DM-path-score-error}
+    Fix any $\delta\in(0,1)$, $\eta>0$. Suppose that \cref{asmp:p-conv} holds.
+
+    Let $\rhohz{\cdot}$ be the probability density of $x$ defined in~\eqref{eq:rhohz} with score function $\scf$. Then, the following holds.
+
+(1) It holds that
+\begin{align*}
+    \En_{\xz\sim \breve p} \Dkl{\piz{\cdot}}{\rhohz{\cdot}}
+    \leqsim&~ e^{4B}\En_{\xz\sim \breve p} \Dkl{\piz{\cdot}}{\rhosz{\cdot}} \\
+    &~ +e^{4B}\Bbar^2\, \bigl(\delta+G\max_{\eta'\in[0,2\eta]}\En_{X\sim p*\normal{0,\eta'\Id}}\nrm{\scf(X)-\scfs(X)}^2\bigr)\,,
+\end{align*}
+where we denote $G=\eta+\frac{\eta^2}{\sigma^2}\,(d+\log(1/\delta))$.
+
+
+(2) Suppose that $\eta\leq \frac{\sigma^2}{8\max\crl{\sqrt{d\log(1/\delta)},\log(1/\delta)}}$. Then, it holds that
+\begin{align*}
+    \En_{\xz\sim \breve p} \Dhels{\piz{\cdot}}{\rhohz{\cdot}}
+    \leqsim e^{4B}\En_{\xz\sim \breve p} \Dkl{\piz{\cdot}}{\rhosz{\cdot}}+e^{4B}\Bbar^2\, (\delta+G\En_{X\sim p}\nrm{\scf(X)-\scfs(X)}^2)\,.
+\end{align*}
+\end{proposition}
+
+We give the proofs of~\cref{prop:DM-path-scfs} and~\cref{prop:DM-path-score-error} in~\cref{appdx:pf-DM-path-scfs} and~\cref{appdx:pf-DM-path-score-error} respectively.
+
+
+\subsection{Proof of Theorem~\ref{thm:DM-clip-path}}
+
+
+As a direct corollary of \cref{prop:DM-path-scfs}, we have the following result.
+
+\begin{corollary}\label{cor:DM-path-scfs-sqrt-d}
+Suppose that \cref{asmp:p-conv} holds, $B=\Theta(1)$, $L\geq 1$, $\delta\in(0,\frac12)$, $\lambda=0$, and
+\begin{align*}
+    \frac{\sigma^2}{\eta}\geq C_0 \max\crl{L\log(1/\delta), \sqrt{dL\log(1/\delta)}}\,,
+\end{align*}
+where $C_0$ is a sufficiently large constant. 
+
+\fcedit{
+Suppose that given $\xz$, \cref{alg:fors} is instantiated with \eqref{eq:def-DM-path-What}, and let $\wh{\rho}_{\xz}(\cdot)$ be the output distribution (given input $\xz$).
+}
+Then it holds that 
+\begin{align*}
+\En_{\xz\sim \breve p} \Dhels{\piz{\cdot}}{\rhohz{\cdot}}
+\leqsim d^4\,\prn[\Big]{ \delta+\sqrt{\PP_{x\sim p}\prn[\big]{\nrmop{\nabla \scfs(x)}\geq \frac{L}{\sigma^2}}} }\,+G\En_{x\sim p}\nrm{\scf(x)-\scfs(x)}^2,
+\end{align*}
+where $\piz{x}\propto p(x)\exp\prn[\Big]{-\frac{\nrm{x-\xz}^2}{2\eta}}$ is the titled measure defined in \cref{eq:def-nu-xz}, and $G=\eta+\frac{\eta^2}{\sigma^2}\,(d+\log(1/\delta))$.
+\end{corollary}
+\begin{proof}[\pfref{cor:DM-path-scfs-sqrt-d}]
+Fix any $\sigbar^2\in [\sigma^2,\sigma^2+2\eta]$ and $K=\max\crl{c^{-1}\log(1/\delta),1}$. We write $\PP_{\sigbar}(\cdot)$ to be the probability distribution of $(\xbar,V)$ under $\xbar\sim \pbar$ and $V\sim \normal{0,\sigbar^2\Id}$. 
+Define
+\begin{align*}
+    E_0\ldef \crl[\big]{(\xbar,V): \nrmop{\nabla \tscfs(\xbar+V)}\leq \frac{L}{\sigma^2}}\,.
+\end{align*}
+By \cref{prop:nabla-p-MGF} in~\cref{appdx:lemmas} and \cref{lem:Gaussian-vMGF}, it holds that $\PP_{\sigbar}((\xbar,V)\not \in E_1)\leq \delta^2$, where
+\begin{align*}
+    E_1\deq \crl[\Big]{(\xbar, V): \nrm{V}^2\leq C\sigma^2(d+\log(1/\delta))\,, ~~\nrmnuc{\nabla \tscfs(\xbar+V)}\leq \frac{C(d+\log(1/\delta))}{\sigma^2}}\,.
+\end{align*}
+Now, suppose that
+\begin{align*}
+    G\geq \max\crl{KL, \sqrt{C(d+\log(1/\delta))KL}}\,.
+\end{align*}
+We argue that $E_0\cap E_1\subseteq \cE_{G,K}$. This is because for $(\xbar,V)\in E_0\cap E_1$ and $H=\nabla \tscfs(\xbar+V)$, we can bound
+\begin{align*}
+    &~\nrmF{H}\leq\sqrt{\nrmop{H}\cdot \nrmnuc{H} } \leq \frac{\sqrt{C(d+\log(1/\delta))L}}{\sigma^2}\leq \frac{G}{\sqrt{K}\sigma^2}\,, \\
+    &~\abs{\tr(H)}\leq \nrmnuc{H}\leq \frac{C(d+\log(1/\delta))}{\sigma^2}\leq \frac{G^2}{\sigma^2}\,, \\
+    &~ \abs{V\tp H V} \leq \nrmop{H}\nrm{V}^2 \leq CL(d+\log(1/\delta))\leq G^2\,, \\
+    &~ \nrm{HV}^2\leq \nrmop{H}^2\nrm{V}^2\leq \frac{CL^2(d+\log(1/\delta))}{\sigma^2}\leq \frac{G^3}{K\sigma^2}\,.
+\end{align*}
+This immediately gives $E_0\cap E_1\subseteq \cE_{G,K}$, and hence
+\begin{align*}
+    \PP_{\sigbar}\prn*{(\xbar,V)\not\in \cE_{G,K}}
+    \leq \PP_{\sigbar}(E_0^\comp)+\PP_{\sigbar}(E_1^\comp)\,.
+\end{align*}
+Note that $\PP_{\sigbar}(E_1^\comp)\leq \delta^2$ and by \cref{prop:nabla-p-MGF}, 
+\begin{align*}
+    \PP_{\sigbar}( E_0^\comp)
+    \leq e\PP_{\sigma}(E_0^\comp)+e\delta^2\,.
+\end{align*}
+Then, by~\cref{prop:DM-path-scfs}, it holds that
+\begin{align*}
+\En_{\xz\sim \breve p} \Dkl{\piz{\cdot}}{\rhosz{\cdot}}
+\leqsim d^4\,\prn[\Big]{ \delta+\sqrt{\PP_{x\sim p}\prn[\big]{\nrmop{\nabla \scfs(x)}\geq \frac{L}{\sigma^2}}} },
+\end{align*}
+where $\rhosz{\cdot}$ is defined in \cref{eq:rhosz}. Finally, applying \cref{prop:DM-path-score-error} (2) gives the desired result.
+\end{proof}
+
+\begin{proof}[\pfref{thm:DM-clip-path}]
+To prove \cref{thm:DM-clip-path}, we recall that the process $\xr{T}\to\cdots\to\xr{1}$ generated by \cref{alg:DM} is a Markov chain such that $\xr{T}\sim \phat_T$, and $\xr{t}\mid \xr{t+1}\sim \wh\rho_t(\cdot\mid \xr{t+1})$, where $\wh\rho_t(\cdot\mid \xr{t+1})$ is the conditional distribution of $\xr{t}$ given $\xr{t+1}$.
+The chain rule for the Hellinger distance (\cref{lem:Hellinger-chain}) yields
+\begin{align*}
+    \Dhels{p_1}{\wh p_1}
+    &\leq 7 \Dhels{p_T}{\wh p_T} + 7\sum_{t=1}^{T-1} \E_{\xr{t+1} \sim p_{t+1}}\Dhels{\rho_t(\cdot \mid \xr{t+1})}{\wh\rho_t(\cdot \mid \xr{t+1})}\,.
+\end{align*}
+Note that under $X_{t+1}\sim p_{t+1}$, it holds that $\xbar_t=\alpha_t^{-1}X_{t+1}\sim p*\normal{0,\eta_t\Id}$. Hence, \cref{cor:DM-path-scfs-sqrt-d} implies that for $t\in[T]$, it holds that 
+\begin{align*}
+    \En_{\xr{t+1} \sim p_{t+1}}\Dhels{\rho_t(\cdot \mid \xr{t+1})}{\wh\rho_t(\cdot \mid \xr{t+1})}
+    \leqsim&~ \delta+\prn[\Big]{\eta+\frac{\eta^2}{\sigma^2}\,(d+\log(1/\delta))} \En_{X\sim p_t}\nrm{\scf_t(X)-\scfs_t(X)}^2\,.
+\end{align*}
+The proof of \cref{thm:DM-clip-path} is then completed by combining inequalities above.
+\end{proof}
+
+\subsection{Proof of Theorem~\ref{thm:DM-clip-path-adapt}}
+
+
+As a direct corollary of \cref{prop:DM-path-scfs} and \cref{prop:logp-adapt}, we have the following result.
+
+\begin{corollary}\label{cor:DM-path-adapt}
+Suppose that \cref{asmp:p-conv} holds, $B=\Theta(1)$, $\delta\in(0,\frac12)$, $\lambda=\frac{1}{\sigma^2}$, and
+\begin{align*}
+    \frac{\sigma^2}{\eta}\ge C_0\,\prn[big]{ \dstar\log(d/\delta)+\log^2(d/\delta)}\,,
+\end{align*}
+where $C_0$ is a sufficiently large constant. 
+
+\fcedit{
+Suppose that given $\xz$, \cref{alg:fors} is instantiated with \eqref{eq:def-DM-path-What}, and let $\wh{\rho}_{\xz}(\cdot)$ be the output distribution (given input $\xz$).
+}Then it holds that 
+\begin{align*}
+\En_{\xz\sim \breve p} \Dkl{\piz{\cdot}}{\rhohz{\cdot}}
+\leqsim \delta+G\max_{\eta'\in[0,2\eta]}\En_{X\sim p*\normal{0,\eta'\Id}}\nrm{\scf(X)-\scfs(X)}^2\,,
+\end{align*}
+where we denote $G=\eta+\frac{\eta^2}{\sigma^2}\,(d+\log(1/\delta))$.
+\end{corollary}
+\begin{proof}[\pfref{cor:DM-path-adapt}]
+We write $\PP_{\sigbar}(\cdot)$ to be the probability distribution of $(\xbar,V)$ under $\xbar\sim \pbar$ and $V\sim \normal{0,\sigbar^2\Id}$. 
+Fix $\delta\in(0,\frac12]$ and write $D=\dstar+\log(d/\delta)$, $K=\max\crl{c^{-1}\log(d^{10}/\delta^2),1}$. 
+
+Recall that $\tscfs(x)=\scfs(x)+\frac{x}{\sigma^2}$ and $\nabla \tscfs(x)=\nabla \scfs(x)+\frac{\Id}{\sigma^2}$. Consider the following set:
+\begin{align*}
+    E=\crl[\Big]{(\xbar,V): \tr(\nabla \tscfs(\xbar+V))\leq \frac{CD}{\sigma^2}\,,\; V\tp\nabla \tscfs(\xbar+V)V\leq \scedit{CD}}\,,
+\end{align*}
+where $C>0$ is an absolute constant such that by \cref{prop:logp-adapt}, it holds that $\PP_{\sigbar}((\xbar,V)\not\in E)\leq \frac{\delta^2}{d^{10}}$ for $\sigbar\in[0,2\sigma]$. 
+
+Now, note that for PSD matrix $H\succeq 0$, it holds that $\nrmop{H}\leq \nrmF{H}\leq \tr(H)$, and $\nrm{HV}^2\leq \nrmop{H}\cdot V\tp HV$. This immediately implies that with the choice $G=CKD$, it holds that $E\subseteq \cE_{G,K}$. This immediately implies that for any $\eta'\in[0,2\eta]$, it holds that 
+\begin{align*}
+    \PP_{\xbar\sim \pbar,\, V\sim \normal{0,(\sigma^2+\eta')\Id}}\prn*{(\xbar,V)\not\in \cE_{G,K}}\leq \frac{\delta^2}{d^{10}}\,.
+\end{align*}
+Applying \cref{prop:DM-path-scfs} with $\eta\leq \frac{\sigma^2}{4\Bbar G}$ gives
+\begin{align*}
+\En_{\xz\sim \breve p} \Dkl{\piz{\cdot}}{\rhosz{\cdot}}
+\leqsim\delta\,.
+\end{align*}
+Applying \cref{cor:DM-path-adapt} completes the proof.
+\end{proof}
+
+\begin{proof}[\pfref{thm:DM-clip-path-adapt}]
+    \scedit{The proof is the same as the proof of \cref{thm:DM-clip-path}, except that we use \cref{cor:DM-path-adapt} instead.}
+\end{proof}
+
+
+
+
+The following proposition generalizes the argument of \citet{huang2024denoising} that bounds the posterior covariance matrix in terms of the intrinsic dimension. As a remark, we also note that this argument can recover \cref{prop:nabla-p-MGF} (2) easily.
+
+\begin{proposition}\label{prop:logp-adapt}
+Suppose that the data distribution $\pdata$ has support $\cXbar=\supp(\pdata)$. Let $\Ndata(r)=N(\cXbar; r, \nrm{\cdot}_2)$ be the covering number of $\cXbar$ under Euclidean norm, and we denote $\dstar=1+\log \Ndata(\sigma/\sqrt{d})$. 
+
+In the following, we consider $p=\pdata*\Nsigma$ and bound the shifted Hessian matrix $H(x)\ldef \sigma^2\nabla^2 \log p(x)+\Id\succeq 0$.
+
+For $\sigbar\geq0$, we write $\PP_{\sigbar}(\cdot)$ to the probability of $(\xbar,V)$ under $\xbar\sim \pdata$, $V\sim \normal{0,\sigbar^2\Id}$.
+Then, the following holds for any $\sigbar\in[0,2\sigma]$ and any $\delta\in(0,1)$:
+\begin{align}
+    \PP_{\sigbar}\prn*{ \tr(H(\xbar+V))\geq C(\dstar+\log(1/\delta)) }\leq \delta\,, \label{eq:intrinsic-tail}\\
+    \PP_{\sigbar}\prn*{ \nrm{V}_{H(\xbar+V)}\geq C\sigma (\dstar+\log(1/\delta))}\leq \delta\,, \label{eq:intrinsic-tail-nrm}
+\end{align}
+where $C>0$ is an absolute constant. 
+\end{proposition}
+
+
+\begin{proof}
+We first recall that by definition,
+\begin{align*}
+    \nabla^2 \log p(x)=-\frac{\Id}{\sigma^2}+
+    \frac{\Cov(X_0\mid X=x)}{\sigma^4}\,,
+\end{align*}
+where the conditional covariance is over the joint distribution of $X_0\sim \pdata$, $X\sim \normal{X,\sigma^2\Id}$. Then,
+\begin{align*}
+    H(x)\ldef \sigma^2\nabla^2 \log p(x)+\Id=\frac{\Cov(X_0\mid X=x)}{\sigma^2}\succeq 0\,,
+\end{align*}
+and by the definition of covariance, we can bound $H(\xbar+V)$ as follows:
+\begin{align}\label{pfeq:tr-Hessian}
+    \begin{aligned}
+    \sigma^2 \tr(H(\xbar+V))
+    \leq&~ \frac{\En_{X_0\sim \pdata}\brk*{ \nrm{X_0-\xbar}^2\exp\prn*{-\frac{\nrm{\xbar+V-X_0}^2}{2\sigma^2}} }}{\En_{X_0\sim \pdata}\brk*{ \exp\prn*{-\frac{\nrm{\xbar+V-X_0}^2}{2\sigma^2}} }} \\
+    \leq&~ M^2+\frac{\En_{X_0\sim \pdata}\brk*{ \prn*{\nrm{X_0-\xbar}^2-M^2}_+\exp\prn*{-\frac{\nrm{\xbar+V-X_0}^2}{2\sigma^2}} }}{\En_{X_0\sim \pdata}\brk*{ \exp\prn*{-\frac{\nrm{\xbar+V-X_0}^2}{2\sigma^2}} }} \\
+    =&~ M^2+\frac{\En_{X_0\sim \pdata}\brk*{ \prn*{\nrm{X_0-\xbar}^2-M^2}_+\exp\prn*{-\frac{\nrm{\xbar-X_0}^2+2\tri{V,\xbar-X_0}}{2\sigma^2}} }}{\En_{X_0\sim \pdata}\brk*{ \exp\prn*{-\frac{\nrm{\xbar-X_0}^2+2\tri{V,\xbar-X_0}}{2\sigma^2}} }}\,.
+    \end{aligned}
+\end{align}
+
+Let $r=\frac{\sigma}{\sqrt{d}}$.
+Fix a $r$-covering of $\cXbar$:
+\begin{align*}
+    \cXbar\subseteq \bigcup_{i=1}^N B_i,
+\end{align*}
+where $N=\Ndata(r)$ and $B_1,\dotsc, B_N$ are balls of radius $r$ and centers $z_1,\dotsc,z_N$. 
+
+Let $\cI=\crl{i\in[N]: \pdata(B_i)\geq \alpha}$, and let $\cX_+=\bigcup_{i\in\cI} B_i$.
+
+We make the following claims.
+
+\textbf{Claim 1.} Define $M_1=2\sigma\,(\sqrt{d}+2\sqrt{\log(2/\delta)})$, $M_2=\min\crl{8\sigma \sqrt{\log(2N/\delta)},M_1}$,
+\begin{align*}
+    \cV=\crl{V: \nrm{V}\leq M_1,\, \abs{\tri{V,x-x'}}\leq M_2\nrm{x-x'}+4rM_1,~\forall x,x'\in\cXbar}\,.
+\end{align*}
+Then for any $\sigbar\in[0,2\sigma]$, it holds that $\PP_{V\sim \normal{0,\sigbar^2\Id}}(V\not \in \cV)\leq \delta$.
+
+\textbf{Proof of Claim 1.}
+By Gaussian concentration, it is clear that $\PP_{\sigbar}(\nrm{V}\geq \sigbar(\sqrt{d}+2\sqrt{t}))\leq e^{-t}$ for $t\geq 0$.
+
+Further, for any $i,j\in[N]$, it holds that $\PP_{\sigbar}(\abs{\tri{V,z_i-z_j}}\leq \sigbar\nrm{z_i-z_j}\sqrt{2t})\leq 2e^{-t}$ for $t\geq 0$. Hence, by a union bound, we can show that $\PP_{\sigbar}(V\not \in\cV_0)\leq \delta$, where
+\begin{align*}
+    \cV_0=\crl{V: \nrm{V}\leq M_1,\, \abs{\tri{V,z_i-z_j}}\leq M_2\nrm{z_i-z_j},~\forall i,j\in[N]}\,.
+\end{align*}
+Note that for any $V\in\cV_0$, it is clear that for any $i,j\in[N]$, $x\in B_i, x'\in B_j$, we can bound 
+\begin{align*}
+    \abs{\tri{V,x-x'}}
+    \leq \abs{\tri{V,z_i-z_j}}+2r\nrm{V}
+    \leq M_2\nrm{z_i-z_j}+2rM_1 
+    \leq M_2\nrm{x-x'}+2r(M_1+M_2)\,.
+\end{align*}
+This implies that $\cV_0\subseteq \cV$, and the proof of Claim 1 is hence completed.
+\qed
+
+Next, we proceed to bound $\tr(H(\cdot))$ by combining Claim 1 and \cref{pfeq:tr-Hessian}. Fix $M\geq 8(M_2+\sqrt{rM_1})$.
+Suppose that $\xbar\in\cX_+$ and $V\in\cV$.
+Using $V\in\cV$ and $\xbar,x\in\cXbar$, as long as $\nrm{\xbar-x}\geq M$, we know
+\begin{align*}
+    \abs{\tri{V,\xbar-x}}
+    \leq M_2\nrm{\xbar-x}+4rM_1\leq \frac{1}{4}\,\nrm{\xbar-x}^2\,,
+\end{align*}
+and hence in this case $\nrm{\xbar-x}^2+2\tri{V,\xbar-x}\geq \frac{1}{2}\nrm{\xbar-x}^2$. This immediately implies that 
+\begin{align*}
+    &~\En_{X_0\sim \pdata}\brk[\Big]{ \prn[\big]{\nrm{X_0-\xbar}^2-M^2}_+\exp\prn[\Big]{-\frac{\nrm{\xbar-X_0}^2+2\tri{V,\xbar-X_0}}{2\sigma^2}} } \\
+    \leq&~ \En_{X_0\sim \pdata}\brk[\Big]{ \prn*{\nrm{X_0-\xbar}^2-M^2}_+\exp\prn[\Big]{-\frac{\nrm{\xbar-X_0}^2}{4\sigma^2}} }\
+    \leq M^2\exp\prn[\Big]{-\frac{M^2}{4\sigma^2}}\,,
+\end{align*}
+where we use the fact that $u\mapsto ue^{-u}$ is decreasing over $u\geq 1$.
+
+On the other hand, suppose that $V\in\cV$ and $\xbar\in B_i$ such that $\pdata(B_i)\geq \alpha$. Note that for any $x\in B_i$, $\nrm{x-\xbar}\leq 2r$, and hence we can bound
+\begin{align*}
+    \nrm{\xbar-x}^2+2\tri{V,\xbar-x}
+    \leq 4r^2+4r(M_1+M_2)\,.
+\end{align*}
+This implies that
+\begin{align*}
+    \En_{X_0\sim \pdata}\brk[\Big]{ \exp\prn[\Big]{-\frac{\nrm{\xbar-X_0}^2+2\tri{V,\xbar-X_0}}{2\sigma^2}} }
+    \geq&~ \En_{X_0\sim \pdata}\brk*{\indic\crl{X_0\in B_i}\exp\prn*{-2\sigma^{-2}(r^2+r(M_1+M_2))}} \\
+    \geq&~ \alpha \exp\prn*{-2\sigma^{-2}(r^2+r(M_1+M_2))}\,.
+\end{align*}
+Combining the above bounds, we can conclude that as long as $\xbar\in\cX_+$ and $V\in\cV$, with $M=8(M_2+\sqrt{r(M_1+M_2)}+r)+2\sigma\sqrt{\log(1/\alpha)}$,
+it holds that
+\begin{align*}
+    \sigma^2\tr(H(\xbar+V))\leq M^2+\frac{M^2}{\alpha}\exp\prn[\Big]{\frac{2(r^2+r(M_1+M_2))}{\sigma^2}-\frac{M^2}{4\sigma^2}}\leq2M^2\,.
+\end{align*}
+Note that $\PP_{\xbar\sim \pdata}(\xbar\not\in \cX_+)\leq \sum_{i: \pdata(B_i)<\alpha} \pdata(B_i)\leq N\alpha=\delta$, and hence
+\begin{align*}
+    \bbP_{\sigbar}\prn*{\sigma^2\tr(H(\xbar+V))\leq 2M^2}\leq 2\delta\,.
+\end{align*}
+Rescaling $\delta\leftarrow \frac{\delta}{2}$ and plugging in the definition of $M$ completes the proof of \cref{eq:intrinsic-tail}.
+
+Similarly, we note that for $V\in\cV$,
+\begin{align*}
+    \sigma^2 \cdot V\tp H(\xbar+V) V 
+    \leq&~ V\tp \En[(X_0-\xbar)(X_0-\xbar)\tp\mid X=\xbar+V]V 
+    =\En[\tri{X_0-\xbar, V}^2\mid X=\xbar+V] \\
+    \leq&~ \En[(M_2\nrm{X_0-\xbar}+4rM_1)^2\mid X=\xbar+V] \\
+    \leq&~ 2M_2^2\En[\nrm{X_0-\xbar}^2\mid X=\xbar+V]+32r^2M_1^2\,.
+\end{align*}
+Our argument above then shows that \begin{align*}
+    \bbP_{\sigbar}\prn*{\sigma^2 \cdot V\tp H(\xbar+V) V\leq c_1M^4}\leq 2\delta\,,
+\end{align*} 
+where $c_1>0$ is an absolute constant. Rescaling $\delta$ gives \cref{eq:intrinsic-tail-nrm}.
+\end{proof}
+
+
+
+\subsection{Technical lemmas}\label{appdx:lemmas}
+
+
+
+
+
+
+
+\begin{proposition}\label{prop:nabla-p-MGF}
+Suppose that $p=\pbar*\Nsigma$ and $\breve p=\pbar*\normal{0,\sigbar^2\Id}$ such that $\abs{\sigbar^2-\sigma^2}\leq \frac{\sigma^2}{2}$. 
+
+(1) It holds that
+\begin{align*}
+    \En_{X\sim \breve p} \exp\prn[\Big]{ \frac{\sigma^2}{8}\nrm{\nabla \log p(X)}^2} \leq \exp\prn[\big]{\frac{d}{2}}\,.
+\end{align*}
+
+(2) It holds that
+\begin{align*}
+    \En_{X\sim \breve p} \exp\prn[\Big]{ \frac{\sigma^2}{8}\nrmnuc*{\nabla^2 \log p(X)+\sigma^{-2}\Id}} \leq \exp\prn[\big]{\frac{d}{2}}\,.
+\end{align*}
+
+(3) Suppose that $\abs{\sigbar^2-\sigma^2}\leq \frac{\sigma^2}{8\max\crl{\sqrt{d\log(1/\delta)},\log(1/\delta)}}$. For any $F:\RR^d\to [0,1]$, it holds that
+\begin{align*}
+    \En_{X\sim \breve p} F(X)
+    \leq e\cdot (\En_{X\sim p} F(X)+\delta)\,.
+\end{align*}
+\end{proposition}
+\begin{proof}
+We first prove (3). Denote $\mu=\Nsigma$ and $\pi=\normal{0,\sigbar^2\Id}$. We denote $\eps\deq \frac{\sigbar^2}{\sigma^2}-1$. Then, as long as $\lambda\eps<\frac12$ and $\eps\geq -\frac12$,
+\begin{align*}
+    \log(1+\Dren[1+\lambda]{\pi}{\mu})=\frac{d}{2}\,\brk*{-\log(1-\lambda\eps)-\lambda\log(1+\eps)}
+    \leq \frac{d\lambda(1+\lambda)}{2}\,\eps^2
+\end{align*}
+where we use $\log(1+u)\geq u-u^2$ for $u\geq -\frac12$. Then, by the data-processing inequality, this gives
+\begin{align*}
+    1+\Dren[1+\lambda]{\breve p}{p}\leq \exp\prn[\Big]{\frac{d\lambda(1+\lambda)}{2}\,\eps^2}\,, \qquad \forall \lambda\leq \frac{1}{2\abs{\eps}}\,.
+\end{align*}
+Then, using \cref{lem:Renyi-to-cov} and $\eps^2 d\leq \frac14$, we know
+\begin{align*}
+    \En_{X\sim \breve p} F(X)
+    -e\En_{X\sim p} F(X)
+    \leq \min_{1 \le \lambda\leq \frac{1}{2\abs{\eps}}}\exp\prn[\Big]{\frac{d\lambda(1+\lambda)}{2}\,\eps^2-\lambda+1} \leq \exp\prn[\Big]{1-\min\crl[\Big]{\frac{1}{8d\eps^2},\,\frac{1}{8\abs{\eps}}}}\,.
+\end{align*}
+This proves (3).
+Next, we turn toward the proofs of (1) and (2).
+
+We denote $f=\log p$. Then, we can express, for $X_0 \sim \bar p$, $X \sim \normal{X,\sigma^2 I}$,
+\begin{align*}
+    \nabla f(x)=\frac{1}{\sigma^2}\En\brk*{X_0-X\mid X=x}\,, \qquad
+    \nabla^2 f(x)=-\frac{\Id}{\sigma^2}+
+    \frac{\Cov(X_0\mid X=x)}{\sigma^4}\,.
+\end{align*}
+For $0\leq \lambda\leq \frac{\sigma^2}{4}$, we can bound
+\begin{align*}
+    \En_{X\sim p} \exp\prn*{ \lambda\nrm{\nabla f(X)}^2} \leq \exp\prn[\big]{\frac{2d\lambda}{\sigma^2}}\,.
+\end{align*}
+Therefore, for $\lambda\leq \frac{\sigma^2}{8}$, we have 
+\begin{align*}
+    \En_{X\sim \breve p} \exp\prn*{ \lambda\nrm{\nabla f(X)}^2} \leq \sqrt{(1+\Dchis{\breve p}{p})\En_{X\sim p} \exp\prn*{ 2\lambda\nrm{\nabla f(X)}^2}} \leq \exp\prn[\Big]{\frac{d}8+\frac{2d\lambda}{\sigma^2}}\,,
+\end{align*}
+where we use $1+\Dchis{\breve p}{p}\leq \exp\prn*{\frac{d}{4}}$. We can then choose $\lambda=\frac{\sigma^2}{8}$ to complete the proof.
+
+Similarly, for $0\leq \lambda\leq \frac{\sigma^2}{4}$, we can bound
+\begin{align*}
+    \En_{X\sim p} \exp\prn*{ \lambda\nrmnuc{\nabla^2 f(X)+\sigma^{-2}\Id}}
+    \leq&~ \En_{X_0 \sim \bar p,\, X\sim \normal{X_0,\sigma^2 I}} \exp\prn[\Big]{ \frac{\lambda}{\sigma^4}\nrm{X_0-X}^2}
+    =\En_{Z\sim \normal{0,\sigma^2\Id}} \exp\prn[\Big]{ \frac{\lambda}{\sigma^4}\nrm{Z}^2} \\[0.25em]
+    =&~ \prn*{1-2\sigma^{-2}\lambda}^{-\frac{d}{2}} \leq \exp\prn[\Big]{\frac{2d\lambda}{\sigma^2}}\,.
+\end{align*}
+The upper bound then follows similarly.
+\end{proof}
+
+As a direct corollary of \cref{prop:nabla-p-MGF} (1) and (2), we have the following moment bounds.
+
+\begin{lemma}\label{lem:scfs-moments}
+Suppose that \cref{asmp:p-conv} holds, $0<\eta\leq \frac{\sigma^2}{4}$, and $0\leq \lambda\leq \frac{1}{\sigma^2}$. Then the following holds with an absolute constant $C>0$: For any integer $1\leq k\leq 16$, and parameter $\eta\in[0,2\eta]$, it holds that
+\begin{align*}
+    \prn*{ \En_{X\sim \pconv{\eta'}}\nrm{\tscfs(X)}^{k} }^{1/k}\leq \frac{C\sqrt{d}}{\sigma}\,, \\
+    \prn*{ \En_{X\sim \pconv{\eta'}}\nrmnuc{\nabla \tscfs(X)}^{k} }^{1/k}\leq \frac{Cd}{\sigma^2}\,.
+\end{align*}
+\end{lemma}
+
+
+\subsection{Proof of Proposition~\ref{prop:DM-path-scfs}}\label{appdx:pf-DM-path-scfs}
+
+
+We denote
+\begin{align*}
+    \epsxz=\tri{\gamzp,\tscfs(\gamz)-\tscfs(\xz)}\,.
+\end{align*}
+Then, 
+\begin{align*}
+    \log \piz{x}-\log \rhosz{x}=\const+\En_{\lr,z}\trunc[\B]{\epsxz}\,.
+\end{align*}
+Therefore,
+\begin{align*}
+    \nabla \log \frac{\piz{x}}{\rhosz{x}}
+    =&~ \En_{\lr,z}\brk*{ \nabla \epsxz \cdot h_B(\epsxz)}\,, 
+\end{align*}
+where
+\begin{align*}
+h_B(y)=\begin{cases}
+    1\,, & y>B\,,\\
+    0\,, &y\in[-B,B]\,,\\
+    -1\,, &y<-B\,,
+\end{cases}
+\end{align*}
+is the derivative of $\trunc{y}$.
+By elementary calculation,
+\begin{align*}
+    \nabla \epsxz=\alrp\, (\tscfs(\gamz)-\tscfs(\xz))+\alr\, \nabla \tscfs(\gamz) \cdot \gamzp\,.
+\end{align*}
+
+By~\cref{lem:LSI-SC} and \cref{lem:HS-perturb}, we know that
+$\CLSI(\rhosz{\cdot})\leq \eta e^{4B}$. Hence,
+\begin{align*}
+    \Dkl{\piz{\cdot}}{\rhosz{\cdot}}\leq \frac{\eta e^{4B}}{2} \En_{x\sim \piz{\cdot}} \nrm[\Big]{\nabla \log \frac{\piz{x}}{\rhosz{x}}}^2\,.
+\end{align*}
+Taking expectation over $\xz\sim \breve p=p*\Neta$ and using H\"older's inequality, we know that
+\begin{align*}
+    \En_{\xz\sim \breve p} \Dkl{\piz{\cdot}}{\rhosz{\cdot}}
+    \leq&~ \frac{\eta e^{4B}}{2}  \En_{z,r,\xz,x}\brk*{ \nrm{\nabla \epsxz}^2 \cdot \indic\crl{\abs{\epsxz}>\B} } \\
+    \leq&~ \frac{\eta e^{4B}}{2}\, \prn*{\En_{z,r,\xz,x}\brk*{ \nrm{\nabla \epsxz}^8}}^{1/4}\, \PP_{z,r,\xz,x}\prn*{\abs{\epsxz}>\B}^{3/4}\,, 
+\end{align*}
+where $\En_{z,r,\xz,x}$ is the expectation over $x\sim p$, $\xz\sim x+\Neta$, $z\sim \Neta$, $r\sim \unif([0,1])$.
+
+\paragraph{Bounds on the moments}
+Fix any $r\in[0,1]$.
+We note that under this distribution, 
+\begin{align*}
+    \gamz\mid x\sim \normal{x, \eta((1-\alr)^2+\blr^2)\Id}\,, \qquad \xz\mid x\sim \normal{x, \eta\Id}\,.
+\end{align*}
+Therefore, we can bound
+\begin{align*}
+    \prn*{\En_{z,\xz,x}\brk*{ \nrm{\nabla \epsxz}^8}}^{1/8}
+    \leqsim&~
+    \prn*{\En_{z,\xz,x}\brk*{ \nrm{\tscfs(\gamz)}^8}}^{1/8} 
+    +\prn*{\En_{z,\xz,x}\brk*{ \nrm{\tscfs(\xz)}^8}}^{1/8} \\
+    &~ +\prn*{\En_{z,\xz,x}\brk*{ \nrm{\nabla \tscfs(\gamz)}^8 \nrm{\gamzp}^8}}^{1/8} \\
+    \leqsim &~ \frac{\sqrt{d}}{\sigma}+\sqrt{d\eta}\cdot \frac{d}{\sigma^2} \leqsim \frac{d^{3/2}}{\sigma}\,,
+\end{align*}
+where we use \cref{lem:scfs-moments} and
+\begin{align*}
+    \En_{z,\xz,x}\brk*{ \nrm{\nabla \tscfs(\gamz)}^8 \nrm{\gamzp}^8}
+    \leq&~ \prn*{\En_{z,\xz,x}\brk*{ \nrm{\nabla \tscfs(\gamz)}^{16}}}^{1/2} \prn*{\En_{z,\xz,x}\brk*{ \nrm{\gamzp}^{16}}}^{1/2} \\
+    \leqsim&~ \sqrt{d\eta}\cdot \frac{d}{\sigma^2}\,.
+\end{align*}
+
+
+
+
+\paragraph{Bound on the tail}
+Next, we bound $\bbP_{z,r,\xz,x}\prn*{\abs{\epsxz}>\B}$.
+We write $W=\gamzp$ and $U=\gamz-\xz$. By definition,
+\begin{align*}
+    \epsxz=\tri{W, \tscfs(\xz+U)-\tscfs(\xz)}=\int_{0}^1 W\tp \nabla \tscfs(\xz+yU) U\, dy\,.
+\end{align*}
+Note that 
+\begin{align*}
+    \indic\crl{\abs{\epsxz}>\B}
+    \leq \frac{2}{\B}\trunc[\B/2]{\epsxz}
+    \leq \frac{2}{\B}\int_{0}^1 \trunc[\B/2]{W\tp \nabla \tscfs(\xz+yU) U}\, dy\,,
+\end{align*}
+where we use the convexity of $y\mapsto \trunc[\B/2]{y}$. Hence,
+\begin{align*}
+    \bbP_{z,r,\xz,x}\prn*{\abs{\epsxz}>\B}
+    \leq&~ \frac{2}{\B}\max_{y\in[0,1]} \En\trunc[\B/2]{W\tp \nabla \tscfs(\xz+yU) U} \\
+    \leq&~ \frac{2}{\B} \max_{y\in[0,1]} \prn*{ \En\nrm{U}^9\En\nrm{W}^9\En\nrm{\nabla \tscfs(\xz+yU)}^9 }^{1/9} \, \bbP\prn[\Big]{\abs{W\tp \nabla \tscfs(\xz+yU) U}>\frac{\B}{2}} ^{2/3}\,.
+\end{align*}
+Note that for any fixed $y\in[0,1]$, 
+\begin{align*}
+    \xz+yU\mid x\sim \normal{x,\eta ((1-y\alr)^2+y^2\blr^2)\Id}\,, 
+\end{align*}
+and we can bound
+\begin{align*}
+    \prn*{\En\nrm{U}^9}^{1/9}\leq O(\sqrt{d\eta})\,, \qquad 
+    \prn*{\En\nrm{W}^9}^{1/9}\leq O(\sqrt{d\eta})\,, \qquad
+    \prn*{\En\nrm{\nabla \tscfs(\xz+yU)}^9}^{1/9}\leq O\prn[\big]{\frac{d}{\sigma^2}}\,.
+\end{align*}
+To summarize, we have shown that
+\begin{align*}
+    \En_{\xz\sim \breve p} \Dkl{\piz{\cdot}}{\rhosz{\cdot}}
+    \leqsim&~ B^{-3/4}e^{4B}\cdot \frac{d^{4.5}\eta}{\sigma^2}\cdot \max_{y\in[0,1]} \sqrt{\bbP\prn[\Big]{\abs{W\tp \nabla \tscfs(\xz+yU) U}>\frac{\B}{2}} }\,. 
+\end{align*}
+
+\paragraph{Bound on the tail probability}
+Now, we fix any $y\in[0,1]$ and consider the joint distribution of $(\xbar,x,\xz,z)$ under
+\begin{align*}
+    \xbar\sim \pbar\,, \quad
+    x\sim \normal{\xbar,\sigma^2\Id}\,, \quad
+    \xz\sim \normal{x,\eta\Id}\,, \quad
+    z\sim \Neta\,.
+\end{align*}
+We define $V=yU+\xz-\xbar$, and the properties of $(U,V,W)$ are summarized in \cref{lem:path-joint-Gaussian}. 
+
+In the following, we analyze the concentration of $(U,W)$ conditional on $(\xbar,V)$.
+We denote $H\deq \nabla\tscfs(\xz+yU)=\nabla\tscfs(\xbar+V)$. 
+Then, for any $(\xbar,V)\in\cE_{G,K}$, we can bound $\abs{V\tp HV}+\abs{\tr(H)}\leq \frac{B\sigma^2}{16\eta^2}$, and hence
+\begin{align*}
+    \PP\prn[\Big]{\Bigl. \abs{W\tp H U}\geq \frac{B}{2} ~\Bigr|~ \xbar, V} 
+    \leq&~ 2\exp\prn[\Big]{-c_1\min\crl[\Big]{\frac{B^2}{\eta^2\nrmF{H}^2+\eta (\eta/\sigma^2)^2\nrm{HV}^2},\, \frac{B}{\eta\nrmop{H}}}} \\
+    \leq&~ 2e^{-c_2K}\,, \qquad \forall (\xbar,V)\in\cE_{G,K}\,,
+\end{align*}
+where $c_1,c_2>0$ are absolute constants and we use $\eta\leq \frac{\sigma^2}{8\Bbar G}$. 
+Hence,
+\begin{align*}
+    \bbP\prn[\Big]{\abs{W\tp H U}>\frac{\B}{2}}
+    \leq&~ \bbP_{\xbar\sim \pbar,\, V\sim\normal{0,\sigma_V^2\Id}}(\cE_{G,K})+2\exp\prn*{-c_2K}\,.
+\end{align*}
+This is the desired upper bound.
+\qed
+
+\begin{lemma}\label{lem:path-joint-Gaussian}
+Fix $r,y\in[0,1]$.
+Consider the joint distribution of $(\xbar,x,\xz,z)$ under
+\begin{align*}
+    \xbar\sim \pbar\,, \quad
+    x\sim \normal{\xbar,\sigma^2\Id}\,, \quad
+    \xz\sim \normal{x,\eta\Id}\,, \quad
+    z\sim \Neta\,.
+\end{align*}
+Under this law, we consider the random variables
+\begin{align*}
+    W=\gamzp\,, \quad
+    U=\gamz-\xz\,, \quad
+    V=y\gamz+(1-y)\xz-\xbar\,.
+\end{align*}
+
+Then, the following holds.
+
+(1) $(U,V,W)$ are jointly Gaussian and independent of $\xbar$, and marginally $V\sim \normal{0,\sigma_V^2\Id}$ with $\sigma_V^2\in [\sigma^2,\sigma^2+2\eta]$. 
+
+(2) The conditional distribution of $[U;W]\mid V$ can be written as 
+\begin{align*}
+    [U;W]\mid V\sim \normal{[c_UV,c_WV], \Sigbar}\,, \qquad
+    \Sigbar=\begin{bmatrix}
+        \sigu^2\Id & \siguw \Id \\
+        \siguw\Id & \sigw^2\Id 
+    \end{bmatrix}\,,
+\end{align*}
+so that $\nrmop{\Sigbar}\leq 3\eta$ and
+\begin{align*}
+    \abs{c_U}\leq \frac{\eta}{\sigma^2}\,,\quad \abs{c_W}\leq \frac{2\eta}{\sigma^2}\,, \quad 
+    \sigu^2\leq \eta\,,\quad \sigw^2\leq 3\eta\,, \quad
+    \abs{\siguw}\leq \frac{2\eta^2}{\sigma^2}\,.
+\end{align*}
+
+(3) Suppose that the symmetric matrix $H=\cH(\xbar+V)$ is a function of $\xbar+V$. Then it holds that
+\begin{align*}
+    \MoveEqLeft\PP\prn[\Big]{\Big. \abs{W\tp H U}\geq t+\frac{4\eta^2}{\sigma^2}(\abs{V\tp HV}+\abs{\tr(H)}) ~\Big|~ \xbar, V} \\
+    \leq&~ 2\exp\prn[\Big]{-c\min\crl[\Big]{\frac{t^2}{\eta^2\nrmF{H}^2+\eta (\eta/\sigma^2)^2\nrm{HV}^2},\, \frac{t}{\eta\nrmop{H}}}}\,, \qquad \forall t\geq 0\,,
+\end{align*}
+where $c>0$ is an absolute constant.
+\end{lemma}
+
+\begin{proof}
+By definition, we can consider $w_0\ldef x-\xbar$, $w_1\ldef \xz-x$, and then
+\begin{align*}
+    w_0\sim \Nsigma\,, \quad
+    w_1\sim \Neta\,, \quad z\sim \Neta\,,
+\end{align*}
+where $w_0,w_1,z$ are independent Gaussian vectors, and $(w_0,w_1,z)$ is independent of $\xbar\sim \pbar$.
+Then, we can rewrite
+\begin{align*}
+    W%
+    =-\alrp w_1+\blrp z\,, \qquad
+    U%
+    =-\alr w_1+\blr z\,, \qquad
+    V=w_0+(1-y\alr)w_1+y\blr z\,.
+\end{align*}
+Hence, under this distribution, $(U,V,W)$ are jointly Gaussian and independent of $\xbar\sim \pbar$. The key fact is that $\alr\alrp+\blr\blrp=0$ (because $\alr^2+\blr^2\equiv 1$ for $r\in[0,1]$), and hence $\En[UW\tp]=0$. Therefore, the joint distribution of $[V;U;W]$ can be written
+\begin{align*}
+    \begin{bmatrix} V \\ U \\ W \end{bmatrix}
+    \sim \normal{\begin{bmatrix} 0 \\ 0 \\ 0 \end{bmatrix}, \begin{bmatrix}
+        \sigma_V^2\Id & \sigma_{VU} \Id & \sigma_{VW} \Id\\
+        \sigma_{VU} \Id & \sigma_U^2 \Id & 0 \\
+        \sigma_{VW} \Id & 0 & \sigma_W^2 \Id
+    \end{bmatrix}}\,,
+\end{align*}
+and we can calculate
+\begin{align*}
+    &~ \sigma_V^2=\sigma^2+\eta(1-y\alr)^2+\eta y^2\blr^2\,, \qquad \sigma_U^2=\eta\,, \qquad 
+    \sigma_W^2=(\pi/2)^2\eta\,, \\
+    &~ \sigma_{VU}=\eta(y\blr^2-\alr(1-y\alr))\,, \qquad
+    \sigma_{VW}=\eta(y\blr\blrp-\alrp(1-y\alr))\,.
+\end{align*}
+In particular, we know $\sigma_V^2\in[\sigma^2,\sigma^2+2\eta]$, $\abs{\sigma_{VU}}\leq \eta$, $\abs{\sigma_{VW}}\leq 2\eta$, and $\sigma_W^2\leq 3\eta$. Further, we can write down
+\begin{align*}
+    &~ c_U=\frac{\sigma_{VU}}{\sigma_V^2}\,, \qquad 
+    c_W=\frac{\sigma_{VW}}{\sigma_V^2}\,, \\
+    &~ \sigbar_U^2=\sigma_U^2-\frac{\sigma_{VU}^2}{\sigma_V^2}\,, \qquad
+     \sigbar_W^2=\sigma_W^2-\frac{\sigma_{VW}^2}{\sigma_V^2}\,, \qquad
+     \sigbar_{UW}=-\frac{\sigma_{VU}\sigma_{VW}}{\sigma_V^2}\,. 
+\end{align*}
+The desired statement (2) then follows.
+
+Finally, to prove (3), we condition on $(V,\xbar)$ and apply Gaussian concentration (\cref{lem:Gaussian-vMGF}) to the matrix $A=\begin{bmatrix}
+    0 & H \\
+    H & 0
+\end{bmatrix}$ and the Gaussian vector $[U;W]\mid (V,\xbar)\sim \normal{v, \Sigbar}$, where $v=[c_UV,c_WV]$. Note that $v\tp Av=2c_Uc_WV\tp HV$, $\tr(\Sigbar A)=2\sigbar_{UW}\tr(H)$, $\nrm{Av}^2=(c_U^2+c_W^2)\nrm{HV}^2$, and $\nrmop{A}\leq \nrmop{H}$. Therefore, by \cref{lem:Gaussian-vMGF},
+for $t\geq 0$,
+\begin{align*}
+    \MoveEqLeft \bbP\prn*{ \abs*{W\tp H U-2(c_Uc_W V\tp HV\tp+\siguw \tr(H))}>t \mid \xbar, V} \\
+    &\leq 2\exp\prn*{-\frac{1}{16}\min\crl*{\frac{t^2}{\eta^2\nrmF{H}^2+\eta (c_U^2+c_W^2)\nrm{HV}^2},\, \frac{t}{\eta\nrmop{H}}}}\,.
+\end{align*}
+The desired upper bound then follows from bounding $\abs{c_U}\leq \frac{\eta}{\sigma^2}, \abs{c_W}\leq \frac{2\eta}{\sigma^2},$ and $\sigbar_{UW}\leq \frac{2\eta^2}{\sigma^2}$.
+\end{proof}
+
+
+\subsection{Proof of Proposition~\ref{prop:DM-path-score-error}}\label{appdx:pf-DM-path-score-error}
+
+
+We denote
+\begin{align}\label{eq:def-epsxz-star}
+\begin{aligned}
+    \epsxz\deq\tri{\gamzp,\tscfs(\gamz)-\tscfs(\xz)}\,, \qquad
+    \epxz\deq\tri{\gamzp,\tscf(\gamz)-\tscf(\xz)}\,.
+\end{aligned}
+\end{align}
+Then, we can abbreviate
+\begin{align*}
+    \log \rhohz{x}=&~\const+\En_{\lr,z}\pclip[\B]{\epxz}-\frac{\nrm{x-\xz-\etabar\scf(\xz)}^2}{2\etabar}\,, \\[0.25em]
+    \log \rhosz{x}=&~\const+\En_{\lr,z}\pclip[\B]{\epsxz}-\frac{\nrm{x-\xz-\etabar\scfs(\xz)}^2}{2\etabar}\,.
+\end{align*}
+
+\paragraph{Decomposition of KL divergence}
+As an intermediate distribution, we consider the density $\rhotz{\cdot}$ with
+\begin{align*}
+    \log \rhotz{x}=&~\const+\En_{\lr,z}\pclip[\B]{\epxz}-\frac{\nrm{x-\xz-\etabar\scfs(\xz)}^2}{2\etabar}\,.
+\end{align*}
+Note that for $u,v\in\RR^d$, it holds that
+\begin{align*}
+    \log(1+\Dchis{\normal{u,\etabar\Id}}{\normal{v,\etabar\Id}})=\frac{\nrm{u-v}^2}{\etabar}\,.
+\end{align*}
+Therefore, using \cref{lem:KL-triangle}, \cref{lem:Dchis-perturb}, and the fact that $\log(1+Ct)\leq C\log(1+t)$ for $t\geq 0$ and $C\geq 1$, we know that for any $\xz$, 
+\begin{align*}
+    \Dkl{\piz{\cdot}}{\rhohz{\cdot}}
+    \leq 2\Dkl{\piz{\cdot}}{\rhotz{\cdot}}+\etabar e^{4B}\, \nrm{\scfs(\xz)-\scf(\xz)}^2\,.
+\end{align*}
+
+Next, we note that we can write $\rhotz{\cdot}\propto \rhosz{\cdot}\,e^{h_{\xz}}$, where
+\begin{align*}
+    h_{\xz}(x)=\En_{\lr,z}\pclip[\B]{\epxz}-\En_{\lr,z}\pclip[\B]{\epsxz} \in [-2B,2B]\,.
+\end{align*}
+Then, using \cref{lem:KL-perturb}, we can bound 
+\begin{align*}
+    \Dkl{\piz{\cdot}}{\rhotz{\cdot}}
+    \leq 4e^{2B}\,\prn[\big]{ \Dkl{\piz{\cdot}}{\rhosz{\cdot}}+\En_{x\sim \piz{\cdot}}[h_{\xz}(x)^2]}\,.
+\end{align*}
+Combining the inequalities above immediately implies
+\begin{align}\label{pfeq:sc-err-KL-decomp}
+\begin{aligned}
+    \En_{\xz\sim \breve p}\Dkl{\piz{\cdot}}{\rhohz{\cdot}}
+    \leq&~ 8e^{2B}\En_{\xz\sim \breve p}\Dkl{\piz{\cdot}}{\rhosz{\cdot}} \\
+    &~+\etabar e^{4B} \En_{\xz\sim \breve p}\nrm{\scfs(\xz)-\scf(\xz)}^2
+    +8e^{2B}\En_{\xz\sim \breve p,\, x\sim \piz{\cdot}}[h_{\xz}(x)^2]\,.
+\end{aligned}
+\end{align}
+Further, using $\Dhels{\mu_1}{\mu_2}\leq \min\crl*{\frac12 \Dkl{\mu_1}{\mu_2},1}$, we can upper bound
+\begin{align}\label{pfeq:sc-err-Hels-decomp}
+    \begin{aligned}
+    \En_{\xz\sim \breve p}\Dhels{\piz{\cdot}}{\rhohz{\cdot}}
+    \leq&~ 8e^{2B}\En_{\xz\sim \breve p}\Dkl{\piz{\cdot}}{\rhosz{\cdot}} \\
+    &~+e^{4B} \En_{\xz\sim \breve p}\min\crl{\etabar \nrm{\scfs(\xz)-\scf(\xz)}^2,1}
+    +8e^{2B}\En_{\xz\sim \breve p,\, x\sim \piz{\cdot}}[h_{\xz}(x)^2]\,.
+\end{aligned}
+\end{align}
+
+\paragraph{Upper bound on $h$}
+We denote
+\begin{align}\label{pfeq:sc-err-capped}
+    \begin{aligned}
+    \phi_{\eta'}\ldef \En_{X\sim \pconv{\eta'}} \minc{ G \nrm{\scf(X)-\scfs(X)}^2, B^2}\,, \qquad \phibar\ldef \max_{\eta'\in[0,2\eta]}\phi_{\eta'}\,.
+\end{aligned}
+\end{align}
+In the following, we will show that $\En_{\xz\sim \breve p,\, x\sim \piz{\cdot}}[h_{\xz}(x)^2]$ can be upper bounded by $\phibar$.
+
+We upper bound
+\begin{align*}
+    \En_{\xz\sim \breve p,\, x\sim \piz{\cdot}}[h_{\xz}(x)^2]
+    =&~ \En_{x\sim p,\, \xz\sim \normal{x,\eta I}}[h_{\xz}(x)^2] \\
+    \leq&~ \max_{r\in [0,1]}\En_{x,\xz,z}\pclip[2B]{\epxz-\epsxz}^2 \\
+    \lesssim &~ \max_{r\in [0,1]}\En_{x,\xz,z} \pclip[2B]{\tri{\gamzp, \scfs(\gamz)-\scf(\gamz)}}^2 \\
+    &~+\max_{r\in [0,1]}\En_{x,\xz,z} \pclip[2B]{\tri{\gamzp, \scfs(\xz)-\scf(\xz)}}^2\,,
+\end{align*}
+where the expectation $\En_{x,\xz,z}[\cdot]$ is taken over $x\sim p$, $\xz\sim x+\Neta$, $z\sim \normal{0,\eta\Id}$. 
+
+We fix $r\in[0,1]$ and first analyze $W_r\ldef \gamzp$, $U_r=\gamz-x$.
+Note that $(U_r,W_r)$ is jointly Gaussian and independent of $x\sim p$, and we can write down the distribution of $[U_r;W_r]$ as $[U_r;W_r]\sim \normal{0,\begin{bmatrix}
+    \sigma_U^2\Id & \sigma_{UW}\Id \\
+    \sigma_{UW}\Id & \sigma_W^2\Id
+\end{bmatrix}}$ such that 
+\begin{align*}
+    \sigma_U^2=\eta((1-\alr)^2+\blr^2)\,, \quad
+    \sigma_W^2=(\pi/2)^2\eta\,, \quad
+    \sigma_{UW}=-\eta \alrp\,.
+\end{align*}
+Applying \cref{lem:scf-err-inner} to the function $g(x)=\scfs(x)-\scf(x)$ gives
+\begin{align*}
+    \En \pclip[2B]{\tri{\gamzp, \scfs(\gamz)-\scf(\gamz)}}^2
+    =&~\En \pclip[2B]{\tri{W_r, \scfs(x+U_r)-\scf(x+U_r)}}^2 \\
+    \leqsim&~ B^2\delta+\En\min\crl*{ G\nrm{\scfs(\gamz)-\scf(\gamz)}^2, B^2} \\
+    \leq&~ B^2\delta+\phibar\,,
+\end{align*}
+where we recall that we denote $G=\eta+\frac{\eta^2}{\sigma^2}(d+\log(1/\delta))$. Similarly, we can bound
+\begin{align*}
+    \En \pclip[2B]{\tri{\gamzp, \scfs(\xz)-\scf(\xz)}}^2
+    \leqsim&~ B^2\delta+\En\min\crl*{ G\nrm{\scfs(\xz)-\scf(\xz)}^2, B^2} 
+    \leq B^2\delta+\phibar\,.
+\end{align*}
+Combining these inequalities, we can conclude that
+\begin{align}\label{pfeq:sc-err-h}
+\begin{aligned}
+    \En_{\xz\sim q, x\sim \piz{\cdot}}[h_{\xz}(x)^2]
+    \leqsim B^2\delta+\phibar\,,
+\end{aligned}
+\end{align}
+where $\phibar$ is defined in \cref{pfeq:sc-err-capped}.
+
+\paragraph{Putting everything together}
+We first prove \cref{prop:DM-path-score-error} (1). Combining \cref{pfeq:sc-err-KL-decomp}, \cref{pfeq:sc-err-h} and the definition of $\phi_{\eta'}$ in \cref{pfeq:sc-err-capped}, we get
+\begin{align*}
+    &~ \En_{\xz\sim \breve p}\Dkl{\piz{\cdot}}{\rhohz{\cdot}} \\
+    \leqsim&~ e^{2B}\En_{\xz\sim \breve p}\Dkl{\piz{\cdot}}{\rhosz{\cdot}} 
+    +\etabar e^{4B} \En_{\xz\sim \breve p}\nrm{\scfs(\xz)-\scf(\xz)}^2
+    +e^{2B}\prn[\Big]{ B^2\delta+\max_{\eta'\in[0,2\eta]} \phi_{\eta'} } \\
+    \leqsim&~ e^{2B}\En_{\xz\sim \breve p}\Dkl{\piz{\cdot}}{\rhosz{\cdot}} + e^{2B}B^2\delta + e^{4B} G \max_{\eta'\in[0,2\eta]}\En_{X\sim \pconv{\eta'}} \nrm{\scf(X)-\scfs(X)}^2\,,
+\end{align*}
+where we use $\etabar\leq \eta\leq G$.
+
+Similarly, combining \cref{pfeq:sc-err-Hels-decomp}, \cref{pfeq:sc-err-h}, we can bound
+\begin{align*}
+    &~\En_{\xz\sim \breve p}\Dhels{\piz{\cdot}}{\rhohz{\cdot}} \\
+    \leqsim&~ e^{2B}\En_{\xz\sim \breve p}\Dkl{\piz{\cdot}}{\rhosz{\cdot}} 
+    +e^{4B} \En_{\xz\sim \breve p}\min\crl{\etabar \nrm{\scfs(\xz)-\scf(\xz)}^2,1}
+    +e^{2B}\prn[\Big]{ B^2\delta+\max_{\eta'\in[0,2\eta]} \phi_{\eta'} } \\
+    \leqsim&~ e^{2B}\En_{\xz\sim \breve p}\Dkl{\piz{\cdot}}{\rhosz{\cdot}} + e^{2B}B^2\delta+e^{4B} \Bbar^2 \max_{\eta'\in[0,2\eta]}\En_{X\sim \pconv{\eta'}} \minc{ \nrm{\scf(X)-\scfs(X)}^2, 1}\,.
+\end{align*}
+Combining the inequality above with \cref{prop:nabla-p-MGF} (3) completes the proof of \cref{prop:DM-path-score-error} (2).
+\qed
+
+\begin{lemma}\label{lem:scf-err-inner}
+Suppose that $p=\pbar*\Nsigma$, and consider $x\sim p$, $(U,W)\sim \normal{0,\Sigma}$ is independent of $x$, with $\Sigma=\begin{bmatrix}
+    \sigma_U^2\Id & \sigma_{UW}\Id \\
+    \sigma_{UW}\Id & \sigma_W^2\Id
+\end{bmatrix}$. Then, it holds that for any $\delta\in(0,1)$,
+\begin{align*}
+    \En\pclip{\tri{W, g(x+U)}}^2
+    \leq 2B^2\delta+4\En\min\crl[\Big]{\prn[\Big]{ \sigma_W^2+\frac{3\sigma_{UW}^2}{\sigma^2}(d+\log(1/\delta)) }\nrm{g(x+U)}^2,\, B^2}\,.
+\end{align*}
+\end{lemma}
+
+\begin{proof}
+We consider the joint distribution of
+\begin{align*}
+    \xbar\sim \pbar\,, \quad
+    x\sim \normal{\xbar,\sigma^2\Id}\,, \quad
+    [U;W]\sim \normal{0,\Sigma}\,.
+\end{align*}
+We write $V=x-\xbar+U$. Then, $(V,W)$ is independent of $\xbar\sim \pbar$ and the conditional distribution $W\mid V$ can be written as
+\begin{align*}
+    W\mid V\sim \normal{cV, \sigbar^2\Id },
+\end{align*}
+where $c=\frac{\sigma_{VW}}{\sigma^2+\sigma_U^2}$, $\sigbar^2=\sigma_W^2-\frac{\sigma_{VW}^2}{\sigma^2+\sigma_U^2}$. 
+
+Now, note that for random vector $X$ and a fixed vector $v$, we can bound
+\begin{align*}
+    \En\pclip{\tri{X, v}}^2
+    =&~
+    \En\min\crl*{\tri{X,v}^2,B^2} \\
+    \leq&~ \min\crl*{\En\tri{X,v}^2,B^2}
+    =\min\crl*{v\tp(\En[XX\tp])v,B^2}\,.
+\end{align*}
+Then, we can bound
+\begin{align*}
+    \En\pclip{\tri{W-cV, g(\xbar+V)}}^2
+    =&~
+    \En\brk*{ \En\brk*{\pclip{\tri{W-cV, g(\xbar+V)}}^2\mid \xbar,V} }\\
+    \leq&~ \En\brk*{ \min\crl*{ g(\xbar+V)\tp\En\brk*{(W-cV)(W-cV)\tp\mid \xbar,V}g(\xbar+V) ,B^2} } \\
+    =&~\En\min\crl*{\sigbar^2 \nrm{g(\xbar+V)}^2,B^2}\,.
+\end{align*}
+Further, by \cref{lem:Gaussian-vMGF}, we know that $\PP\prn*{\nrm{V}^2\geq (\sigma^2+\sigma_U^2)(2d+3\log(1/\delta)) }\leq \delta$. This implies
+\begin{align*}
+    \En\pclip{\tri{cV, g(\xbar+V)}}^2
+    \leq B^2\delta+\En\min\crl*{ c^2(\sigma^2+\sigma_U^2)(2d+3\log(1/\delta))\nrm{g(\xbar+V)}^2, B^2}\,.
+\end{align*}
+Combining the inequalities, we can conclude
+\begin{align*}
+    \En\pclip{\tri{W, g(x+U)}}^2
+    =&~ \En\pclip{\tri{W, g(\xbar+V)}}^2\\
+    \leq&~ 2\En\pclip{\tri{cV, g(\xbar+V)}}^2+2\En\pclip{\tri{W-cV, g(\xbar+V)}}^2 \\
+    \leq&~ 2B^2\delta+4\En\min\crl[\Big]{\prn[\Big]{ \sigma_W^2+\frac{3\sigma_{UW}^2}{\sigma^2}(d+\log(1/\delta)) }\nrm{g(\xbar+V)}^2, B^2}\,.
+\end{align*}
+This gives the desired upper bound.
+\end{proof}
+
+

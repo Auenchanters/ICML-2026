@@ -1,0 +1,719 @@
+In this section, we establish some crucial properties of DDPM\@.
+In the following, we consider the forward SDE $dY_t=dB_t$ with $Y_0\sim \pbar$, and denote $q_t\deq \pbar*\normal{0,t\Id}$ to be the marginal density of $Y_t$. Then, $\nabla \log q_t(x)=\frac{\En[Y_0\mid Y_t=x]-x}{t}$, and we denote $m_t(x)\deq \En[Y_0\mid Y_t=x]$, $\cov_t(x)=\En[(Y_0-m_t(x))\,(Y_0-m_t(x))^\top\mid Y_t=x]$ be the posterior mean and covariance function. We know $\nabla_x m_t(x)=\frac{1}{t}\,\cov_t(x)$.
+
+We establish two main types of results.
+The first type of result concerns the coverage of the DDPM kernel w.r.t.\ the reverse SDE and vice versa.
+Namely, we are interested in understanding the distribution $q_{\tau,\eta}(\cdot\mid y)$ of $Y_{\tau-\eta}\mid Y_\tau=y$ and the distribution $\wb{q}_{\tau,\eta}(\cdot\mid y)=\normal{y+\eta \nabla \log q_\tau(y), \etabar\Id}$, where $\etabar=\eta-\frac{\eta^2}{\tau}$.
+
+For distributions $P,Q$, we define the following divergence for $C\geq 1$:
+\begin{align*}
+    \Dcov[C]{P}{Q}\deq \En_Q\prn[\Big]{\frac{dP}{dQ}-C}_+\leq P\prn[\Big]{\frac{dP}{dQ}\geq C}\,.
+\end{align*}
+Note that $\Dcov[C]{\cdot}{\cdot}$ is a $f$-divergence with $f(x)=(x-C)_+$.
+The reason for introducing $\Dcov[C]{\cdot}{\cdot}$ is the following lemma. 
+\begin{lemma}\label{lem:Dcov}
+Suppose that $P,Q$ are distribution over $\cX$, and $C\geq 1$. For any function $F:\cX\to [0,1]$, it holds that $\En_P[F]\leq C\En_Q[F]+\Dcov[C]{P}{Q}$.
+\end{lemma}
+
+We establish the following coverage estimates.
+
+\begin{proposition}\label{prop:DDPM-coverage}
+Suppose that $\eta\leq \frac{\tau}{4}$. Then
+\begin{align*}
+    \En\Dcov[e]{q_{\tau,\eta}(\cdot\mid Y_\tau)}{\wb{q}_{\tau,\eta}(\cdot\mid Y_\tau)}
+    \leq&~ 2\delta+2\max_{t\in[\tau-\eta, \tau]}\En\prn*{ M\nrmF{\nabla m_{t}(Y_t)}^2-1 }_+\,,
+\end{align*}
+where $M=\frac{32\eta^2\log^2(e/\delta)}{\tau^2}$. Further, for any $L\geq 1$, $t\in[\tau-\eta,\tau]$, it holds that
+\begin{align*}
+    \PP\prn*{ \nrm{m_t(Y_t)-m_\tau(Y_\tau)}^2 \geq 8L^2\eta\log(e/\delta) }
+    \leq&~ \delta+2\max_{s\in[t,\tau]} \En_P \prn*{L^{-2}\nrmF{\nabla m_{s}(Y_s)}^2-1}_+\,.
+\end{align*}
+\end{proposition}
+
+Next, we prove the following proposition provides the reverse bound of \cref{prop:DDPM-coverage}. The proof is inspired by \citet{jiao2025optimal}. Note that
+\begin{align*}
+    \partial_t m_t(x)=&~\frac{1}{2t^2} \En[ (Y_0-m_t(x))\,\nrm{Y_0-x}^2 \mid Y_t=x ] \\
+    =&~\frac{1}{2t^2}\,\prn*{ \En[ (Y_0-m_t(x))\,\nrm{Y_0-m_t(x)}^2 \mid Y_t=x ]+2\cov_t(x)\,(m_t(x)-x) },
+\end{align*}
+and we define $k_t(x)\deq \En[ (Y_0-m_t(x))\,\nrm{Y_0-m_t(x)}^2 \mid Y_t=x ]$. 
+
+\begin{proposition}\label{prop:coverage-backward}
+We denote $\wt{q}_{\tau,\eta}$ to be the distribution of $Y'\sim \wb{q}_{\tau,\eta}(\cdot\mid Y_\tau)$ under $Y_\tau\sim q_\tau$. Suppose that $\tau\geq 2\eta$. Then
+\begin{align*}
+    \Dcov[e]{\wt{q}_{\tau,\eta}}{q_{\tau-\eta}}\leq \delta+\max_{t\in[\tau-\eta,\tau]}\En\prn*{M \nrm{k_t(Y_t)}-1 }_++\En\prn*{M \nrm{\cov_t(Y_t)\,(m_t(Y_t)-Y_t)}-1 }_+\,,
+\end{align*}
+where $M=\frac{16\sqrt{\log(1/\delta)}\eta^{3/2}}{(\tau-\eta)^{3}}$.
+\end{proposition}
+
+Bounding the terms that appear in these results requires estimates along the diffusion process, and our second main type of result is to prove such estimates which scale with the intrinsic dimension.
+
+\begin{corollary}\label{cor:MGF-intrinsic}
+There is an absolute constant $C>0$ such that the following holds for any $\tau>0$.
+
+(1) 
+\begin{align*}
+    \En\brk[\Big]{ \exp\prn[\Big]{ \frac{\tr(\cov_\tau(Y_\tau))}{C\tau} }}\leq \En\brk[\Big]{ \exp\prn[\Big]{ \frac{\nrm{Y_0-m_\tau(Y_\tau)}^2}{C\tau} }}\leq e^{\dim_\tau(\pbar)}\,.
+\end{align*}
+
+(2)
+\begin{align*}
+    \En\brk[\Big]{ \exp\prn[\Big]{ \frac{1}{C\tau}\,\nrm{Y_\tau-m_\tau(Y_\tau)}_{\cov_\tau(Y_\tau)} }}\leq e^{\dim_\tau(\pbar)}\,.
+\end{align*}
+
+(3) For any $0<s\leq \tau$,
+\begin{align*}
+    \En\brk[\Big]{ \exp\prn[\Big]{ \frac{1}{C\tau}\nrm{m_s(Y_s)-m_\tau(Y_\tau)}^2 } }
+    \leq&~ e^{\dim_\tau(\pbar)}\,.
+\end{align*}
+\end{corollary}
+
+The following two subsections are devoted to proving these results (among others).
+The remainder of the section focuses on applications of these results.
+
+
+\subsection{Coverage of the DDPM distribution}
+
+
+
+
+
+
+
+
+
+Combining \cref{prop:DDPM-coverage} with the fact that the sub-exponential norm of $\nrmF{\nabla m_t(Y_t)}\leq \tr(\nabla m_t(Y_t))$ is bounded by $O(\dim_\tau(\pbar))$ for any $t\in[\tau-\eta,\tau]$, we have the following proposition.
+\begin{corollary}\label{cor:DDPM-coverage}
+Suppose that $\LF\geq 1$.
+Then as long as 
+\begin{align*}
+    \frac{\tau}{\eta}\gg \LF\log(1/\delta)+\log^2(1/\delta),
+\end{align*}
+it holds that
+\begin{align*}
+    \En\Dcov[e]{q_{\tau,\eta}(\cdot\mid Y_\tau)}{\wb{q}_{\tau,\eta}(\cdot\mid Y_\tau)}\leqsim \dim_\tau(\pbar)^2(\delta+\max_{t\in[\tau-\eta,\tau]}\PP\prn*{\nrmF{\nabla m_t(Y_t)}\geq \LF}),
+\end{align*}
+and for any $t\in[\tau-\eta,\tau]$,
+\begin{align*}
+    \PP\prn*{ \nrm{m_t(Y_t)-m_\tau(Y_\tau)}^2 \geq 8L^2\eta\log(e/\delta) }
+    \leqsim \dim_\tau(\pbar)^2(\delta+\max_{t\in[\tau-\eta,\tau]}\PP\prn*{\nrmF{\nabla m_t(Y_t)}\geq \LF}).
+\end{align*}
+\end{corollary}
+
+
+
+
+
+\begin{corollary}\label{cor:coverage-backward}
+For any parameter $\Lop\geq 1$ and $\delta\in(0,1)$, as long as 
+\begin{align}\label{eq:coverage-eta}
+    \frac{\tau}{\eta}\gg \min\crl{ \Lop^{2/3}d^{1/3}, \Lop^{1/3}\dim_\tau(\pbar)^{2/3} } \log^{1/3}(1/\delta)+\log^2(1/\delta),
+\end{align}
+it holds that
+\begin{align*}
+    \Dcov[e]{\wt{q}_{\tau,\eta}}{q_{\tau-\eta}}\leqsim \dim_\tau(\pbar)^2(\delta+\max_{t\in[\tau-\eta,\tau]}\PP(\nrmop{\nabla m_t(Y_t)}\geq \Lop)).
+\end{align*}
+\end{corollary}
+
+
+
+\begin{proof}[\pfref{prop:DDPM-coverage}]
+ We consider the backward SDE.
+Starting from a point $Y_\tau\sim q_\tau$, consider the following SDE (with $\Ybar_0=Y_\tau$):
+\begin{align}
+    d\Ybar_s=\nabla \log q_{\tau-s}(\Ybar_s)\,ds+d\beta_s\,, \qquad s\in[0,\eta]\,.
+\end{align}
+Let $P$ be the law of the above SDE. We consider $\mu_s\deq \frac{1}{\tau-s}\,(m_{\tau-s}(\Ybar_s)-m_\tau(\Ybar_0))$ and $\beta'_t\deq \beta_t+\int_0^t \mu_s\,ds$. Then, by Girsanov's theorem,\footnote{Formally, we need to check Novikov's condition that $\En_P \exp\prn*{ \int_0^\eta \nrm{\mu_t}^2 dt }<+\infty$ holds. This is guaranteed by \eqref{eq:MGF-finiteness} (\cref{lem:MGF-trivial}) as long as $\tau\geq 4\eta$. } $(\beta'_t)_{t\in [0,\eta]}$ is a Brownian motion under $Q$, where
+\begin{align*}
+    \frac{dP}{dQ}=\exp\prn[\Big]{ \int_0^\eta \mu_t \,d\beta_t+\frac12\int_0^\eta \nrm{\mu_t}^2\, dt }\,.
+\end{align*}
+Note that under $P$, we have $\En_P\exp\prn[\big]{ \lambda \int_0^\eta \mu_t\, d\beta_t-\frac{\lambda^2}{2}\int_0^\eta \nrm{\mu_t}^2\, dt }\leq 1$ for any $\lambda\in\RR$, and hence we can set $\lambda=\frac{\log(1/\delta)}{2}$ to prove
+\begin{align*}
+    \Dcov[e]{P}{Q}=&~\En_Q\prn[\Big]{ \frac{dP}{dQ}-e }_+\leq P\prn[\Big]{ \frac{dP}{dQ}\geq e }
+    \leq P\prn[\Big]{ \int_0^\eta \nrm{\mu_t}^2\, dt\geq \frac{1}{1+2\log(1/\delta)} }+\delta\,.
+\end{align*}
+Note that $Z_t\deq m_{\tau-t}(\Ybar_t)-m_\tau(\Ybar_0)$ is a martingale, and hence $dZ_t=\nabla m_{\tau-t}(\Ybar_t)\, d\beta_t$, i.e., $Z_t=\int_0^t \nabla m_{\tau-s}(\Ybar_s) \, d\beta_s$. Applying \cref{lem:Ito-Freedman} to $(Z_t)_{t\in [0,\eta]}$ gives that for any $R>0$,
+\begin{align*}
+    P\prn*{ \En_{t\sim \unif([0,\eta])} \nrm{Z_t}^2\leq 4R\log(e/\delta)} 
+    \leq \delta+2P\prn[\Big]{ \int_0^\eta \nrmF{\nabla m_{\tau-s}(\Ybar_s)}^2\,ds\geq R }\,.
+\end{align*}
+Choosing $R=\frac{(\tau-\eta)^2}{16\eta\log^2(e/\delta)}$ and combining the inequalities above gives
+\begin{align*}
+    \Dcov[e]{P}{Q}\leq&~ 
+    \delta+ P\prn[\Big]{ \frac{1}{(\tau-\eta)^2}\int_0^\eta \nrm{Z_t}^2\, dt\geq \frac{1}{1+2\log(1/\delta)} }\\
+    \leq&~ 2\delta+ 2P\prn[\Big]{ \int_0^\eta \nrmF{\nabla m_{\tau-s}(\Ybar_s)}^2\,ds\geq R } \\
+    \leq&~ 2\delta+2\En_P\prn[\Big]{ R^{-1}\int_0^\eta \nrmF{\nabla m_{\tau-s}(\Ybar_s)}^2\,ds-1 }_+\\
+    \leq&~ 2\delta+2\max_{t\in[\tau-\eta, \tau]}\En_P\prn*{ R^{-1}\eta\, \nrmF{\nabla m_{t}(Y_t)}^2-1 }_+
+\end{align*}
+where 
+the last line uses convexity of $w\mapsto (w-1)_+$ and $\Ybar_t \eqd Y_{\tau-t}$.
+
+Finally, we note that under $P$, marginally $\Ybar_{\eta}\mid Y_\tau\sim q_{\tau,\eta}(\cdot\mid Y_\tau)$; Under $Q$, marginally $\Ybar_\eta\mid Y_\tau\sim \normal{Y_\tau+\eta\nabla \log q_\tau(Y_\tau), \etabar\Id}$. This completes the proof of the first inequality.
+
+Similarly, our argument also implies that for any $R'>0$,
+\begin{align*}
+    P\prn*{ \nrm{Z_t}^2 \geq 4R'\log(e/\delta) }
+    \leq&~ \delta+2P\prn[\Big]{ \int_0^t \nrmF{\nabla m_{\tau-s}(\Ybar_s)}^2\,ds\geq R' } \\
+    \leq&~ \delta+2\max_{s\in[t,\tau]} \En_P \prn*{(2t/R')\,\nrmF{\nabla m_{s}(Y_s)}^2-1}_+\,.
+\end{align*}
+\end{proof}
+
+
+\begin{proof}[\pfref{prop:coverage-backward}]
+We consider the backward ODE.
+Starting from a point $Y_\tau\sim q_\tau$, consider the following ODE with $\Ybar_0=Y_\tau$:
+\begin{align}
+    \frac{d}{ds} \Ybar_s=\frac12\nabla \log q_{\tau-s}(\Ybar_s).
+\end{align}
+Under $Y_\tau\sim q_\tau$, marginally $\Ybar_s\sim q_{\tau-s}$. In particular, we consider $r=2\eta-\frac{\eta^2}{\tau}$. Because $Y_{\tau-\eta}\mid Y_{\tau-r}\sim \normal{Y_{\tau-r}, \etabar\Id}$ and $Y_{\tau-r}\eqd \Ybar_{r}$, it holds that
+\begin{align*}
+    q_{\tau-\eta}=&~ \En_{Y_{\tau-r}} \normal{Y_{\tau-r}, \etabar\Id}
+    = \En_{\Ybar_r} \normal{\Ybar_r, \etabar\Id}.
+\end{align*}
+On the other hand, by definition, $\wt{q}_{\tau,\eta}=\En_{Y_\tau}  \normal{Y_\tau+\eta \nabla \log q_\tau(Y_\tau), \etabar\Id}$. Therefore, we can bound
+\begin{align*}
+    \Dcov[e]{\wt{q}_{\tau,\eta}}{q_{\tau-\eta}}
+    \leq&~ \En_{\Ybar_0=Y_\tau\sim q_\tau} \Dcov[e]{\normal{\Ybar_0+\eta \nabla \log q_\tau(\Ybar_0), \etabar\Id}}{\normal{\Ybar_r, \etabar\Id}} \\
+    \leq&~ \delta+ \bbP_{\Ybar_0=Y_\tau\sim q_\tau}\prn*{ 8\log(1/\delta)\nrm{ \Ybar_r-\Ybar_0-\eta \nabla \log q_\tau(\Ybar_0) }^2\geq \etabar }
+\end{align*}
+where the first inequality uses the joint convexity of $\Dcov[e]{\cdot}{\cdot}$ and the second inequality uses \cref{lem:Gaussian-Dcov}.
+
+Note that we can rewrite
+\begin{align*}
+    \frac{d}{ds} \frac{\Ybar_s}{\sqrt{\tau-s}}=\frac1{2(\tau-s)^{3/2}}m_{\tau-s}(\Ybar_s),
+\end{align*}
+and hence
+\begin{align*}
+    \frac{\Ybar_{r}}{\sqrt{\tau-r}}=\frac{\Ybar_0}{\sqrt{\tau}}+\int_0^r \frac1{2(\tau-s)^{3/2}}m_{\tau-s}(\Ybar_s)ds.
+\end{align*}
+Then, it holds that
+\begin{align*}
+    \Ybar_r-\Ybar_0-\eta \nabla \log q_\tau(\Ybar_0)
+    =&~\frac{\tau-\eta}{2\sqrt{\tau}}\int_0^r \frac1{(\tau-s)^{3/2}}(m_{\tau-s}(\Ybar_s)-m_\tau(\Ybar_0))ds \\
+    =&~\frac{\tau-\eta}{2\sqrt{\tau}}\int_{0\leq s\leq s'\leq r} \frac1{(\tau-s')^{3/2}}\partial_s (m_{\tau-s}(\Ybar_s))dsds' \\
+    =&~\frac{\tau-\eta}{\sqrt{\tau}}\int_{0}^r \brk*{\frac{1}{\sqrt{\tau-r}}-\frac{1}{\sqrt{\tau-s}}} \partial_s (m_{\tau-s}(\Ybar_s))ds.
+\end{align*}
+Therefore,
+\begin{align*}
+    \nrm{\Ybar_r-\Ybar_0-\eta \nabla \log q_\tau(\Ybar_0)}
+    \leq \frac{r}{\tau-\eta}\int_0^r \nrm{\partial_s (m_{\tau-s}(\Ybar_s))} ds.
+\end{align*}
+A direct calculation yields
+\begin{align*}
+    \partial_t (m_t(\Ybar_{\tau-t}))
+    =&~(\partial_t m_t)(\Ybar_{\tau-t})-\nabla m_t(\Ybar_{\tau-t})\cdot \frac{d\Ybar_s}{ds}\Big|_{s=\tau-t} \\
+    =&~ \frac{1}{2t^2}\brk*{ k_t(\Ybar_{\tau-t})+\cov_t(\Ybar_{\tau-t})(m_t(\Ybar_{\tau-t})-\Ybar_{\tau-t}) }.
+\end{align*}
+Therefore,
+\begin{align*}
+    \nrm{\Ybar_r-\Ybar_0-\eta \nabla \log q_\tau(\Ybar_0)}
+    \leq \frac{r}{2(\tau-\eta)^3}\int_0^r (\nrm{k_t(\Ybar_{\tau-t})}+\nrm{\cov_t(\Ybar_{\tau-t})(m_t(\Ybar_{\tau-t})-\Ybar_{\tau-t})}) dt.
+\end{align*}
+Then, by combining the inequalities above and applying Markov's inequality, we can bound
+\begin{align*}
+    &~\Dcov[e]{\wt{q}_{\tau,\eta}}{q_{\tau-\eta}}
+    \leq \delta+ \bbP_{\Ybar_0=Y_\tau\sim q_\tau}\prn*{ \sqrt{8\log(1/\delta)/\etabar}\nrm{ \Ybar_r-\Ybar_0-\eta \nabla \log q_\tau(\Ybar_0) }\geq 1 } \\
+    \leq&~ \delta+ \bbP_{\Ybar_0\sim q_\tau}\prn*{ \sqrt{8\log(1/\delta)/\etabar}\cdot \frac{r}{2(\tau-\eta)^3}\int_0^r (\nrm{k_t(\Ybar_{\tau-t})}+\nrm{\cov_t(\Ybar_{\tau-t})(m_t(\Ybar_{\tau-t})-\Ybar_{\tau-t})}) dt \geq 1 } \\
+    \leq&~ \delta+\En_{\Ybar_0\sim q_\tau}\prn*{C \int_0^r \nrm{k_t(\Ybar_{\tau-t})}dt-1 }_++\En_{\Ybar_0\sim q_\tau}\prn*{C \int_0^r \nrm{\cov_t(\Ybar_{\tau-t})(m_t(\Ybar_{\tau-t})-\Ybar_{\tau-t})}dt-1 }_+.
+\end{align*}
+where we denote $C=\sqrt{8\log(1/\delta)/\etabar}\cdot \frac{r}{(\tau-\eta)^3}$. The proof is then completed by the convexity of $w\mapsto (w-1)_+$.
+\end{proof}
+
+
+
+\begin{proof}[\pfref{cor:coverage-backward}]
+We first note that by \cref{cor:MGF-intrinsic}, the sub-exponential norm of $\nrm{m_t(Y)-Y_t}_{\cov_t(Y_t)}$ and $\nrmop{\cov_t(Y_t)}$ are bounded by $O(\dstar t)$. Hence, by \cref{lem:sub-exp-trunc}, we can choose $K_1=C_1(\tau\dstar\log(1/\delta))^{3/2}$ to  upper bound 
+\begin{align*}
+    \En\prn*{M \nrm{\cov_t(Y_t)(m_t(Y_t)-Y_t)}-1 }_+
+    \leq K_1M(\delta+\PP\prn*{M \nrm{\cov_t(Y_t)(m_t(Y_t)-Y_t)}\geq 1}).
+\end{align*}
+Then, using \cref{cor:MGF-intrinsic} again, we also have
+\begin{align*}
+    \PP\prn*{ \nrm{\cov_t(Y_t)(m_t(Y_t)-Y_t)}\geq c_1t\sqrt{\nrmop{\cov_t(Y_t)}}(\dstar+\log(1/\delta)) }\leq \delta.
+\end{align*}
+This immediately implies that
+\begin{align*}
+    \PP\prn*{M \nrm{\cov_t(Y_t)(m_t(Y_t)-Y_t)}\geq 1}
+    \leq \delta+\PP\prn*{ t^{-1}\nrmop{\cov_t(Y_t)}\geq \frac{c_2\tau^4}{\eta^3(\dstar+\log(1/\delta))^2\log(1/\delta)} }.
+\end{align*}
+Alternatively, by \cref{lem:MGF-trivial}, it holds that $\nrm{m_t(Y)-Y_t}^2\leq O(t(d+\log(1/\delta)))$ with probability at least $1-\delta$. Therefore, it holds that
+\begin{align}\label{pfeq:cov-inner}
+    \PP\prn*{M \nrm{\cov_t(Y_t)(m_t(Y_t)-Y_t)}\geq 1}
+    \leq \delta+\PP\prn*{ t^{-1}\nrmop{\cov_t(Y_t)}\geq c_3\sqrt{\frac{\tau^3}{\eta^3(d+\log(1/\delta))\log(1/\delta)}} }.
+\end{align}
+Therefore, for any parameter $\Lop\geq 1$, as long as 
+\begin{align}\label{pfeq:coverage-eta}
+    \frac{\tau}{\eta}\gg \min\crl{ \Lop^{2/3}d^{1/3}, \dstar^{2/3}\Lop^{1/3} } \log^{1/3}(1/\delta)+\log(1/\delta),
+\end{align}
+it holds that for any $t\in[\tau-r,\tau]$,
+\begin{align*}
+    \En\prn*{M \nrm{\cov_t(Y_t)(m_t(Y_t)-Y_t)}-1 }_+\leqsim \dstar^{3/2}(\delta+\PP\prn*{ t^{-1}\nrmop{\cov_t(Y_t)}\geq \Lop}).
+\end{align*}
+
+Next, it remains to bound $k_t(x)$. We invoke the following lemma.
+\begin{lemma}\label{lem:kt-to-variance}
+    It holds that
+\begin{align*}
+    \nrm{k_t(x)}^2
+    \leq \nrmop{\cov_t(x)} \Var[ \nrm{Y_0-m_t(x)}^2 \mid Y_t=x ].
+\end{align*}
+Alternatively, it holds that
+\begin{align*}
+    \nrm{k_t(x)}
+    \leq 2\nrm{\cov_t(x)(m_t(x)-x)}+\sqrt{\nrmop{\cov_t(x)} \Var[ \nrm{Y_t-Y_0}^2 \mid Y_t=x ]}.
+\end{align*}
+\end{lemma}
+
+In the following, we define $Q_t(x)\deq \Var[ \nrm{Y_0-m_t(x)}^2 \mid Y_t=x ]$. Note that $Q_t(Y_t)\leq \En[ \nrm{Y_0-m_t(\scedit{Y_t})}^4 \mid Y_t ]$, and hence by \cref{cor:MGF-intrinsic}, we can bound $\En \exp\prn*{ c_4\sqrt{Q_t(Y_t)}/t }\leq e^{\dstar}$ for a sufficiently small constant $c_4>0$.
+\sccomment{Can't we apply this argument to $k_t$ directly, by saying that $k_t(Y_t) \le \E[\|Y_0 - m_t(Y_t)\|^3\mid Y_t]$? Perhaps bypasses the need for the lemma above?}\fccomment{we need this lemma for sublinear dependence on $\dstar$ or $d$...}
+Therefore, the sub-exponential norm of $\sqrt{Q_t(Y_t)}$ is bounded by $O(t\dstar)$, and hence 
+by \cref{lem:sub-exp-trunc}, we can choose $K_2=C_2(\tau\dstar\log(1/\delta))^{3/2}$ to  upper bound 
+\begin{align*}
+    \En\prn*{M \nrm{k_t(Y_t)}-1 }_+
+    \leq K_2M(\delta+\PP\prn*{M \nrm{k_t(Y_t)}\geq 1}).
+\end{align*}
+Furthermore, we know that $\PP(\sqrt{Q_t(Y_t)}\geq c_5t(\dstar+\log(1/\delta)))\leq \delta$, and hence
+\begin{align*}
+    \PP\prn*{M \nrm{k_t(Y_t)}\geq 1}
+    \leq \delta+\PP\prn*{ t^{-1}\nrmop{\cov_t(Y_t)}\geq \frac{c_2\tau^4}{\eta^3(\dstar+\log(1/\delta))^2\log(1/\delta)} }.
+\end{align*}
+In addition, by \cref{lem:Gaussian-vMGF}, it holds that
+\begin{align*}
+    \En\exp\prn*{ \frac{1}{4t}\abs*{\nrm{Y_t-Y_0}^2-td} }\leq e^{d/4}.
+\end{align*}
+For random variable $A$, it holds that $\exp(\sqrt{\En A^2})\leq e^2\En \exp(\abs{A})$, and hence
+\begin{align*}
+    \En\exp\prn*{ \frac{1}{4t}\sqrt{\Var[ \nrm{Y_t-Y_0}^2 \mid Y_t]} }
+    \leq&~ \En\exp\prn*{ \frac{1}{4t}\sqrt{\En[\prn{\nrm{Y_t-Y_0}^2-td}^2\mid Y_t]} } \\
+    \leq&~ e^2\En\exp\prn*{ \frac{1}{4t}\abs*{\nrm{Y_t-Y_0}^2-td} }\leq e^{2+d}.
+\end{align*}
+Hence, using the second inequality of \cref{lem:kt-to-variance} and \cref{pfeq:cov-inner}, we can show that
+\begin{align*}
+    \PP\prn*{M \nrm{k_t(Y_t)}\geq 1}
+    \leq \delta+\PP\prn*{ t^{-1}\nrmop{\cov_t(Y_t)}\geq c_6\sqrt{\frac{\tau^3}{\eta^3(d+\log(1/\delta))\log(1/\delta)}} }.
+\end{align*}
+Therefore, under \cref{pfeq:coverage-eta}, for any $t\in[\tau-r,\tau]$,
+\begin{align*}
+    \En\prn*{M \nrm{k_t(Y_t)}-1 }_+\leqsim \dstar^{3/2}(\delta+\PP\prn*{ t^{-1}\nrmop{\cov_t(Y_t)}\geq \Lop}).
+\end{align*}
+\end{proof}
+
+
+\begin{proof}[\pfref{lem:kt-to-variance}]
+Fix $x\in\RR^d$. We define the random variable
+\begin{align*}
+    \Delta\deq  \nrm{Y_0-m_t(x)}^2-\En[ \nrm{Y_0-m_t(x)}^2 \mid Y_t=x ],
+\end{align*}
+and then $k_t(x)=\En[ (Y_0-m_t(x))\Delta\mid Y_t=x ]$.
+For any vector $v\in\RR^d$, we can bound
+\begin{align*}
+    \tri{v,k_t(x)}^2
+    =&~\prn*{ \En[ \tri{v,Y_0-m_t(x)}\Delta \mid Y_t=x ] }^2 \\
+    \leq&~ \En[ \tri{v,Y_0-m_t(x)}^2\mid Y_t=x ] \cdot \En[ \Delta^2 \mid Y_t=x ] \\
+    \leq&~ \nrmop{\cov_t(x)} \nrm{v}^2 \cdot \En[ \Delta^2 \mid Y_t=x ].
+\end{align*}
+Noting that $\En[ \Delta^2 \mid Y_t=x ]=\Var[ \nrm{Y_0-m_t(x)}^2 \mid Y_t=x ]$ completes the proof of the first inequality.
+
+On the other hand, we can denote $Z_t=Y_t-Y_0$ and write
+\begin{align*}
+    k_t(x)=&~\En[ (Y_0-m_t(x))\nrm{Y_0-m_t(x)}^2 \mid Y_t=x ] \\
+    =&~ \En[ (Y_0-m_t(x))(\nrm{Z_t}^2+2\tri{Z_t,m_t(x)-Y_t}+\nrm{m_t(x)-Y_t}^2) \mid Y_t=x ] \\
+    =&~ \En[ (Y_0-m_t(x))\nrm{Z_t}^2 \mid Y_t=x ]
+    +2\En[ (Y_0-m_t(x))\tri{Z_t,m_t(x)-Y_t} \mid Y_t=x ] \\
+    =&~ \En[ (Y_0-m_t(x))\nrm{Z_t}^2 \mid Y_t=x ]
+    +2\En[ (Y_0-m_t(x))\tri{m_t(x)-Y_0,m_t(x)-Y_t} \mid Y_t=x ] \\
+    =&~ \En[ (Y_0-m_t(x))\nrm{Z_t}^2 \mid Y_t=x ]-2\cov_t(x)(m_t(x)-x).
+\end{align*}
+Repeating our argument above gives the second inequality.
+\end{proof}
+
+
+
+\subsection{Upper bounds with low intrinsic dimension}
+
+
+The following proposition generalizes the argument of \citet{HuaWeiChe26LowDim} that bounds the posterior covariance matrix in terms of the intrinsic dimension. 
+
+\begin{proposition}\label{prop:logp-adapt}
+Recall that $(Y_0,Y_\tau)$ is jointly distributed as $Y_0\sim \pbar$, $Y_\tau\sim \normal{Y_0,\tau\Id}$. It holds that
+\begin{align*}
+    \En\brk*{ \exp\prn*{ \frac{\nrm{Y_0-m_\tau(Y_\tau)}^2}{160\tau} }}\leq 4e^{\dim_\tau(\pbar)}.
+\end{align*}
+\end{proposition}
+
+
+\begin{proof}
+We write $Q(\cdot\mid x)$ be the conditional distribution of $Y_0\mid Y_\tau=x$, i.e.,
+\begin{align*}
+    Q(x_0\mid x)=\frac{\exp\prn*{-\frac{\nrm{\xbar+V-Y_0}^2}{2\tau}} }{\En_{Y_0\sim \pbar}\brk*{ \exp\prn*{-\frac{\nrm{\xbar+V-Y_0}^2}{2\tau}} }}
+    =\frac{\exp\prn*{-\frac{\nrm{\xbar-Y_0}^2+2\tri{V,\xbar-Y_0}}{2\tau}} }{\En_{Y_0\sim \pbar}\brk*{ \exp\prn*{-\frac{\nrm{\xbar-Y_0}^2+2\tri{V,\xbar-Y_0}}{2\tau}} }}\,.
+\end{align*}
+Our goal is to upper bound the moment
+\begin{align*}
+    \MM_{c}(x)\deq \En_{Y_0\sim Q(\cdot\mid x)}\exp\prn*{\frac{\nrm{Y_0-m_\tau(x)}^2}{c\tau}},
+\end{align*}
+where $m_\tau(x)\deq \En_{Y_0\sim Q(\cdot\mid x)}[Y_0]$ is the conditional mean. By triangle inequality, we know that for any $\xbar$ and
+\begin{align}\label{pfeq:intrinsic-mgf-decomp}
+    \MM_{8}(x)
+    \leq \En_{Y_0\sim Q(\cdot\mid x)} \exp\prn*{\frac{\nrm{Y_0-\xbar}^2+\nrm{m_\tau(x)-\xbar}^2}{4\tau}}
+    \leq \prn*{ \En_{Y_0\sim Q(\cdot\mid x)}\exp\prn*{\frac{\nrm{Y_0-\xbar}^2}{4\tau}} }^2.
+\end{align}
+
+
+Fix a $r$-covering of $\cXbar \deq \scedit{\supp(\pbar)}$:
+\begin{align*}
+    \cXbar\subseteq \bigcup_{i=1}^N B_i\,,
+\end{align*}
+where $N=N(\pbar,r)$ and $B_1,\dotsc, B_N$ are balls of radius $r$ and centers $z_1,\dotsc,z_N$. 
+
+Fix any $\xbar$ and an index $j=j(\xbar)$ such that $\xbar\in B_j$.
+
+For any $i\in[N]$, we consider
+\begin{align*}
+    g_i(V)\deq \En_{Y_0\sim \pbar} \indic\crl{Y_0\in B_i} \exp\prn*{-\frac{\nrm{\xbar-Y_0}^2}{4\tau}+\frac{\tri{V,z_i-Y_0}}{\tau}}.
+\end{align*}
+Note that 
+\begin{align*}
+    \En[g_i(V)]
+    =&~\En_{Y_0\sim \pbar} \indic\crl{Y_0\in B_i} \exp\prn*{-\frac{\nrm{\xbar-Y_0}^2}{4\tau}+\frac{\nrm{z_i-Y_0}^2}{2\tau}} \\
+    \leq&~ \En_{Y_0\sim \pbar} \indic\crl{Y_0\in B_i} \exp\prn*{\frac{2 r^2-\nrm{\xbar-Y_0}^2}{4\tau}} 
+    \leq \exp\prn*{ \frac{2 r^2-(\nrm{z_i-\xbar}-r)_+^2}{4\tau} }.
+\end{align*}
+
+In addition, we define (recall $j=j(\xbar)$ is an index such that $\xbar\in B_j$)
+\begin{align*}
+    u(V)\deq \En_{Y_0\sim \pbar} \brk*{ \exp\prn*{-\frac{\tri{V,\xbar-Y_0}}{\tau}} \Big| Y_0\in B_j}.
+\end{align*}
+Note that
+\begin{align*}
+    \En_{Y_0\sim \pbar}\brk*{ \exp\prn*{-\frac{\nrm{\xbar-Y_0}^2+2\tri{V,\xbar-Y_0}}{2\tau}} }
+    \geq&~ \En_{Y_0\sim \pbar} \indic\crl{Y_0\in B_j} \exp\prn*{-\frac{\nrm{\xbar-Y_0}^2+2\tri{V,\xbar-Y_0}}{2\tau}} \\
+    \geq&~ \pbar(B_j)e^{-2r^2/\tau} u(V),
+\end{align*}
+and we also have
+\begin{align*}
+    \En_V[u(V)^{-1}]
+    \leq&~ \En_V \En_{Y_0\sim \pbar} \brk*{ \exp\prn*{\frac{\tri{V,\xbar-Y_0}}{\tau}} \Big| Y_0\in B_j} \\
+    =&~ \En_{Y_0\sim \pbar} \brk*{ \exp\prn*{\frac{\nrm{\xbar-Y_0}^2}{2\tau}} \Big| Y_0\in B_j}
+    \leq \exp\prn*{\frac{2 r^2}{\tau}}.
+\end{align*}
+
+By definition and \eqref{pfeq:intrinsic-mgf-decomp}, for any $V$, we can decompose
+\begin{align*}
+    \MM_{16}(\xbar+V)\leq\sqrt{\MM_{8}(\xbar+V)}
+    \leq \frac{e^{2r^2/\tau}}{\scedit{\pbar}(B_j)\, u(V)}\sum_{i\in\cI} g_i(V)\exp\prn*{ \frac{\tri{V,\xbar-z_i}}{\tau} }.
+\end{align*}
+Therefore, by union bound, we know that $\PP_V(\cV_1\cap \cV_2)\geq 1-\delta$, where
+\begin{align*}
+    \cV_1 &\deq \crl[\Big]{ u(V)^{-1}\leq e^{2 r^2/\tau}\cdot \frac{3N}{\delta} } \cap \scedit{\bigcap_{i\in [N]}} \crl[\Big]{ g_i(V)\leq \exp\prn[\Big]{ \frac{2 r^2-(\nrm{z_i-\xbar}-r)_+^2}{4\tau} }\cdot \frac{3N}{\delta} }\,, \\
+    \cV_2 &\deq \scedit{\bigcap_{i\in [N]}}\crl[\Big]{ \tri{V, \xbar-z_i}\leq \nrm{\xbar-z_i}\sqrt{2\tau\log(3N/\delta)}}\,.
+\end{align*}
+Note that under $V\in\cV_1\cap \cV_2$, we can upper bound
+\begin{align*}
+    \log \MM_{16}(\xbar+V)-\log \frac{1}{\scedit{\pbar}(B_j)}
+    \leq&~ 2\log(3N/\delta)+\frac{5 r^2}{\tau}+\max_i -\frac{(\nrm{z_i-\xbar}-r)_+^2}{4\tau}+\nrm{\xbar-z_i}\sqrt{2 \log(3N/\delta)/\tau} \\
+    \leq&~ 2\log(3N/\delta)+\frac{5 r^2}{\tau}+r\sqrt{2 \log(3N/\delta)/\tau} +2 \log(3N/\delta) \\
+    \leq&~ 5 \log(3N/\delta)+\frac{6 r^2}{\tau}.
+\end{align*}
+Therefore, we denote $w=\frac{1}{10}$, and we know that
+\begin{align*}
+    \PP_V\prn*{ \MM_{16}(\xbar+V)^{w}
+    \geq \frac{1}{\scedit{\pbar}(B_j)^w}\sqrt{3N/\delta} e^{r^2/\tau} }\leq \delta, \qquad\forall \delta\in(0,1).
+\end{align*}
+Integration gives
+\begin{align*}
+    \En_V \MM_{16}(\xbar+V)^{w} \leq \frac{2}{\scedit{\pbar}(B_{j})^w} \sqrt{3N}e^{r^2/\tau}.
+\end{align*}
+Finally, we can take expectation over $\xbar\sim \pbar$, and using the fact that $\En[\scedit{\pbar}(B_{j(\xbar)})^w]\leq \sum_i \scedit{\pbar}(B_i)^{1-w}\leq \sqrt{N}$ gives
+\begin{align}
+    \En_{\xbar\sim \pbar, V\sim\normal{0,\tau\Id}} \MM_{16}(\xbar+V)^{w}\leq 4Ne^{r^2/\tau}.
+\end{align}
+This gives the desired upper bound by taking infimum over $r>0$ (and combining \cref{lem:MGF-trivial} when $\dim_\tau(\pbar)=d$).
+\end{proof}
+
+\begin{proof}[\pfref{cor:MGF-intrinsic}]
+The first inequality follows from \cref{prop:logp-adapt}. In addition, with the first inequality, we know $m_s(Y_s)=\En[Y_0\mid Y_s]=\En[Y_0\mid Y_s,Y_t]$, and hence
+\begin{align*}
+    \En\exp\prn[\Big]{ \frac{1}{C\tau}\,\nrm{m_s(Y_s)-m_\tau(Y_\tau)}^2 }
+    \leq \En\exp\prn[\Big]{ \frac{1}{C\tau}\,\En[\nrm{Y_\tau-Y_0}^2\mid Y_s,Y_\tau] }
+    &\leq \En\exp\prn[\Big]{\frac{1}{C\tau} \,\nrm{Y_\tau-Y_0}^2}\\
+    &\leq e^{\dim_\tau(\pbar)}\,.
+\end{align*}
+This gives the third inequality. In the following, we prove the second inequality. 
+By our proof of \cref{prop:logp-adapt}, we can show the following fact: There is a constant $C_0>0$ such that 
+\begin{align*}
+    \En_{\xbar\sim \pbar, V\sim \normal{0,\tau\Id}} \En_{Y_0\sim Q(\cdot\mid \xbar+V)}\brk*{ \exp\prn*{ \frac{\abs{\tri{Y_0-\xbar, V}}}{C_0\tau} } }\leq e^{\dim_\tau(\pbar)}
+\end{align*}
+Note that for random variable $A$, it holds that $\sqrt{\En A^2}\leq 2+\log\En \exp(\abs{A})$, i.e., $\exp(\sqrt{\En A^2})\leq e^2\En \exp(\abs{A})$. Further, $\nrm{V}_{\cov_\tau(\xbar+V)}=\sqrt{\En_{Y_0\sim Q(\cdot\mid \xbar+V)}\abs{\tri{Y_0-\xbar, V}}^2}$. Therefore, it holds that
+\begin{align*}
+    \En_{\xbar\sim \pbar, V\sim \normal{0,\tau\Id}}\brk*{ \exp\prn*{ \frac{1}{C_0\tau}\nrm{V}_{\cov_\tau(\xbar+V)} } }\leq e^{\dim_\tau(\pbar)+2}.
+\end{align*}
+Consider $x=\xbar+V$. Under $\xbar\sim \pbar, V\sim \normal{0,\tau\Id}$, it holds that $\En[V\mid x]=x-\En[\xbar\mid x]=x-m_\tau(x)$. By convexity, we can then conclude that
+\begin{align*}
+    \En_{x\sim \pbar*\normal{0,\tau\Id}}\brk*{ \exp\prn*{ \frac{1}{C_0\tau}\nrm{x-m_\tau(x)}_{\cov(\xbar+V)} } }
+    \leq\En_{\xbar\sim \pbar, V\sim \normal{0,\tau\Id}}\brk*{ \exp\prn*{ \frac{1}{C_0\tau}\nrm{V}_{\cov(\xbar+V)} } }\leq e^{\dim_\tau(\pbar)+2}.
+\end{align*}
+This is the desired upper bound.
+\end{proof}
+
+
+
+
+
+\begin{lemma}\label{lem:MGF-trivial}
+The following holds for any $t>0$.
+
+(1) It holds that
+\begin{align*}
+\En\exp\prn*{ \frac{1}{10t}\nrm{Y_0-m_t(Y_t)}^2 }
+    \leq e^d.
+\end{align*}
+
+(2) It holds that
+\begin{align*}
+    \En\exp\prn*{ \frac{1}{3t}\nrm{Y_t-m_t(Y_t)}^2 }
+    \leq e^d.
+\end{align*}
+
+(3) It holds that
+\begin{align*}
+    \En\exp\prn*{ \frac{1}{3t}\tr(\cov_t(Y_t)) }
+    \leq e^d.
+\end{align*}
+
+(4) For any $0\leq s\leq t$, it holds that
+\begin{align*}
+    \En\exp\prn*{ \frac{1}{3t}\nrm{m_s(Y_s)-m_t(Y_t)}^2 }
+    \leq e^d.
+\end{align*}
+\end{lemma}
+
+\begin{proof}
+By definition, we know $Y_t-m_t(Y_t)=\En[Y_t-Y_0\mid Y_t]$, and hence for any $\lambda<\frac{1}{2t}$,
+\begin{align*}
+    \En\exp\prn*{ \lambda\nrm{Y_t-m_t(Y_t)}^2 }
+    \leq&~ \En\exp\prn*{ \lambda\En[\nrm{Y_t-Y_0}^2\mid Y_t] }
+    \leq \En\exp\prn*{\lambda\nrm{Y_t-Y_0}^2}=(1-2\lambda t)^{-d/2},
+\end{align*}
+where we use $Y_t-Y_0\sim \normal{0,t\Id}$. Choosing $\lambda=\frac{1}{3t}$ completes the proof of (2) and (3), because $\tr(\cov_t(Y_t))=\En[\nrm{Y_0-m_t(Y_t)}^2\mid Y_t]\leq \En[\nrm{Y_t-Y_0}^2\mid Y_t]$. In addition, we know $m_s(Y_s)=\En[Y_0\mid Y_s]=\En[Y_0\mid Y_s,Y_t]$, and hence
+\begin{align}\label{eq:MGF-finiteness}
+    \En\exp\prn*{ \lambda\nrm{m_s(Y_s)-m_t(Y_t)}^2 }
+    \leq&~ \En\exp\prn*{ \lambda\En[\nrm{Y_t-Y_0}^2\mid Y_s,Y_t] }
+    \leq \En\exp\prn*{\lambda\nrm{Y_t-Y_0}^2}=(1-2\lambda t)^{-d/2}.
+\end{align}
+This gives (4).
+
+Further, using $\nrm{Y_0-m_t(Y_t)}\leq \nrm{Y_0-Y_t}+\nrm{Y_t-m_t(Y_t)}$, we know that for any $\lambda<\frac{1}{2t}$,
+\begin{align*}
+    \En\exp\prn*{ \frac{\lambda}{4}\nrm{Y_0-m_t(Y_t)}^2 }
+    \leq&~ \En\exp\prn*{ \frac{\lambda}{2}\nrm{Y_0-Y_t}^2+\frac{\lambda}{2}\nrm{Y_t-m_t(Y_t)}^2 } \\
+    \leq&~ \sqrt{\En\exp\prn*{ \lambda\nrm{Y_t-m_t(Y_t)}^2 }\En\exp\prn*{ \lambda\nrm{Y_t-m_t(Y_t)}^2 }}
+    \leq (1-2\lambda t)^{-d/2}.
+\end{align*}
+This gives (1) by choosing $\lambda=\frac{2}{5t}$. 
+\end{proof}
+
+
+
+
+\subsection{\pfref{prop:Lip-op-to-Frob}}
+
+By \cref{cor:MGF-intrinsic}, it holds that $\PP_{Y_\tau\sim q_\tau}(\tr(\cov_t(Y_t))\geq C(\dstar+\log(1/\delta)))\leq \frac{\delta}{2\dstar^5}$ for any $\delta\in(0,1)$. Then, using $\nrmF{\cov_t(Y_t)}^2\leq \nrmop{\cov_t(Y_t)}\cdot \tr(\cov_t(Y_t))$, we can upper bound
+\begin{align*}
+    \PP_{Y_\tau\sim q_\tau}(t^{-2}\nrmF{\cov_t(Y_t)}^2\geq C(\dstar+\log(1/\delta))\Lipop[\delta/2])
+    \leq&~ \PP_{Y_\tau\sim q_\tau}(t^{-1}\nrmop{\cov_t(Y_t)}\geq \Lipop[\delta/2]) \\
+    &~ +\PP_{Y_\tau\sim q_\tau}(\tr(\cov_t(Y_t))\geq C(\dstar+\log(1/\delta)))\\
+    \leq&~ \frac{\delta}{\dstar^5}.
+\end{align*}
+\qed
+
+
+
+\subsection{\pfref{prop:DDPM-Lip}}
+
+Fix any $k\in[K]$.
+In \cref{cor:coverage-backward}, we choose $\eta=\eta_k$, $\tau=\sigma_{k+1}^2$, and hence $\tau-\eta=\sigma_k^2$, $q_{\tau-\eta}=p_k$ and $\wt{q}_{\tau,\eta}=\wt{p}_k$. Then, suppose that \cref{asmp:non-unif-Lip} holds with $\Lipop\leq \Lop\cdot \polylog(M/\delta)$. As long as 
+\begin{align*}
+    \frac{\sigma_k^2}{\eta_k}\gg \min\crl{ \Lop^{2/3}d^{1/3}, \Lop^{1/3}\dstar^{2/3} } \log^{1/3}(M\dstar/\delta)+\log^2(M\dstar/\delta),
+\end{align*}
+by \cref{cor:coverage-backward}, it holds that
+\begin{align*}
+    \Dcov[e]{\wt{p}_k}{p_k}\leq \frac{\delta}{100\dstar^5}.
+\end{align*}
+Then, \cref{asmp:Lip-Frob} implies that $\bbP_{X_k\sim p_k}\prn[\Big]{ \nrmF{\nabla m_{\sigma_k^2}(X_k)}> \LipF[\delta/3] }\leq \frac{\delta}{3\dstar^5}$, and hence
+\begin{align}
+    \bbP_{X_k'\sim \wt{p}_k}\prn[\Big]{ \nrmF{\nabla m_{\sigma_k^2}(X_k')}> \LipF[\delta/3] }\leq&~
+    e \bbP_{X_k\sim p_k}\prn[\Big]{ \nrmF{\nabla m_{\sigma_k^2}(X_k)}> \LipF[\delta/3] } + \Dcov[e]{\wt{p}_k}{p_k}\leq 
+     \frac{\delta}{\dstar^5}.
+\end{align}
+\qed
+
+
+
+\subsection{Why Lipschitz condition under the Frobenius norm?}\label{ssec:why-Frob}
+
+\sccomment{I suggest moving this subsection to the appendix. It adds a lot of new notation to parse and I don't think it adds enough to the main story}
+
+\newcommand{\step}{\eta'}
+\newcommand{\Comp}{\mathsf{Lip}}
+
+We now argue that the Frobenius-norm Lipschitz condition (\cref{asmp:Lip-Frob}) is not merely an artifact of our analysis, but rather an instance-specific complexity measure for any sampling scheme based on Gaussian approximation of \eqref{eq:backward_kernel}. The argument proceeds through an exact characterization of the KL error of one-step Gaussian approximation.
+
+To make this precise, consider the one-step KL divergence from the true backward transition $\rho_k(\cdot\mid X_{k+1})$ to any Gaussian approximation:
+\begin{align*}
+    U_k(\eta, v)\deq \En_{X_{k+1}\sim p_{k+1}}\Dkl{\rho_k(\cdot\mid X_{k+1})}{\normal{v(X_{k+1}),\eta\Id}}\,,
+\end{align*}
+where $\eta>0$ is the step size and $v:\RR^d\to\RR^d$ is an arbitrary mean function. Intuitively, $U_k(\eta, v)$ measures the best possible performance of any one-step scheme of the form $X_k\sim \normal{v(X_{k+1}),\eta\Id}$. More specifically, for rejection sampling with proposal $\normal{v(X_{k+1}),\eta\Id}$ (e.g., via FORS) to succeed, it is at least necessary that $U_k(\eta, v)=O(1)$.
+
+The following theorem provides an \emph{exact} characterization of $\min_v U_k(\eta, v)$, revealing that the minimum one-step KL decomposes into a score estimation error and an irreducible discretization term governed by $\nabla m_\tau(Y_\tau)$. To state the result, we define
+\begin{align*}
+    \Comp_k(\lambda)\deq \int_{\sigma_k^2}^{\sigma_{k+1}^2} \frac{(\lambda+\tau)(\tau-\sigma_k^2)}{\tau^2(\lambda+\sigma_k^2)} \En\nrmF{\nabla m_\tau(Y_\tau)-\lambda/(\lambda+\tau)\Id}^2\, d\tau\,, \qquad \forall \lambda\geq 0\,,
+\end{align*}
+and $\Comp_k(\infty)\deq \lim_{\lambda\to\infty} \Comp_k(\lambda)$.
+
+
+
+\begin{theorem}\label{thm:DDPM-KL-exact}
+For $k\in[K]$, it holds that
+\begin{align}\label{eq:KL-decomp}
+    U_k(\eta, v)=\frac{1}{2\eta}\En\nrm{v(X_{k+1})-X_{k+1}-\eta\scfs_{k+1}(X_{k+1})}^2+\wb{U}_k(\eta),
+\end{align}
+where $\wb{U}_k(\eta)\geq 0$ satisfies:
+
+(1) When $\eta<\etabar_k$, it holds that $\wb{U}_k>\Comp_k(0)$. When $\eta>\eta_k$, it holds that $\wb{U}_k>\Comp_k(\infty)$. 
+
+(2) When $\eta\in[\etabar_k,\eta_k]$, then there is $\lambda\in[0,\infty]$ such that $\frac{1}{\eta}=\frac{1}{\eta_k}+\frac{1}{\lambda+\sigma_k^2}$ and $\wb{U}_k(\eta)=\Comp_k(\lambda)$.
+\end{theorem}
+
+We interpret this result and its implications below.
+
+\paragraph{Optimal mean function}
+The first term in the decomposition~\eqref{eq:KL-decomp}, $\frac{1}{2\eta}\En\nrm{v(X_{k+1})-X_{k+1}-\eta\scfs_{k+1}(X_{k+1})}^2$, vanishes iff $v(X)=X+\eta \scfs_{k+1}(X)$. Given an estimated score function $\scf_{k+1}\approx \scfs_{k+1}$, the optimal choice of mean function is therefore $v(X)=X+\eta \scf_{k+1}(X)$, which matches the DDPM proposal we consider.
+
+\paragraph{Discretization error}
+The second term $\wb{U}_k(\eta)\geq 0$ cannot be eliminated by any choice of mean function $v$; it provides a \emph{lower bound} on the one-step KL divergence that is intrinsic to the data distribution.
+By \cref{thm:DDPM-KL-exact} (2), it holds that
+\[
+\min_{\eta,v} U_k(\eta, v) = \min_{\lambda\geq 0} \Comp_k(\lambda)\,,
+\]
+where the minimum over $\eta$ selects the optimal step size for a given $\lambda$. This identity shows that $\Comp_k(\lambda)$ \emph{exactly} characterizes the best possible one-step performance of any Gaussian transition scheme. Further, to sample from the backward kernel~\eqref{eq:backward_kernel}, we may expect that rejection sampling with proposal $\normal{v(X_{k+1}),\eta\Id}$ succeeds only when $ U_k(\eta, v)=O(1)$, i.e., $\Comp_k(\lambda)=O(1)$ for the corresponding $\lambda$. 
+
+In principle, we should choose $\lambda_k^\star$ that minimizes $\Comp_k(\cdot)$ and select $\eta_k^\star$ accordingly (by $\frac{1}{\eta_k^\star}=\frac{1}{\eta_k}+\frac{1}{\lambda^\star_k+\sigma_k^2}$). However, this requires prior knowledge of the data distribution, and in the absence of such knowledge, the natural choice is $\lambda=0$, for which $\frac{1}{\eta}=\frac{1}{\eta_k}+\frac{1}{\sigma_k^2}$, i.e., $\eta=\etabar_k$. This choice is justified by \cref{cor:MGF-intrinsic}, which implies $\Comp_k(0)\leq O(\dstar\eta_k/\sigma_k^2)$. Further, we can relate $\Comp_k(0)$ to the non-uniform Lipschitz condition (\cref{asmp:Lip-Frob}) directly.
+
+
+
+
+
+
+
+
+
+
+
+
+\subsection{\pfref{thm:DDPM-KL-exact}}
+We work under the additional notation introduced in \cref{appdx:structure}. We write $\tau=\sigma_{k+1}^2$, $\beta=\sigma_k^2$, so that $\tau-\beta=\eta_k$. We also denote $\wt{\eta}=\eta_k$.
+
+Recall that
+\begin{align*}
+    q_{\tau,\tau-\beta}(y\mid Y_\tau)=\frac{q_{\beta}(y)}{q_\tau(Y_\tau)}\cdot \frac{1}{(2\pi\wt{\eta})^{d/2}}\exp\prn*{ -\frac{1}{2\wt{\eta}}\nrm{y-Y_\tau}^2 }
+\end{align*}
+is the conditional distribution of $Y_{\beta}\mid Y_\tau$. 
+Then, we can express
+\begin{align*}
+    U(v,\eta)=&~ \Dkl{q_{\tau,\tau-\beta}(y\mid Y_\tau)}{\normal{v(Y_\tau),\eta\Id}} \\
+    =&~\En_{Y\sim q_{\tau,\tau-\beta}(\cdot\mid Y_\tau)}\brk*{ \log q_{\beta}(Y)-\log q_\tau(Y_\tau)-\frac{1}{2\wt{\eta}}\nrm{Y-Y_\tau}^2+\frac{1}{2\eta}\nrm{Y-v(Y_\tau)}^2 }+\frac{d}{2}\log(\eta/\wt{\eta}).
+\end{align*}
+Taking expectation over $Y_\tau\sim q_\tau$, we know
+\begin{align*}
+    &~\En_{Y_\tau\sim q_\tau}\Dkl{q_{\tau,\tau-\beta}(y\mid Y_\tau)}{\normal{v(Y_\tau),\eta\Id}} \\
+    =&~\En_{(Y_{\beta},Y_\tau)}\brk*{ \log q_{\beta}(Y_{\beta})-\log q_\tau(Y_\tau)-\frac{1}{2\wt{\eta}}\nrm{Y_{\beta}-Y_\tau}^2+\frac{1}{2\eta}\nrm{Y_{\beta}-v(Y_\tau)}^2 }+\frac{d}{2}\log(\eta/\wt{\eta}) \\
+    =&~ H(q_\tau)-H(q_{\beta})-\frac{d}{2}+\frac{1}{2\eta}\En\brk*{ \nrm{Y_{\beta}-\En[Y_{\beta}\mid Y_\tau]}^2+\nrm{\En[Y_{\beta}\mid Y_\tau]-v(Y_\tau)}^2 }+\frac{d}{2}\log(\eta/\wt{\eta}),
+\end{align*}
+where $H(q)=-\En_{Y\sim q}[\log q(Y)]$ is the differential entropy of $q$. 
+
+Note that $\En[Y_{\beta}\mid Y_\tau]=Y_\tau+\frac{\wt{\eta}}{\tau}(\En[Y_0\mid Y_\tau]-Y_\tau)=Y_\tau+\wt{\eta}\nabla \log q_\tau(Y_\tau)$. Hence,
+\begin{align*}
+    \En\brk*{ \nrm{Y_{\beta}-\En[Y_{\beta}\mid Y_\tau]}^2 }
+    =&~\En\brk*{ \nrm{Y_{\beta}-Y_\tau}^2 }-\En\brk*{ \nrm{Y_{\tau}-\En[Y_{\beta}\mid Y_\tau]}^2 } \\
+    =&~ d\wt{\eta} - \frac{\wt{\eta}^2}{\tau^2}\En\nrm{Y_\tau-m_\tau(Y_\tau)}^2 \\
+    =&~ d\prn*{\wt{\eta}-\frac{\wt{\eta}^2}{\tau}}+\frac{\wt{\eta}^2}{\tau^2}\En\nrm{Y_0-m_\tau(Y_\tau)}^2.
+\end{align*}
+It is also straightforward to verify that (see, e.g., \citep[Theorem 3.14, I-MMSE]{polyanskiy2025information})
+\begin{align*}
+    \partial_\tau H(q_\tau)=\frac{d}{2\tau}-\frac{1}{2\tau^2}\En\nrm{Y_0-m_\tau(Y_\tau)}^2.
+\end{align*}
+Therefore, in the following, we denote $M_t\deq \En\nrm{Y_0-m_t(Y_t)}^2$, and then
+\begin{align*}
+    2\wb{U}(\eta)\deq &~2\En_{Y_\tau\sim q_\tau}\Dkl{q_{\tau,\tau-\beta}(y\mid Y_\tau)}{\normal{v(Y_\tau),\eta\Id}} -\frac{1}{\eta}\En\nrm{v(Y_\tau)-Y_\tau-\wt{\eta}\nabla \log q_\tau(Y_\tau)}^2 \\
+    =&~ \frac{\wt{\eta}^2}{\eta\tau^2}M_\tau-\int_{\beta}^\tau \frac{M_t}{t^2}dt+d\brk*{ \frac{\wt{\eta}\beta}{\eta\tau}-1 -\log\frac{\wt{\eta}\beta}{\eta\tau} }.
+\end{align*}
+Note that from our proof of \cref{prop:DDPM-coverage}, it holds that
+\begin{align*}
+    M_\tau-M_t=\En\nrm{m_t(Y_t)-m_\tau(Y_\tau)}^2=\int_t^\tau \En\nrmF{\nabla m_s(Y_s)}^2 ds.
+\end{align*}
+Therefore, $\partial_t M_t=\frac{1}{t^2}\En\nrmF{\cov_t(Y_t)}^2$. We denote $c_t=\frac{(\lambda+t)^2}{t^2}$ and $b_t=\frac{\lambda t}{\lambda+t}$, and then
+\begin{align*}
+    \partial_t (c_tM_t)=\frac{c_t}{t^2}\En\nrmF{\cov_t(Y_t)}^2-\frac{2\lambda c_t}{t(\lambda+t)}M_t
+    =\frac{c_t}{t^2} \En\nrmF{\cov_t(Y_t)-b_t\Id}^2-\frac{\lambda^2d}{t^2}.
+\end{align*}
+Integrating from $t$ to $\tau$ gives
+\begin{align*}
+    c_\tau M_\tau-c_t M_t=\int_t^\tau \frac{c_s}{s^2} \En\nrmF{\cov_s(Y_s)-b_s\Id}^2 ds - \frac{\lambda^2d}{t}+\frac{\lambda^2d}{\tau}.
+\end{align*}
+Integrating $\frac{c_\tau}{(\lambda+t)^2}M_\tau-\frac{1}{t^2}M_t$ from $\beta$ to $\tau$ gives
+\begin{align*}
+    \frac{\wt{\eta}^2 M_\tau}{\tau^2}\prn*{\frac{1}{\wt{\eta}}+\frac{1}{\lambda+\beta}}-\int_{\beta}^\tau \frac{M_t}{t^2}dt
+    =&~ I_\lambda +d\prn*{ \frac{\wt{\eta} \lambda}{\tau(\lambda+\beta)}-\log\frac{\tau(\lambda+\beta)}{(\lambda+\tau)\beta} },
+\end{align*}
+where
+\begin{align*}
+    I_\lambda \deq \int_{\beta}^\tau \int_t^\tau \frac{c_s}{s^2(\lambda+t)^2} \En\nrmF{\cov_s(Y_s)-b_s\Id}^2 dsdt
+    =\int_{\beta}^\tau \frac{(\lambda+s)(s-\tau+\wt{\eta})}{s^2(\lambda+\beta)} \En\nrmF{s^{-1}(\cov_s(Y_s)-b_s\Id)}^2 ds.
+\end{align*}
+
+In the following, we consider three cases.
+
+(1) Suppose that $\frac{1}{\eta}>\frac{1}{\wt{\eta}}+\frac{1}{\beta}$. Then we can set $\lambda=0$ to see $2\wb{U}(\eta)>I_0$. 
+
+(2) Suppose that $\frac{1}{\wt{\eta}}<\frac{1}{\eta}\leq \frac{1}{\wt{\eta}}+\frac{1}{\beta}$. Then there is $\lambda\geq 0$ such that $\frac{1}{\eta}=\frac{1}{\wt{\eta}}+\frac{1}{\lambda+\beta}$, and our calculation above shows $2\wb{U}(\eta)=I_\lambda$.
+
+(3) Suppose that $\frac{1}{\eta}\leq \frac{1}{\wt{\eta}}$. In this case, we can let $\lambda\to \infty$, and it is clear that
+\begin{align*}
+    \lim_{\lambda\to\infty} I_\lambda=I_\infty\deq \int_{\beta}^\tau \frac{s-\tau+\wt{\eta}}{s^2} \En\nrmF{s^{-1}\cov_s(Y_s)-\Id}^2 ds.
+\end{align*}
+In this case, we have
+\begin{align*}
+    2\wb{U}(\eta)=I_\infty+\frac{\wt{\eta}^2M_\tau}{\tau^2}\prn*{\frac{1}{\eta}-\frac{1}{\wt{\eta}}}+d\brk*{ \frac{\wt{\eta}\beta}{\eta\tau}+\frac{\wt{\eta}}{\tau}-1-\log \frac{\wt{\eta}}{\eta} }.
+\end{align*}
+Note that $M_\tau=d\tau-\En\nrm{m_\tau(Y_\tau)-Y_\tau}^2\leq d\tau$, and hence $2\wb{U}(\eta)\geq I_\infty+d\prn*{\frac{\wt{\eta}}{\eta}-1-\log \frac{\wt{\eta}}{\eta}}\geq I_\infty$, with equality iff $\eta=\wt{\eta}$. 
+
+Combining all the cases completes the proof.
+\qed
+
+\begin{corollary}\label{cor:DDPM-p0}
+Suppose that $\nabla \log \pdata$ is $L$-Lipschitz and $\sigma_0^2\leq \frac{1}{2L}$.
+Then it holds that 
+\begin{align*}
+    \En_{X_{1}\sim p_{1}}\Dkl{\rho_1(\cdot\mid X_{1})}{\normal{ X_1 + \eta_0 \scf_{1}(X_1), \eta_0 \Id }}
+    \leq \frac{\eta_0}{2}\En\nrm{\scf_1(X_1)-\scfs_1(X_1)}^2
+    +2dL^2\sigma_0^4.
+\end{align*}
+\end{corollary}
+
+\begin{proof}
+Using the proof above, we know for $\eta<\tau$, score function $s$, 
+\begin{align*}
+    &~ \Dkl{q_{\tau,\eta}(y\mid Y_\tau)}{\normal{Y_\tau+\eta s(Y_\tau),\eta\Id}} \\
+    =&~ \frac{\eta}{2}\En\nrm{ s(Y_\tau)-\nabla \log q_\tau(Y_\tau) }^2+\frac12\int_{\tau-\eta}^\tau \frac{t-\tau+\eta}{t^2} \En\nrmF{t^{-1}\cov_t(Y_t)-\Id}^2 dt.
+\end{align*}
+Note that under our assumption, the conditional distribution $Y_0\mid Y_t$ is $(t^{-1}-L)$-strongly log-concave and $(t^{-1}+L)$-log-smooth, and hence
+\begin{align*}
+    \frac{1}{t^{-1}+L}\Id\preceq \cov_t(Y_t)\preceq \frac{1}{t^{-1}-L}\Id,
+\end{align*}
+and hence $\frac{Lt}{1+Lt}\Id\preceq t^{-1}\cov_t(Y_t)-\Id\preceq \frac{Lt}{1-Lt}\Id$. This immediately implies
+\begin{align*}
+    \int_{\tau-\eta}^\tau \frac{t-\tau+\eta}{t^2} \En\nrmF{t^{-1}\cov_t(Y_t)-\Id}^2 dt
+    \leq \int_{\tau-\eta}^\tau \frac{t-\tau+\eta}{t^2} \cdot \frac{(Lt)^2d}{(1-Lt)^2} dt \leq \frac{(L\eta)^2d}{(1-L\tau)^2}.
+\end{align*}
+Sending $\eta\to \tau$ completes the proof.
+\end{proof}

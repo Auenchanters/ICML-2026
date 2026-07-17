@@ -1,0 +1,57 @@
+
+
+
+
+We motivate our approach by considering the simple problem of sampling from a density $p\propto e^{-f}$, where $f : [0,1]\to\R$, $f(0) = 0$, and $-1 \le f' \le 1$.
+Our goal is to develop a \emph{high-accuracy sampler}---a sampler whose sampled distribution has $\delta$ error in total variation distance to $p$---in $\polylog(1/\delta)$ steps, using only queries to $f'$.
+
+Consider performing rejection sampling with the base measure $\unif([0,1])$. To do so, we must generate randomness $b\sim \Ber(ce^{-f(x)})$ for any given $x\in[0,1]$. However, we only have access to $f'$. The identity $f(x)=\int_{0}^x f'(y)\,dy$, written as
+\begin{align}
+\label{eq:1d_representation}
+    f(x)=\En_{y\sim \unif([0,x])}[xf'(y)]\,,
+\end{align}
+suggests an unbiased estimate of $f(x)$. Is it possible to sample from $\Ber(ce^{-f(x)})$ if we have access to an unbiased estimate of $f(x)$?
+A more general version of this idea is known as the ``Bernoulli factory'' problem \citep{keane1994bernoulli,nacu2005fast}. 
+It can be stated as the following abstract task:
+\begin{center}
+    \textbf{Task:} Given i.i.d.\ random variables $W_1,W_2,W_3,\dotsc$ in $[-1,1]$, generate a sample $b\sim \Ber(ce^{\En W_1})$.
+\end{center}
+To solve this, we write the Taylor series as
+\begin{align}\notag
+    e^{\En W_1}=e^{-1}\cdot e^{\En[1+W_1]}
+    =\sum_{j\geq 0} \frac{e^{-1}}{j!}\, \bigl(\En[1+W_1]\bigr)^j\,.
+\end{align}
+Suppose that $J\sim \Poi(2)$ is independent of the i.i.d. sequence $W_1,W_2,W_3,\dotsc$. Then we notice that
+\begin{align}\notag
+    e^{\En W_1}=e\En\brk[\Big]{\prod_{j=1}^J \bigl(\frac{1+W_j}{2}\bigr)}\,,
+\end{align}
+and simply set $b\sim \Ber\prn[\big]{\prod_{j=1}^J \bigl(\frac{1+W_j}{2}\bigr)}$.
+Indeed, $\Pr(b=1) = \E\prod_{j=1}^J \bigl(\frac{1+W_j}{2}\bigr) = e^{-1+\En W_1}$.
+
+In summary, we can generate a sample $b\sim \Ber\prn{ce^{-f(x)}}$ \emph{without} having to compute or accurately approximate $f(x)$ (this requires the integration step $f(x)=\int_{0}^x f'(y)\,dy$ and can be expensive). Instead, it is sufficient to have access to (a random number of) unbiased estimates of $f(x)$. The latter can be achieved with derivative information, in view of \eqref{eq:1d_representation}.
+
+We now generalize this setup via the following meta-algorithm, called \emph{first-order rejection sampling} (\emph{FORS}). Given a proposal distribution $q$ and a tilt function $w$, the goal of \cref{alg:fors} is to produce a sample from $\widehat p(x)\propto q(x)\, e^{w(x)}$ without having access to the \emph{value} $w(x)$. Instead, for each $x\in\RR^d$, we can generate i.i.d.\ samples $W_1,W_2, W_3\dotsc$ such that $\En[W_1\mid x]=w(x)$. 
+Let $\mathcal W_x$ denote the conditional distribution of $W_1$ given $x$.
+
+\begin{algorithm}
+\caption{First-order rejection sampling (FORS)}\label{alg:fors}
+\begin{algorithmic}
+\STATE \textbf{Input:} Parameter $B > 0$, proposal distribution $q$ over $\R^d$, estimator distributions $(\cW_x)_{x\in\R^d}$ supported on $[-B,B]$
+\FOR{$i=1,2,3,\dotsc$}
+\STATE Sample $x\sim q$.
+\STATE Sample $J\sim \Poi(2\B)$.
+\STATE Sample i.i.d. $W_1,\dotsc,W_J \sim \mathcal W_x$.
+\STATE Output $x$ with probability $\prod_{j=1}^J \frac{B+W_j}{2B}$.
+\ENDFOR
+\end{algorithmic}
+\end{algorithm}
+
+
+\begin{theorem}[FORS guarantee]\label{thm:fors}
+    \cref{alg:fors} outputs a random point with density $\widehat p(x)\propto q(x)\, e^{\En[W_1\mid x]}$.
+    The number of sampled $W_j$'s is bounded, with probability at least $1-\delta$, by $3Be^{2B}\log(2/\delta)$.
+
+    Moreover, if~\cref{alg:fors} is called $T$ times, then with probability at least $1-\delta$, the total number of sampled $W_j$'s is $O(Be^{2B}\,(T+\log(1/\delta)))$.
+\end{theorem}
+
+\fcedit{We remark that variants of this idea have been applied to \emph{exactly} simulate SDEs~\citep[e.g.,][]{Wag1988SDE,beskos2005exact,beskos2006retrospective, Pap11Diffusion}.}

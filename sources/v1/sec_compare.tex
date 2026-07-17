@@ -1,0 +1,22 @@
+
+\subsection{Concurrent work}\label{sec:concurrent}
+In independent and concurrent work, \citet{gatmiry2026high} study an accelerated ODE flow and \scedit{remarkably} obtain a \emph{high-accuracy} guarantee under a set of structural assumptions. \scedit{This is highly non-trivial since, as discussed in the introduction, prior works based on higher-order methods incur implicit exponential dependencies on problem parameters and the order of the method.} Their results rely on the following conditions:
+\begin{enumerate}[leftmargin=3em]
+\item[(A1)] The data distribution satisfies $\pdata = p_\star * \normal{0,\sigma^2 I}$, where $p_\star$ is supported on a ball of radius $R$.
+\item[(A2)] \emph{Sub-exponential score error}: for some $\epssc = \tO(\delta)$,
+\[
+\PP_{X \sim p_t}\!\left(\nrm{\scf_t(X) - \scfs_t(X)} \ge u\right) \le \exp(-u/\epssc)\,.
+\]
+\item[(A3)] The score estimates $(\scf_t)_{t\in [T]}$ are Lipschitz.
+\end{enumerate}
+Under these assumptions, \citet{gatmiry2026high} propose a method with query complexity $\tO\left((R/\sigma)^2 \log^2(1/\delta)\right)$.
+
+\scedit{In comparing with our results}, we make the following remarks:
+\begin{itemize}
+\item \scedit{The query complexity, which scales with $R/\sigma$, is incomparable to ours. On one hand, when $R/\sigma$ is constant, then their guarantee is \emph{dimension-free}. On the other, $R/\sigma$ could be large in many settings.}
+
+For example, as noted by \citet{gatmiry2026high}, (A1) indeed holds in the \emph{early stopping} regime, i.e., their data distribution actually corresponds to the early stopped distribution $p_1$. However, for this case, achieving distributional closeness to the real data distribution $p_\star$ typically requires $\sigma \ll \delta/\sqrt d$, and then we should expect \scedit{$\poly(1/\delta)$ dependence, instead of a high-accuracy $\polylog(1/\delta)$ dependence}. Further, the bound $R$ may also scale with $\sqrt{d}$ in some settings.
+\item Assumption (A2) is substantially stronger than our average error condition (\cref{def:score-error}). It is unclear whether standard statistical learning procedures can achieve convergence guarantees expressed in terms of sub-exponential tail bounds.
+\end{itemize}
+
+Finally, while their analysis is specific to accelerated ODE-based diffusion models, our approach applies more broadly to general first-order sampling methods, including log-concave sampling (\cref{sec:log_concave}).

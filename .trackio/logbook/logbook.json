@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "title": "Repro - High-accuracy sampling for diffusion models and log-concave distributions",
+  "emoji": "🎯",
+  "space_id": null,
+  "paper": {
+    "arxiv_id": "2602.01338"
+  },
+  "tags": [
+    "icml2026-repro",
+    "paper-71132"
+  ],
+  "updated_at": "2026-07-17T08:16:37+00:00",
+  "root": {
+    "slug": "index",
+    "title": "Repro - High-accuracy sampling for diffusion models and log-concave distributions",
+    "file": "pages/index.md",
+    "children": [
+      {
+        "slug": "plan-provenance",
+        "title": "Plan & Provenance",
+        "file": "pages/plan-provenance/page.md",
+        "children": []
+      },
+      {
+        "slug": "foundations-fors-exactness",
+        "title": "Foundations: FORS Exactness",
+        "file": "pages/foundations-fors-exactness/page.md",
+        "children": []
+      },
+      {
+        "slug": "claim-1-polylog-1-steps-theorem-4-3",
+        "title": "Claim 1: polylog(1/δ) steps (Theorem 4.3)",
+        "file": "pages/claim-1-polylog-1-steps-theorem-4-3/page.md",
+        "children": []
+      },
+      {
+        "slug": "claim-2-d-polylog-complexity",
+        "title": "Claim 2: Õ(d·polylog) complexity",
+        "file": "pages/claim-2-d-polylog-complexity/page.md",
+        "children": []
+      },
+      {
+        "slug": "claim-3-intrinsic-dimension-d-corollary-4-4",
+        "title": "Claim 3: intrinsic dimension d⋆ (Corollary 4.4)",
+        "file": "pages/claim-3-intrinsic-dimension-d-corollary-4-4/page.md",
+        "children": []
+      },
+      {
+        "slug": "claim-4-non-uniform-lipschitz-refinement-theorem-4-9",
+        "title": "Claim 4: non-uniform Lipschitz refinement (Theorem 4.9)",
+        "file": "pages/claim-4-non-uniform-lipschitz-refinement-theorem-4-9/page.md",
+        "children": []
+      },
+      {
+        "slug": "claim-5-log-concave-sampling-section-5",
+        "title": "Claim 5: log-concave sampling (Section 5)",
+        "file": "pages/claim-5-log-concave-sampling-section-5/page.md",
+        "children": []
+      },
+      {
+        "slug": "negative-controls-robustness",
+        "title": "Negative Controls & Robustness",
+        "file": "pages/negative-controls-robustness/page.md",
+        "children": []
+      },
+      {
+        "slug": "conclusion",
+        "title": "Conclusion",
+        "file": "pages/conclusion/page.md",
+        "children": []
+      }
+    ]
+  },
+  "agent_view_tokens": 3648,
+  "revision": "1784276197433512100"
+}

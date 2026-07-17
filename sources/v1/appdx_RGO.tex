@@ -1,0 +1,106 @@
+
+
+
+In the following, we prove a slightly stronger version of \cref{thm:gaussian_tilt}.
+
+\begin{theorem}\label{thm:gaussian_tilt_full}
+Suppose that \cref{ass:holder} holds, and \cref{alg:fors} is instantiated as in \cref{thm:gaussian_tilt}. Let $B=\Theta(1)$, $\ell\geq 2$, $\delta\in(0,\frac12]$, and
+\begin{align*}
+    \frac{1}{\eta^{1+s}}\gg \beta_s^2\,\prn[\Big]{d^s\,(\ell+\log(1/\delta))+\frac{s}{d^{1-s}}(\ell^2+\log^2(1/\delta))}\,.
+\end{align*}
+Then the law $\wh\nu$ of~\cref{alg:fors} satisfies
+\begin{align*}
+    \max\crl*{ \Dren[\ell]{\nu}{\nuhat}, \Dren[\ell]{\nuhat}{\nu} }\leq \delta.
+\end{align*}
+\end{theorem}
+
+\begin{proof}[Proof of~\cref{thm:gaussian_tilt_full}]
+We recall that $q=\normal{\xhat,\eta\Id}$, where we denote $\widehat x \deq x_0 - \eta\nabla f(x_+)$.
+
+By~\cref{thm:fors}, the output of~\cref{alg:fors} with the specified choices samples from $\widehat\nu$, such that
+\begin{align*}
+    \log \wh\nu(x)-\log q(x)=\const+\En_{z\sim P,\,r\sim\unif([0,1])}\pclip{\tri{\gamp{\lr}, \nabla f(\xp)-\nabla f(\gam{\lr})}}\,.
+\end{align*}
+
+
+In the following, we denote $\En_{z,r}[\cdot]\ldef \En_{z\sim P,\,r\sim\unif([0,1])}[\cdot]$ and define
+\begin{align*}
+    W_{r,z,x}
+    \ldef\tri{\gamp{\lr}, \nabla f(\xp) - \nabla f(\gam{\lr})}\,.
+\end{align*}
+Then, $\abs{\log\rgo(x)-\log \wh\nu(x)-\const}\leq V(x)$, where
+\begin{align*}
+    V(x)=\En_{z,r}\trunc{W_{r,z,x}}\,,
+\end{align*}
+where we recall $\trunc[\B]{y}\deq(\abs{y}-\B)_+=|y-\pclip{y}|$. Then, using \cref{lem:Renyi-to-diff}, we can bound
+\begin{align}\label{pfeq:RGO-Renyi}
+\begin{aligned}
+    \max\crl*{ \Dren[\ell]{\nu}{\nuhat}, \Dren[\ell]{\nuhat}{\nu} }
+    \leq&~ \En_{x\sim \nuhat}\brk{ e^{2\ell V(x)}-1 }
+    \leq e^{2B}\En_{x\sim q}\brk{ e^{2\ell V(x)}-1 } \\
+    \leq&~ e^{2B}\En_{x\sim q}\En_{z,r}\brk{ e^{2\ell\trunc{W_{r,z,x}}}-1 }\,,
+\end{aligned}
+\end{align}
+where we use $\frac{d\nuhat}{dq}(x)\leq e^{2B}$ for $x\in\RR^d$ and the convexity of $w\mapsto e^w$.
+
+In the following, we proceed to prove the following claims.
+
+\paragraph{Claim 1}
+It holds that for any fixed $\lr\in[0,1]$ and $\lambda^2\leq \frac{d^{1-s}}{12s\beta_s^2\eta^{1+s}}$,
+\begin{align*}
+    \log \En_{x\sim q,\,z\sim P}\exp\prn*{\lambda \abs{W_{r,z,x}}}\leq 10 d^s \eta^{1+s}\lambda^2\beta_s^2\,.
+\end{align*}
+
+\paragraph{Proof of Claim 1}
+Recall that $\alr=\sin(\pi\lr/2), ~~\blr=\cos(\pi\lr/2)$, 
+\begin{align*}
+    \gam{\lr}=\xhat+\alr (x-\xhat) + \blr z\,, \qquad
+    \gamp{\lr}=\alrp (x -\xhat) + \blrp z\,.
+\end{align*}
+Hence, under $x\sim q=\normal{\xhat,\eta\Id}$ and $z\sim P=\normal{0,\eta\Id}$, $[\gam{\lr};\gamp{\lr}]$ are jointly distributed as
+\begin{align*}
+    [\gam{\lr};\gamp{\lr}]\sim \normal{\begin{bmatrix} \xhat \\ 0 \end{bmatrix}, \begin{bmatrix} \eta\Id &  \\ & (\pi/2)^2\eta\Id \end{bmatrix}
+    }\,.
+\end{align*}
+Hence, as long as $3\eta\lambda^2\beta_s^2\leq \frac{d^{1-s}}{4s\eta^s}$,
+\begin{align*}
+    \En_{x\sim q,\,z\sim P}\exp\prn*{\lambda \abs{W_{r,z,x}}}
+    =&~\En_{Z_1,Z_2\sim \normal{0,\eta\Id}}\exp\prn*{\lambda\abs{\tri{Z_1\pi/2, \nabla f(\xhat+Z_2)-\nabla f(\xp)}}} \\
+    \leq&~ 2\En_{Z_2\sim \normal{0,\eta\Id}}\exp\prn[\Big]{\frac{3}{2}\eta\lambda^2\,\nrm{\nabla f(\xhat+Z_2)-\nabla f(\xp)}^2} \\
+    \leq&~ 2\En_{Z_2\sim \normal{0,\eta\Id}}\exp\prn[\Big]{\frac{3}{2}\eta\lambda^2\beta_s^2\,\nrm{\xhat-\xp+Z_2}^{2s}} \\
+    \leq&~ 2\exp\prn*{3\eta\lambda^2\beta_s^2\nrm{\xhat-\xp}^{2s}}\En_{W\sim \normal{0,\eta\Id}}\exp\prn*{3\eta\lambda^2\beta_s^2\,\nrm{W}^{2s}} \\
+    \leq&~ 2\exp\prn[\big]{3\eta\lambda^2\beta^2\,\nrm{\xhat-\xp}^{2s}+6d^s\eta^{1+s}\lambda^2\beta_s^2}
+    \leq 2\exp\prn[\big]{10d^s\eta^{1+s}\lambda^2\beta_s^2}\,,
+\end{align*}
+where the second line uses \cref{lem:Gaussian-vMGF}, and the last line uses \cref{lem:Gaussian-s}. This completes the proof of Claim 1.%
+
+Finally, we use Claim 1 to prove the following claim, from which \cref{thm:gaussian_tilt_full} follows immediately.
+
+\paragraph{Claim 2}
+Suppose that 
+\begin{align*}
+    \frac{1}{\eta^{1+s}}\geq 64\beta_s^2\,\prn[\Big]{\ell B^{-1} d^s+\frac{s\ell^2}{d^{1-s}}}\,.
+\end{align*}
+Then for any $\lr\in[0,1]$, it holds that
+\begin{align*}
+    \En_{x\sim q,\, z\sim P}\brk{e^{2\ell\trunc{W_{r,z,x}}}-1}
+    \leq&~ 2\exp\prn[\Big]{-\min\crl[\Big]{\frac{\B^2}{40\beta_s^2d^s\eta^{1+s}},\, \frac{Bd^{(1-s)/2}}{8\sqrt{s}\beta_s\eta^{(1+s)/2}}}}\,.
+\end{align*}
+
+\paragraph{Proof of Claim 2}
+Using Claim 1, for any fixed $\lr\in[0,1]$ and $2\ell\leq \lambda\leq \frac{d^{(1-s)/2}}{4\sqrt{s}\beta_s\eta^{(1+s)/2}}$, we can upper bound
+\begin{align*}
+    \En_{x\sim q,\, z\sim P}\brk{e^{2\ell\trunc{W_{r,z,x}}}-1}
+    \leq&~ \En_{x\sim q,\, z\sim P}\brk{e^{\lambda \trunc{W_{r,z,x}}}-1}
+    \leq e^{-\lambda B} \En_{x\sim q,\, z\sim P}\brk{e^{\lambda\abs{W_{r,z,x}}}} \\
+    \leq&~ 2\exp\prn*{10d^s\eta^{1+s}\lambda^2\beta_s^2-B\lambda}\,.
+\end{align*}
+Therefore, the desired upper bound follows from setting
+\begin{align*}
+    \lambda=\min\crl[\Big]{\frac{d^{(1-s)/2}}{4\sqrt{s}\beta_s\eta^{(1+s)/2}},\, \frac{B}{20\beta_s^2d^s\eta^{1+s}}}\geq 2\ell\,.
+\end{align*}
+
+Combining Claim 2 above with \cref{pfeq:RGO-Renyi}, we can deduce the desired upper bound.
+\end{proof}
+
+

@@ -1,0 +1,60 @@
+
+
+
+Recall that Denoising Diffusion Probabilistic Models (DDPMs) are based on the following forward process that transforms a sample $X_0\sim \pdata$ to noise:
+\begin{align}\label{eq:forward}
+    X_0\sim \pdata\,, \quad 
+    X_{k+1}\sim \normal{\alp_k X_k, \alp_k^2 \eta_k\Id}\,,~~k\in[K]\,.
+\end{align}
+Note that this is a Markov chain, and it is easy to see that $X_k\mid X_0\sim \normal{\alpbar_k X_0, \sigma_k^2\Id}$, where 
+\begin{align}\notag
+    \alpbar_k=\prod_{s=0}^{k-1} \alp_s\,, \qquad \sigma_k^2=\alp_{k-1}^2\,(\sigma_{k-1}^2+\eta_{k-1})\,.
+\end{align}
+Conversely, given the parameter sequence $(\alpbar_k, \sigma_k)_{k\in[K]}$, the corresponding $(\alpha_k, \eta_k)_{k\in[K]}$ is given by
+\begin{align}\notag
+    \alpha_k=\frac{\alpbar_{k+1}}{\alpbar_k}\,, \qquad
+    \eta_k=\frac{\sigma_{k+1}^2}{\alpha_k^2}-\sigma_k^2
+    =\frac{\sigma_{k+1}^2}{\alpbar_{k+1}^2}\,\alpbar_k^2-\sigma_k^2\,.
+\end{align}
+We say that the DDPM is \emph{variance-preserving} if $\alpbar_k^2+\sigma_k^2=1$, and hence $\alp_k^2=\frac{1-\sigma_{k+1}^2}{1-\sigma_k^2}$, $\sigma_{k+1}^2=\frac{1-\sigma_{k+1}^2}{1-\sigma_k^2}\,(\sigma_{k}^2+\eta_{k})$. The DDPM is \emph{variance-exploding} if $\alpbar_k\equiv 1$, and hence $\sigma_{k+1}^2=\sigma_{k}^2+\eta_{k}$.
+
+We let $p_k$ be the probability density function of $X_k$, and let $\rho_k(\cdot\mid x')$ be the probability density function of the backward transition kernel $\PP(X_k=\cdot\mid X_{k+1}=x')$. Then, by Bayes rule, it holds that
+\begin{align}\label{eq:backward_kernel}
+    \rho_k(x\mid x')\propto_x p_k(x) \exp\prn[\Big]{-\frac{\nrm{x-\alp_k^{-1}x'}^2}{2\eta_k}}\,.
+\end{align} 
+In this work, we focus on the task of sampling from $p_1$ with extremely small values of $1-\alpha_0$ and $\sigma_1$. 
+This corresponds to \emph{early stopping}; see \cref{sec:diffusion} for further discussion. %
+
+
+
+
+
+
+\paragraph{Score function and estimates}
+As above, we assume that we have access to approximate score functions $(\scf_k)_{k\in[K]}$ such that $\scf_k\approx \scfs_k\ldef \nabla \log p_k$ with controlled mean-squared error. Recall that by Tweedie's identity,
+\begin{align}
+    \scfs_k(x)=\nabla \log p_k(x)=\frac{1}{\sigma_k^2}\En[\alpbar_k X_0-X_k\mid X_k=x]\,,
+\end{align}
+where the conditional expectation is taken over $X_0\sim \pdata$, $X_k\sim \normal{\alpbar_k X_0, \sigma_k^2\Id}$.
+\fcedit{We define $\Ds_k(x)\deq \En[X_0\mid X_k=x]$ to be the posterior mean, and let $\Dn_k(x)\deq \alpbar_k^{-1}(x+\sigma_k^2\scf_k(x))$ be the denoising function corresponding to the score function $\scf$.}
+
+
+
+\begin{definition}[Score estimation error]\label{def:score-error}
+Given the score estimates $(\scf_k)_{k\in [K]}$, we define
+\begin{align}\notag
+    \epssct[k]^2\ldef \En_{X_k\sim p_k}\nrm{\scf_k(X_k)-\scfs_k(X_k)}^2\,, \qquad k\in[K]\,.
+\end{align}
+\end{definition}
+
+\paragraph{Road map}
+To approximately generate a sample from $\pdata$, we learn approximate score functions $\scf_k\approx \nabla \log p_k$.
+DDPM uses the approximation 
+\begin{align}\label{eq:DDPM-approx}
+    \rho_k(\cdot\mid x') \approx \normal{\alpha_k^{-1} x' + \eta_k \alpha_k \scf_{k+1}(x'), \eta_k' \Id}.
+\end{align}
+In our work, we develop algorithms for sampling from~\eqref{eq:backward_kernel} directly. In \cref{sec:gaussian_tilts}, we motivate our approach by assuming that $\scf_k=\nabla \log p_k$ is \emph{exact}, which has implications for log-concave sampling described in \cref{sec:log_concave}. In \cref{sec:diffusion}, we instantiate our methods on diffusion sampling and show that the convergence guarantees are \emph{robust} with respect to the error in the score function estimates.
+
+
+
+

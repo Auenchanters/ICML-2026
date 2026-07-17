@@ -1,0 +1,467 @@
+
+
+
+
+
+
+\subsection{Single-step analysis}
+
+In the following, we analyze the $k$-th step of \cref{alg:DM} for a fixed $k\in[K]$. Without loss of generality, we assume $\alpha_k=1$.
+Recall that in the $k$-th step, our goal is to sample from the tilt measure
+\begin{align}\label{eq:def-nu-xz}
+    \rho_k(x\mid x_+)\propto p_k(x) \exp\prn[\Big]{-\frac{\nrm{x-x_+}^2}{2\eta}}\,,
+\end{align}
+given estimated score function $\scf_k\approx \nabla \log p_k$ and $\scf_{k+1}\approx \nabla \log p_{k+1}$. 
+
+
+
+
+
+
+\paragraph{Notation}
+Recall that we define %
+$\frac{1}{\etabar_k} = \frac{1}{\eta_k} +\frac{1}{\sigma_k^2}$, 
+\begin{align*}
+    \Dn_k(x)=\sigma_k^2 \scf_k(x)+x\,, \qquad
+    \Ds_k(x)=\sigma^2 \scfs_k(x)+x=\En[\Xbar\mid X_k=x]\,,
+\end{align*}
+where the expectation is taken over $\Xbar=\alpbar_k X_0, X_0\sim \pdata, X\sim \normal{\Xbar,\sigma^2\Id}$.
+Similarly, we define
+\begin{align*}
+    \Dn_{k+1}(x)=\sigma_{k+1}^2 \scf_{k+1}(x)+x\,, \qquad
+    \Ds_{k+1}(x)=\sigma_{k+1}^2 \scfs_{k+1}(x)+x=\En[\Xbar\mid X_{k+1}=x]\,,
+\end{align*}
+where the expectation is taken over $\Xbar=\alpbar_k X_0, X_0\sim \pdata, X\sim \normal{\Xbar,\sigma^2\Id}, X_{k+1}\sim \normal{X_k,\eta\Id}$.
+
+Denote $\gd(x_+)\deq x_++\eta\scf_{k+1}(x_+)$.
+In the following, we abbreviate
+\begin{align*}
+    \Enxp[\cdot]\ldef \En_{\lr\sim \unif([0,1]),\,z\sim\Netabar,\, \xhat\sim \normal{\gd(x_+),\frac12\etabar\Id}}[\cdot]\,.
+\end{align*}
+We will also frequently omit the subscript $k$ and denote $\eta=\eta_k$, $\sigma=\sigma_k$, and $\etabar=\etabar_k$.
+
+\paragraph{Distributions}
+By~\cref{thm:fors}, \cref{alg:fors} instantiated with the proposal distribution $\normal{\gd(x_+),\etabar I}$ and estimator $\widehat W_{z,r,\xhat,x} = \pclip{ W_{z,r,\xhat,x}}$,
+\begin{align}\label{eq:def-DM-path-What}
+    W_{z,r,\xhat,x}\deq \sigma^{-2}\langle \dot\gamma_{z,r,\xhat}(x),\, \Dn_k(\gamma_{z,r,\xhat}(x)) - \Dn_{k+1}(x_+)\rangle
+\end{align}
+samples from the distribution $\rhohat_k(\cdot\mid x_+)$, where
+\begin{align}\label{eq:rhohz}
+    \log \rhohat_k(x\mid x_+)=&~\const_{x_+}+\Enxp\pclip{W_{z,r,\xhat,x}}-\frac{\nrm{x-\gd(x_+)}^2}{2\etabar}.
+\end{align}
+For analysis, we introduce $\gds(x_+)\deq x_++\eta\scfs_{k+1}(x_+)$ and
+\begin{align}
+    \Wstar_{z,r,\xhat,x} = \sigma^{-2}\langle \dot\gamma_{z,r,\xhat}(x),\, \Ds_k(\gamma_{z,r,\xhat}(x)) - \Ds_{k+1}(x_+)\rangle,
+\end{align}
+and write $\rhostar_k(\cdot\mid x_+)$ for the density corresponding to 
+\begin{align}\label{eq:rhosz}
+    \log \rhostar_k(x\mid x_+)=\const_{x_+}+\Enxps\pclip{\Wstar_{z,r,\xhat,x}}-\frac{\nrm{x-\gds(x_+)}^2}{2\etabar}\,.
+\end{align}
+Using \cref{eq:path-integral}, we can also write
+\begin{align*}
+    \log \rho_k(x\mid x_+)+\frac{\nrm{x-\gds(x_+)}^2}{2\etabar}
+    =&~\const_{x_+}+ \log p_k(x)+\frac{\nrm{x}^2}{2\sigma^2}-\tri{\Ds_{k+1}(x_+),x-x_+}\\
+    =&~ \const_{x_+}'+\Enxps \sigma^{-2}\tri{\dot \gamma_{z,r,\xhat}(x),\Ds_k(\gamma_{z,r,\xhat}(x))-\Ds_{k+1}(x_+)}\,,
+\end{align*}
+where we recall $\nabla \log p_k=\sigma^{-2}(\Ds_k(x)-x)$, and hence
+\begin{align}
+    \log \rho_k(x\mid x_+)=&~\const_{x_+}+\Enxps \Wstar_{z,r,\xhat,x}-\frac{\nrm{x-\gds(x_+)}^2}{2\etabar}\,.
+\end{align}
+
+
+The following property is crucial for our analysis.
+\begin{lemma}\label{lem:ind-Gaussian}
+For any given vector $g\in \RR^d$ and $r\in[0,1]$, for independent random vectors $x\sim \normal{g, \etabar\Id}$, $\xhat\sim \normal{g,\frac12\etabar\Id}$, $z\sim \normal{0,\frac12\etabar\Id}$, it holds that $(\dot\gamma_{z,r,\xhat}(x),\gamma_{z,r,\xhat}(x))$ are independent Gaussian vectors distributed as
+\begin{align*}
+    \gamma_{z,r,\xhat}(x)\sim \normal{g,\etabar\Id}, \qquad \dot\gamma_{z,r,\xhat}(x)\sim \normal{0,c\etabar\Id},
+\end{align*}
+where $3(\alrp)^2/2+(\blrp)^2/2\equiv c=\frac{8}{27}\pi^2\leq 3$.
+\end{lemma}
+
+
+We analyze the relationship between distributions $\rho_k$, $\rhohat_k$ and $\rhostar_k$ in the following propositions. 
+
+\begin{proposition}\label{prop:sc-err-new}
+Suppose that $B\leq O(1)$. It holds that
+\begin{align}\label{pfeq:sc-err-KL-decomp}
+\begin{aligned}
+    \MoveEqLeft \En_{x_+\sim p_{k+1}}\Dkl{\rho_k(\cdot\mid x_+)}{\rhohat_k(\cdot\mid x_+)}\\
+    \leqsim &~ \En_{x_+\sim p_{k+1}}\Dkl{\rho_k(\cdot\mid x_+)}{\rhostar_k(\cdot\mid x_+)} \\
+    &~+\eta_k \sigma_{k+1}^2/\sigma_k^2 \cdot \En_{x_+\sim p_{k+1}}\nrm{\scfs_{k+1}(x_+)-\scf_{\scedit{k+1}}(x_+)}^2
+    +\eta_k \En_{x\sim p}\nrm{\scfs_k(x)-\scf_k(x)}^2\,.
+\end{aligned}
+\end{align}
+\end{proposition}
+
+\newcommand{\dbar}{\dstar}
+
+\begin{proposition}\label{prop:intrinsic-chi-sq}
+Suppose that $B=\Theta(1)$. For any $\delta\in(0,1)$, as long as
+\begin{align}
+    \frac{\sigma_k^2}{\eta_k}\gg \dbar\log(1/\delta)+\log^2(1/\delta),
+\end{align}
+it holds that $\En_{x_+\sim p_{k+1}}\Dchis{\rho_k(\cdot\mid x_+)}{\rhostar_k(\cdot\mid x_+)}\leq \delta$. 
+\end{proposition}
+
+\begin{proposition}\label{prop:sqrt-d-simple}
+Suppose that $B=\Theta(1)$. For any $\delta\in(0,1)$, $\LF\geq 1$, as long as
+\begin{align}\label{eq:DM-Lip-Frob-eta}
+        \frac{\sigma_k^2}{\eta_k}\gg \LF \log(1/\delta)+\log^2(1/\delta),
+    \end{align}
+it holds that
+\begin{align*}
+    \MoveEqLeft \En_{x_+\sim p_{k+1}}\Dkl{\rho_k(\cdot\mid x_+)}{\rhostar_k(\cdot\mid x_+)} \\
+    \leqsim&~ \dstar^5\brk*{ \delta+\max_{\tau\in[\sigma_k^2,\sigma_{k+1}^2]}\PP_{Y_\tau\sim q_\tau}\prn*{ \nrmF{\nabla m_\tau(Y_\tau)}\geq \LF }+ \PP_{X_k'\sim \wt{p}_k}\prn*{ \nrmF{\nabla m_{\sigma_k^2}(X_k')}\geq \LF }}.
+\end{align*}
+\end{proposition}
+
+\subsection{Proof of \cref{thm:DM-intrinsic} and \cref{thm:DM-Lip}}
+
+The process $\xr{K}\to\cdots\to\xr{1}$ generated by \cref{alg:DM} is a Markov chain such that $\xr{K}\sim \phat_K$, and $\xr{k}\mid \xr{k+1}\sim \wh\rho_t(\cdot\mid \xr{k+1})$.
+The data-processing inequality and chain rule for the KL divergence yield
+\begin{align*}
+    \Dkl{p_1}{\wh p_1}
+    &\leq \Dkl{p_K}{\wh p_K} + \sum_{k=1}^{K-1} \E_{\xr{k+1} \sim p_{k+1}}\Dkl{\rho_k(\cdot \mid \xr{k+1})}{\wh\rho_k(\cdot \mid \xr{k+1})}\,.
+\end{align*}
+Then, \cref{thm:DM-intrinsic} follows from \cref{prop:sc-err-new} and \cref{prop:intrinsic-chi-sq}; \cref{thm:DM-Lip} follows from \cref{prop:sc-err-new} and \cref{prop:sqrt-d-simple}.
+\qed
+
+
+
+
+\subsection{\pfref{prop:sc-err-new}}
+
+
+\scedit{
+\textbf{Claim.} Let $\nu_i(x) \propto \exp(h_i(x)-\frac{\|x-m_i\|^2}{2\etabar})$ for $i=1,2$, where $|h_i| \le B$.
+Then, for any $\mu$,
+\begin{align*}
+    \Dkl{\mu}{\nu_1} \le 8e^{4B}\,\brk[\Big]{\Dkl{\mu}{\nu_0} + \En_{x\sim\nu_0}[(h_1(x) - h_0(x))^2] + \frac{\|m_1-m_0\|^2}{\etabar}}\,.
+\end{align*}
+\textbf{Proof of Claim.}
+Introduce $\wt\nu(x) \propto \exp(h_1(x)-\frac{\|x-m_0\|^2}{2\etabar})$.
+Note that
+\begin{align*}
+    \log(1+\Dchis{\normal{m_0,\etabar\Id}}{\normal{m_1,\etabar\Id}})=\frac{\nrm{m_1-m_0}^2}{\etabar}\,.
+\end{align*}
+Therefore, using \cref{lem:KL-triangle}, \cref{lem:Dchis-perturb}, and the fact that $\log(1+Ct)\leq C\log(1+t)$ for $t\geq 0$ and $C\geq 1$, we know that for any $\xz$, 
+\begin{align*}
+    \Dkl{\mu}{\nu_1}
+    &\le 2\Dkl{\mu}{\wt{\nu}} + \log(1+\Dchis{\wt\nu}{\nu_1})
+    \le 2\Dkl{\mu}{\wt{\nu}} + e^{4B}\,\frac{\|m_1-m_0\|^2}{\etabar}\,.
+\end{align*}
+Next, we note that we can write $\wt\nu \propto \nu_0 e^{h_1-h_0}$.
+Then, using \cref{lem:KL-perturb}, we can bound
+\begin{align*}
+    \Dkl{\mu}{\wt \nu}
+    &\le 4e^{2B}\,\prn[\big]{\Dkl{\mu}{\nu_0} + \En_{\nu_0}[(h_1-h_0)^2]}\,,
+\end{align*}
+which proves the claim. \qed
+
+We now apply the claim with $\mu = \rho_k(\cdot \mid x_+)$, $\nu_0 = \rhostar_k(\cdot\mid x_+)$, and $\nu_1 = \rhohat_k(\cdot\mid x_+)$, which yields
+\begin{align*}
+    \Dkl{\rho_k(\cdot\mid x_+)}{\rhohat_k(\cdot\mid x_+)}
+    &\lesssim_B\Dkl{\rho_k(\cdot\mid x_+)}{\rhostar_k(\cdot\mid x_+)} + \etabar\,\nrm{\scf_{k+1}(x_+)-\scfs_{k+1}(x_+)}^2 \\
+    &\qquad{} + \En_{x\sim  \rhostar_k(\cdot\mid x_+)}[h(x\mid x_+)^2]\,,
+\end{align*}
+}
+where
+\begin{align*}
+    h(x\mid x_+)=\Enxp\pclip{W_{z,r,\xhat,x}}-\Enxps\pclip{\Wstar_{z,r,\xhat,x}} \in [-2B,2B]\,.
+\end{align*}
+
+Next, we upper bound $\abs{h(x\mid x_+)}$. By triangle inequality,
+\begin{align*}
+    \abs{h(x\mid x_+)}
+    \leq&~ \abs{\Enxp\pclip{W_{z,r,\xhat,x}}-\Enxps\pclip{W_{z,r,\xhat,x}}} \\
+    &~+\abs{\Enxps\pclip{W_{z,r,\xhat,x}}-\Enxps\pclip{\Wstar_{z,r,\xhat,x}}} \\
+    \leq&~ 2B\Dtv{\nor\prn[\Big]{\gds(x_+),\frac12\etabar\Id}}{\nor\prn[\Big]{\gd(x_+),\frac12\etabar\Id}}
+    + \Enxps\pclip[2B]{\abs{W_{z,r,\xhat,x}-\Wstar_{z,r,\xhat,x}}}\,.
+\end{align*}
+We note that $\Dtv{\normal{\gds(x_+),\frac12\etabar\Id}}{\normal{\gd(x_+),\frac12\etabar\Id}}^2\leq 2\etabar\, \nrm{\scfs_{k+1}(x_+)-\scf_{k+1}(x_+)}^2$, and hence
+\begin{align*}
+    \En_{x\sim \rhostar_k(\cdot\mid x_+)}[h(x\mid x_+)^2]
+    \leq 4\etabar\, \nrm{\scfs_{k+1}(x_+)-\scf_{k+1}(x_+)}^2
+    +2\En_{x\sim \rhostar_k(\cdot\mid x_+)}\Enxps\pclip[2B]{W_{z,r,\xhat,x}-\Wstar_{z,r,\xhat,x}}^2\,.
+\end{align*}
+Next, we note that
+\begin{align*}
+    &~ \En_{x\sim \rhostar_k(\cdot\mid x_+)}\Enxps\pclip[2B]{W_{z,r,\xhat,x}-\Wstar_{z,r,\xhat,x}}^2 \\
+    \leq &~ e^{4B}\En_{r\sim \unif([0,1])}\En_{x\sim \normal{\gds(x_+),\etabar\Id},\, \xhat\sim \normal{\gds(x_+),\frac12\etabar\Id},\,z\sim \Netabar} \\
+    &\qquad\qquad\qquad\qquad\qquad{} \pclip[2B]{\sigma^{-2}\,\langle \dot\gamma_{z,r,\xhat}(x),\, [\Dn_k-\Ds_k](\gamma_{z,r,\xhat}(x)) - [\Dn_{k+1}-\Ds_{k+1}](x_+)\rangle}^2 \\
+    \leq&~ 20e^{4B} \En_{x\sim \normal{\gds(x_+),\etabar\Id}} \min\crl*{\etabar\sigma^{-4}\,\nrm{ [\Dn_k-\Ds_k](x) - [\Dn_{k+1}-\Ds_{k+1}](x_+)}^2,4B^2} \\
+    \leq&~ 20e^{8B} \En_{x\sim \rhostar_k(\cdot\mid x_+)} \min\crl*{\etabar\sigma^{-4}\,\nrm{ [\Dn_k-\Ds_k](x) - [\Dn_{k+1}-\Ds_{k+1}](x_+)}^2,4B^2}\,,
+\end{align*}
+where the second line uses the \cref{lem:ind-Gaussian} that for any fixed $r\in[0,1]$, under the distribution of consideration, $(\dot\gamma_{z,r,\xhat}(x),\gamma_{z,r,\xhat}(x))$ are independent Gaussian such that $\gamma_{z,r,\xhat}(x)\sim \normal{\gds(x_+),\etabar\Id}$ and
+\begin{align*}
+    \dot\gamma_{z,r,\xhat}(x)\sim \normal{0,c_r\etabar\Id}\,.
+\end{align*}
+Further, we can apply \cref{lem:Hels-var} to get
+\begin{align*}
+    &~\En_{x\sim \rhostar_k(\cdot\mid x_+)} \min\crl*{\scedit{\etabar\sigma^{-4}}\, \nrm{ [\Dn_k-\Ds_k](x) - [\Dn_{k+1}-\Ds_{k+1}](x_+)}^2,4B^2} \\
+    \leq&~ 3\En_{x\sim \rho_k(\cdot\mid x_+)} \min\crl*{\etabar\sigma^{-4}\,\nrm{ [\Dn_k-\Ds_k](x) - [\Dn_{k+1}-\Ds_{k+1}](x_+)}^2,4B^2}+8B^2\Dkl{\rho_k(\cdot\mid x_+)}{\rhostar_k(\cdot\mid x_+)}\,.
+\end{align*}
+Combining the inequalities above immediately implies the desired upper bound.
+\qed
+
+
+
+
+
+\subsection{\pfref{prop:intrinsic-chi-sq}}
+
+Fix any $\ell\geq 2$, $x_+\in\RR^d$.
+\scedit{By~\cref{lem:fors_clip},}
+\begin{align*}
+    &\Dsys[\ell]{\rho_k(\cdot\mid x_+)}{\rhostar_k(\cdot\mid x_+)}
+    \leq E_{\ell,x_+} \\
+    &\qquad \deq e^{4B}\En_{r\sim \unif([0,1])} \En_{x\sim \normal{\gds(x_+),\etabar\Id},\, \xhat\sim \normal{\gds(x_+),\frac12\etabar\Id},\,z\sim \Netabar}[e^{2\ell(\abs{\Wstar_{z,r,\xhat,x}}-B)_+}-1] \\
+    &\qquad \leq e^{4B-2\ell B} \En_{x'\sim \normal{\gds(x_+),\etabar\Id},\, w\sim \normal{0, c_r\etabar\Id}} e^{2\ell \abs{\tri{w,\Ds_k(x')-\Ds_{k+1}(x_+)}}} \\
+    &\qquad \leq 2e^{4B-2\ell B} \En_{x\sim \normal{\gds(x_+),\etabar\Id}}\exp\prn*{ 6\etabar\ell^2 \nrm{\Ds_k(x)-\Ds_{k+1}(x_+)}^2}\,.
+\end{align*}
+Now, we can proceed
+\begin{align*}
+    E_{\ell,x_+}
+    \leq&~  2e^{8B-2\ell B} \En_{x\sim \rhostar_k(\cdot\mid x_+)}\exp\prn*{ 20\etabar\ell^2 \nrm{\Ds_k(x)-\Ds_{k+1}(x_+)}^2} \\
+    \leq&~ 2e^{8B-2\ell B} \sqrt{\prn*{1+\Dchis{\rho_k(\cdot\mid x_+)}{\rhostar_k(\cdot\mid x_+)}} \En_{x\sim \rho_k(\cdot\mid x_+)}\exp\prn*{ 12\etabar\ell^2 \nrm{\Ds_k(x)-\Ds_{k+1}(x_+)}^2}},
+\end{align*}
+and we also note that $\Dchis{\rho_k(\cdot\mid x_+)}{\rhostar_k(\cdot\mid x_+)}\leq E_{2,x_+}\leq E_{\ell,x_+}$. This immediately gives $E_{\ell,x_+}\leq \sqrt{E_{\ell,x_+}'}+E_{\ell,x_+}'$, where we define
+\begin{align*}
+    E_{\ell,x_+}'\deq 8e^{16B-4\ell B}\En_{x\sim \rho_k(\cdot\mid x_+)}\exp\prn*{ 12\etabar\ell^2 \nrm{\Ds_k(x)-\Ds_{k+1}(x_+)}^2}.
+\end{align*}
+By definition, we know
+\begin{align*}
+    \En_{x_+\sim p_{k+1}}[E_{\ell, x_+}']
+    =8e^{16B-4\ell B}\En_{x\sim p, x_+\sim \normal{x,\eta\Id}}\exp\prn*{ 12\etabar\ell^2 \nrm{\Ds_k(x)-\Ds_{k+1}(x_+)}^2}.
+\end{align*}
+By \cref{cor:MGF-intrinsic}, we have the following bound with an absolute constant $C>0$:
+\begin{align*}
+    \En_{x\sim p, x_+\sim \normal{x,\eta\Id}} \exp\prn*{ \frac{\nrm{\Ds_k(x)-\Dn_{k+1}(x_+)}^2}{C\sigma_{k+1}^2} }
+    \leq e^{\dbar}.
+\end{align*}
+Therefore, as long as $\ell^2\leq \frac{\sigma_{k+1}^2}{12C\etabar}$, we can upper bound 
+\begin{align*}
+    \En_{x_+\sim p_{k+1}}[E_{\ell, x_+}']
+    \leq 8e^{16B}\exp\prn*{ -4\ell B + 12C\etabar \ell^2 \dbar/\sigma_{k+1}^2 }.
+\end{align*}
+We then choose $\ell=\min\crl{ \frac{\sigma_{k+1}}{\sqrt{12C\etabar}}, \frac{B\sigma_{k+1}^2}{6C \etabar \dbar} }$. Note that as long as $\ell\geq 8+\frac{3+\log(1/\delta)}{B}$, we have shown that $\En_{x_+\sim p_{k+1}}[E_{\ell, x_+}']\leq 8e^{16B-2B \ell}\leq 1$ and hence
+\begin{align*}
+    \En_{x_+\sim p_{k+1}}\Dchis{\rho_k(\cdot\mid x_+)}{\rhostar_k(\cdot\mid x_+)}
+    \leq 8e^{8B-B\ell}\leq \delta.
+\end{align*}
+\qed
+
+
+\begin{corollary}\label{cor:DDPM-chi-sq}
+There is a constant $c>0$ such that as long as $c\etabar\leq \sigma_{k+1}^2$,
+\begin{align*}
+    \En_{x_+\sim p_{k+1}}\Dsys[2]{\rho_k(\cdot\mid x_+)}{\normal{\gds(x_+),\etabar\Id}}\leq ce^{c\dstar},
+\end{align*}
+\end{corollary}
+
+\begin{proof}
+Note that when $B=0$, we have $\rhostar(\cdot\mid x_+)=\normal{\gds(x_+),\etabar\Id}$. Therefore, from our proof of \cref{prop:intrinsic-chi-sq} above, we can extract the following fact (by setting $B=0$ and $\ell=2$):
+\begin{align*}
+    \Dsys[2]{\rho_k(\cdot\mid x_+)}{\normal{\gds(x_+),\etabar\Id}}\leq \sqrt{E_{x_+}}+E_{x_+},
+\end{align*}
+where we define 
+\begin{align*}
+    E_{x_+}\deq 8\En_{x\sim \rho_k(\cdot\mid x_+)}\exp\prn*{ 48\etabar\nrm{\Ds_k(x)-\Ds_{k+1}(x_+)}^2}.
+\end{align*}
+Therefore, as long as $\etabar\leq \frac{\sigma_{k+1}^2}{48C}$, $\En_{x_+\sim p_{k+1}}[E_{x_+}]\leq 8e^{\dbar}$. This is the desired upper bound.
+\end{proof}
+
+
+
+\subsection{\pfref{prop:sqrt-d-simple}}
+
+In the following, to make the presentation clearer, we write
+\begin{align*}
+    \Wstar_{z,r,\xhat,x_+}(x)=\sigma^{-2}\tri{\dot\gamma_{z,r,\xhat}(x),\Ds_k(\gamma_{z,r,\xhat}(x))-\Ds_{k+1}(x_+)}\,.
+\end{align*}
+Then,
+\begin{align*}
+    \log \rho_k(x\mid x_+)-\log \rhostar_k(x\mid x_+)=\const+\En_{\lr,z}\trunc[\B]{\Wstar_{z,r,\xhat,x_+}(x)}\,.
+\end{align*}
+Therefore,
+\begin{align*}
+    \nabla_x \log \frac{\rho_k(x\mid x_+)}{\rhostar_k(x\mid x_+)}
+    =&~ \En_{\lr,z}\brk*{ \nabla_x \Wstar_{z,r,\xhat,x_+}(x) \cdot h_B(\Wstar_{z,r,\xhat,x_+}(x))}\,, 
+\end{align*}
+where
+\begin{align*}
+h_B(y)=\begin{cases}
+    1\,, & y>B\,,\\
+    0\,, &y\in[-B,B]\,,\\
+    -1\,, &y<-B\,,
+\end{cases}
+\end{align*}
+is the derivative of $\trunc{y}$.
+By elementary calculation,
+\begin{align*}
+    \sigma^2 \nabla \Wstar_{z,r,\xhat,x_+}(x)=\alrp\, (\Ds_k(\gamma_{z,r,\xhat}(x))-\Ds_{k+1}(x_+))+\alr\, \nabla \Ds_k(\gamma_{z,r,\xhat}(x)) \cdot \dot\gamma_{z,r,\xhat}(x)\,.
+\end{align*}
+
+By~\cref{lem:LSI-SC} and \cref{lem:HS-perturb}, we know that
+$\CLSI(\rhostar_k(\cdot\mid x_+))\leq \etabar e^{4B}$. Hence,
+\begin{align*}
+    \Dkl{\rho_k(\cdot\mid x_+)}{\rhostar_k(\cdot\mid x_+)}\leqsim \eta\En_{x\sim \rho_k(\cdot\mid x_+)} \nrm[\Big]{\nabla \log \frac{\rho_k(x\mid x_+)}{\rhostar_k(x\mid x_+)}}^2\,.
+\end{align*}
+Taking expectation over $x_+ \sim p_{k+1}$ gives
+\begin{align*}
+    &\En_{x_+ \sim p_{k+1}} \Dkl{\rho_k(\cdot\mid x_+)}{\rhostar_k(\cdot\mid x_+)} \\
+    &\qquad \leqsim \eta \En_{r\sim \unif([0,1])}\En_{z,r,x,x_+,\xhat}\brk[\big]{ \nrm{\nabla \Wstar_{z,r,\xhat,x_+}(x)}^2 \cdot \indic\crl{\abs{\Wstar_{z,r,\xhat,x_+}(x)}>\B} }\,, 
+\end{align*}
+where $\En_{x_+,x,z,\xhat}$ is the expectation over $x_+\sim p_{k+1}$, $x\sim \rho_k(\cdot\mid x_+)$, $\xhat\sim \normal{\gds(x_+),\frac12\etabar\Id}$, $z\sim \normal{0,\frac12\etabar\Id}$.
+
+Fix any $r\in[0,1]$.
+In \cref{lem:sub-exponential-bounds}, we show that under the distribution of $(z,x,x_+,\xhat)$,
+\begin{itemize}
+    \item the sub-exponential norm of $\nrm{\Ds_k(\gamma_{z,r,\xhat}(x))-\Ds_{k+1}(x_+)}^2$ is bounded by $O(\dbar\sigma^2)$,
+    \item and the sub-exponential norm of $ \nrm{\nabla \Ds_k(\gamma_{z,r,\xhat}(x))\,\dot\gamma_{z,r,\xhat}(x)}^{2/3}$ is bounded by $O(\etabar^{1/3}\dbar)$.
+\end{itemize}
+Therefore, for a sufficiently large constant $C_1$, we can set $M_1=C_1\sigma^{-4}\,(\dbar\sigma^2\log^2(1/\delta)+\dbar^{3}\etabar\log^3(1/\delta))$ and bound
+\begin{align*}
+    \En (\nrm{\nabla \Wstar_{z,r,\xhat,x_+}(x)}^2-M_1)_+ \leq M_1\delta\,.
+\end{align*}
+Therefore, it holds that
+\begin{align*}
+    \En_{x_+\sim p_{k+1}} \Dkl{\rho_k(\cdot\mid x_+)}{\rhostar_k(\cdot\mid x_+)} 
+    \leqsim &~ \eta M_1\,\prn[\big]{\delta+\bbP_{x_+,x,z,\xhat}\prn[\big]{\abs{\Wstar_{z,r,\xhat,x_+}(x)}>\B}} \\
+    \leqsim &~ \dstar^3\,\prn[\big]{\delta+\bbP_{x_+,x,z,\xhat}\prn[\big]{\abs{\Wstar_{z,r,\xhat,x_+}(x)}>\B}}\,.
+\end{align*}
+
+
+Next, we bound $\bbP_{x_+,x,z,\xhat}\prn*{\abs{\Wstar_{z,r,\xhat,x_+}(x)}>\B}$. Using \cref{lem:Dcov}, we know that for any event $E$,
+\begin{align*}
+    \bbP_{x\sim \rho_k(\cdot\mid x_+)}(E)\leq  e\bbP_{x\sim \normal{\gds(x_+), \etabar\Id}}(E)+\Dcov[e]{\rho_k(\cdot\mid x_+)}{\normal{\gds(x_+), \etabar\Id}}.
+\end{align*}
+In the following, we denote $\eps_{x_+}\deq \Dcov[e]{\rho_k(\cdot\mid x_+)}{\normal{\gds(x_+), \etabar\Id}}$. Note that by \cref{cor:DDPM-coverage} and \cref{asmp:Lip-Frob}, we can bound
+\begin{align}
+    \En_{x_+\sim p_{k+1}}[\eps_{x_+}]\leqsim \dstar^2(\delta+\max_{t\in[\sigma_k^2,\sigma_{k+1}^2]}\PP_{Y_t\sim q_t}\prn*{\nrmF{\nabla m_t(Y_t)}\geq \LF}).
+\end{align}
+
+Hence, we can bound
+\begin{align*}
+    &~ \bbP_{x_+,x,z,\xhat}\prn[\big]{\abs{\Wstar_{z,r,\xhat,x_+}(x)}>\B} \\
+    =&~ \En_{x_+\sim p_{k+1},\,\xhat\sim \normal{\gds(x_+),\frac12\etabar\Id},\, z\sim \normal{0,\frac12\etabar\Id}} \bbP_{x\sim \rho_k(\cdot\mid x_+)}(\abs{\Wstar_{z,r,\xhat,x_+}(x)}>\B) \\
+    \leqsim&~  \En_{x_+\sim p_{k+1}} \bbP_{x\sim \normal{\gds(x_+), \etabar\Id}, \,\xhat\sim \normal{\gds(x_+),\frac12\etabar\Id},\, z\sim \normal{0,\frac12\etabar\Id}}(\abs{\Wstar_{z,r,\xhat,x_+}(x)}>\B)+\En_{x_+\sim p_{k+1}}[\eps_{x_+}] \\
+    =&~\En_{x_+\sim p_{k+1}} \bbP_{x'\sim \normal{\gds(x_+), \etabar\Id},\, w\sim \normal{0,c\etabar\Id}}(\sigma^{-2}\abs{\tri{w,\Ds_k(x')-\Ds_{k+1}(x_+)}}\geq \B)+\En_{x_+\sim p_{k+1}}[\eps_{x_+}]\,,
+\end{align*}
+where the last line uses \cref{lem:ind-Gaussian}. Next, by Gaussian concentration, we know that under $w\sim \normal{0,c\etabar\Id}$, it holds that 
+\begin{align*}
+    \PP_w(\abs{\tri{w,\Ds_k(x)-\Ds_{k+1}(x_+)}}\geq \sqrt{2c\etabar\log(1/\delta)}\nrm{\Ds_k(x)-\Ds_{k+1}(x_+)})\leq 2\delta\,.
+\end{align*}
+Therefore, we can denote $M_2=8\sigma^{-2}B^{-1}\sqrt{\etabar\log(1/\delta)}$ and bound
+\begin{align*}
+    &~ \bbP_{x_+,x,z,\xhat}\prn[\big]{\abs{\Wstar_{z,r,\xhat,x_+}(x)}>\B} \\
+    \leqsim &~ \PP_{x_+\sim p_{k+1},\, x\sim \normal{\gds(x_+), \etabar\Id}}\prn*{M_2\nrm{\Ds_k(x)-\Ds_{k+1}(x_+)}\geq 1}+\delta+\En_{x_+\sim p_{k+1}}[\eps_{x_+}] \\
+    \leq&~ \PP_{x_+\sim p_{k+1},\, x\sim \normal{\gds(x_+), \etabar\Id},\, x'\sim \rho_k(\cdot\mid x_+)}\prn*{M_2\nrm{\Ds_k(x)-\Ds_k(x')}+M_2\nrm{\Ds_k(x')-\Ds_{k+1}(x_+)}\geq 1}\\
+    &~+\delta+\En_{x_+\sim p_{k+1}}[\eps_{x_+}] \\
+    \leq&~ \PP_{x_+\sim p_{k+1},\, x\sim \normal{\gds(x_+), \etabar\Id},\, x'\sim \rho_k(\cdot\mid x_+)}\prn*{2M_2\nrm{\Ds_k(x)-\Ds_k(x')}\geq 1} \\
+    &~+\PP_{x_+\sim p_{k+1},\, x'\sim \rho_k(\cdot\mid x_+)}\prn*{2M_2\nrm{\Ds_k(x')-\Ds_{k+1}(x_+)}\geq 1}+\delta+\En_{x_+\sim p_{k+1}}[\eps_{x_+}]\,,
+\end{align*}
+where the second line uses the triangle inequality. 
+
+For the second probability, we can apply \cref{cor:DDPM-coverage} to show (note that under \cref{eq:DM-Lip-Frob-eta} we can guarantee $\frac{1}{(2M_2)^2}\geq 8\LF^2\eta\log(e/\delta)$) that
+\begin{align*}
+    \PP_{x_+\sim p_{k+1}, x'\sim \rho_k(\cdot\mid x_+)}\prn*{2M_2\nrm{\Ds_k(x')-\Ds_{k+1}(x_+)}\geq 1}\leqsim \dstar^2(\delta+\max_{t\in[\sigma_k^2,\sigma_{k+1}^2]}\PP_{Y_t\sim q_t}\prn*{\nrmF{\nabla m_t(Y_t)}\geq \LF}). 
+\end{align*}
+
+For the first probability, we can apply change-of-measure (\cref{lem:Dcov}) again to get
+\begin{align*}
+    &~\PP_{x\sim \normal{\gds(x_+), \etabar\Id}, x'\sim \rho_k(\cdot\mid x_+)}\prn*{2M_2\nrm{\Ds_k(x)-\Ds_k(x')}\geq 1} \\
+    \leq&~ e\PP_{x\sim \normal{\gds(x_+), \etabar\Id}, x'\sim \normal{\gds(x_+), \etabar\Id}}\prn*{2M_2\nrm{\Ds_k(x)-\Ds_k(x')}\geq 1}+\eps_{x_+}.
+\end{align*}
+Now, we express (using \eqref{eq:path-integral})
+\begin{align*}
+    \Ds_k(x)-\Ds_k(x')=\frac{\pi}{2}\int_0^1 \nabla \Ds_k(\sin(\pi r/2) x+\cos(\pi r/2) x')\cdot (\cos(\pi r/2) x-\sin(\pi r/2) x') dr.
+\end{align*}
+Note that with independent $x,x'\sim \normal{\gds(x_+), \etabar\Id}$, the random variable $(\sin(\pi r/2) x+\cos(\pi r/2) x',\cos(\pi r/2) x-\sin(\pi r/2) x')$ are independent Gaussian with marginal distribution $\normal{\gds(x_+), \etabar\Id}$ and $\normal{0, \etabar\Id}$, respectively. Therefore, using Markov's inequality, we bound
+\begin{align*}
+    \PP_{x,x'\sim \normal{\gds(x_+), \etabar\Id}}\prn*{2M_2\nrm{\Ds_k(x)-\Ds_k(x')}\geq 1}
+    \leq &~\En_{x,x'\sim \normal{\gds(x_+), \etabar\Id}}\prn*{2M_2\nrm{\Ds_k(x)-\Ds_k(x')}-1}_+ \\
+    \leq&~ \En_{x''\sim \normal{\gds(x_+), \etabar\Id}, w'\sim \normal{0, \etabar\Id}}\prn*{\pi M_2\nrm{\nabla \Ds_k(x'')w'}-1}_+.
+\end{align*}
+Further, we know the sub-exponential norm of $\nrm{\nabla \Ds_k(x)w'}^{2/3}$ is bounded by $O(\dbar \etabar^{1/3})$ (by the third inequality of \cref{lem:sub-exponential-bounds} with $r=0$). Therefore, by \cref{lem:sub-exp-trunc}, we can choose $M_3=C_3\sqrt{\dbar^3 \etabar \log^3(1/\delta)}$, and it holds that
+\begin{align*}
+    &~\En_{x_+\sim p_{k+1}, x\sim \normal{\gds(x_+), \etabar\Id}, w'\sim \normal{0, \etabar\Id}}\prn*{\pi M_2\nrm{\nabla \Ds_k(x)w'}-1}_+ \\
+    \leqsim&~ M_2 M_3\prn*{ \delta+ \PP_{x_+\sim p_{k+1}, x'\sim \normal{\gds(x_+), \etabar\Id}, w'\sim \normal{0, \etabar\Id}}\prn*{\pi M_2\nrm{\nabla \Ds_k(x')w'}\geq 1} }.
+\end{align*}
+Note that $\PP_{w'\sim \normal{0, \etabar\Id}}\prn*{ \nrm{\nabla \Ds_k(x')w'}\geq 2\nrmF{\nabla \Ds_k(x')}\sqrt{\etabar\log(1/\delta)} }\leqsim \delta$. Therefore, combining the inequalities above, we get
+\begin{align*}
+    \En_{x_+\sim p_{k+1}} \Dkl{\rho_k(\cdot\mid x_+)}{\rhostar_k(\cdot\mid x_+)} 
+    \leqsim
+    &~\dstar^5\delta +\dstar^5\cdot \max_{t\in[\sigma_k^2,\sigma_{k+1}^2]}\PP_{Y_t\sim q_t}\prn*{\nrmF{\nabla m_t(Y_t)}\geq \LF}\\
+    &~+\dstar^5\cdot \PP_{x_+\sim p_{k+1}, x'\sim \normal{\gds(x_+), \etabar\Id}}\prn*{\nrmF{\nabla \Ds_k(x')}\geq \LF}.
+\end{align*}
+Note that the distribution of $x'$ under $x_+\sim p_{k+1}, x'\sim \normal{\gds(x_+), \etabar\Id}$ is exactly $\wt{p}_k$. 
+This is the desired upper bound.
+\qed
+
+\begin{lemma}\label{lem:sub-exponential-bounds}
+Fix any $r\in[0,1]$. We consider the joint distribution of $x_+\sim p_{k+1}$, $x\sim \rho_k(\cdot\mid x_+)$, $\xhat\sim \normal{\gds(x_+),\frac12\etabar\Id}$, $z\sim \normal{0,\frac12\etabar\Id}$. Then the following holds for an absolute constant $c>0$:
+\begin{align*}
+    \En\exp\prn[\big]{ c\nrm{\Ds_k(\gamma_{z,r,\xhat}(x))-\Ds_{k+1}(x_+)}^2 }\leq e^{\dbar}, \qquad
+    \En\exp\prn[\big]{ c\etabar ^{-1/3}\nrm{\nabla \Ds_k(\gamma_{z,r,\xhat}(x)) \dot \gamma_{z,r,\xhat}(x)}^{2/3} }\leq e^{\dbar}.
+\end{align*}
+Further, for $w\sim \normal{0,\etabar\Id}$ and $x'\sim \normal{\gds(x_+),\etabar\Id}$, it holds that
+\begin{align*}
+    \En\exp\prn*{ c\etabar ^{-1/3}\nrm{\nabla \Ds_k(x')w}^{2/3} }\leq e^{\dbar}.
+\end{align*}
+\end{lemma}
+
+\begin{proof}
+By \cref{cor:MGF-intrinsic}, there is a constant $c_0>0$ such that
+\begin{align*}
+    \En_{x_+\sim p_{k+1}, x\sim \rho_k(\cdot\mid x_+)}\exp\prn*{ 4c_0\sigma^{-2}\nrm{\Ds_k(x')-\Ds_{k+1}(x_+)}^2 }\leq e^{\dbar}, \\
+    \En_{x_+\sim p_{k+1}, x\sim \rho_k(\cdot\mid x_+)}\exp\prn*{ 4c_0\tr(\nabla \Ds_k(x)) }\leq e^{\dbar}.
+\end{align*}
+
+We consider the following distributions of $(x_+,x,\xhat,z)$:
+\begin{align*}
+    P:&~  x_+\sim p_{k+1}, \quad x\sim \rho_k(\cdot\mid x_+), \quad \xhat\sim \normal{\gds(x_+),\frac12\etabar\Id}, \quad z\sim \normal{0,\frac12\etabar\Id}, \\
+    Q:&~  x_+\sim p_{k+1}, \quad x\sim \normal{\gds(x_+),\etabar\Id}, \quad \xhat\sim \normal{\gds(x_+),\frac12\etabar\Id}, \quad z\sim \normal{0,\frac12\etabar\Id}.
+\end{align*}
+Then, by \cref{cor:DDPM-chi-sq}, we know $\Dsys[2]{P}{Q}\leq e^{\dbar}$. Further, under $Q$, we can apply \cref{lem:ind-Gaussian} to get
+\begin{align*}
+    \En_Q\exp\prn*{ 2c_0\sigma^{-2}\nrm{\Ds_k(\gamma_{z,r,\xhat}(x))-\Ds_{k+1}(x_+)}^2 }
+    =&~\En_{x_+\sim p_{k+1}, x'\sim \normal{\gds(x_+),\etabar\Id}}\exp\prn*{ 2c_0\sigma^{-2}\nrm{\Ds_k(x')-\Ds_{k+1}(x_+)}^2 } \\
+    =&~ \En_Q\exp\prn*{ 2c_0\sigma^{-2}\nrm{\Ds_k(x)-\Ds_{k+1}(x_+)}^2 }.
+\end{align*}
+Therefore, by $\chi^2$-change-of-measure, we can show that
+\begin{align*}
+    &~\En_P\exp\prn*{ c_0\sigma^{-2}\nrm{\Ds_k(\gamma_{z,r,\xhat}(x))-\Ds_{k+1}(x_+)}^2 } \\
+    \leq&~ \sqrt{(1+\Dsys[2]{P}{Q})\En_Q\exp\prn*{ 2c_0\sigma^{-2}\nrm{\Ds_k(\gamma_{z,r,\xhat}(x))-\Ds_{k+1}(x_+)}^2 } } \\
+    \leq&~ \sqrt{(1+e^{\dbar})\En_Q\exp\prn*{ 2c_0\sigma^{-2}\nrm{\Ds_k(x)-\Ds_{k+1}(x_+)}^2 } } \\
+    \leq&~ (1+e^{\dbar})^{3/4} \prn*{ \En_P\exp\prn*{ 4c_0\sigma^{-2}\nrm{\Ds_k(x)-\Ds_{k+1}(x_+)}^2 } }
+    \leq 1+e^{\dbar}.
+\end{align*}
+A corollary of this argument is that we also have
+\begin{align*}
+    \En_Q\exp\prn*{c_0\tr(\nabla \Ds_k(\gamma_{z,r,\xhat}(x)))}\leq 1+e^{\dbar}.
+\end{align*}
+Then, denote $w'\deq \dot \gamma_{z,r,\xhat}(x)$, we know $w'\sim \normal{0,c\etabar\Id}$ is independent of $\gamma_{z,r,\xhat}(x)$ under $Q$.
+Then, by \cref{lem:Gaussian-vMGF} we know that for any matrix $A$ and $\delta\in(0,1)$,
+\begin{align*}
+    \PP_Q\prn*{ \nrm{Aw'}^2\leq c_1\etabar(\nrmF{A}^2+\nrmop{A}^2\log(1/\delta)) }\leq \delta,
+\end{align*}
+where $c_1>0$ is an absolute constant. Therefore, by a union bound,
+\begin{align*}
+    \PP_Q\prn*{ \nrm{\nabla \Ds_k(\gamma_{z,r,\xhat}(x)) w'}^2\leq c_2\etabar(\dbar+\log(1/\delta))^2\log(1/\delta) }\leq 2\delta.
+\end{align*}
+By integration, this implies that there is an absolute constant $c_3>0$ such that
+\begin{align*}
+\En_Q \exp\prn*{ c_3\etabar ^{-1/3}\nrm{\nabla \Ds_k(\gamma_{z,r,\xhat}(x)) w'}^{2/3} }\leq e^{\dbar}.
+\end{align*}
+Applying change-of-measure again, we see
+\begin{align*}
+\En_P \exp\prn*{ \frac12 c_3\etabar ^{-1/3}\nrm{\nabla \Ds_k(\gamma_{z,r,\xhat}(x)) \dot \gamma_{z,r,\xhat}(x)}^{2/3} }\leq 1+e^{\dbar}.
+\end{align*}
+An analogous argument also shows 
+\begin{align*}
+\En_P \En_{x'\sim \normal{\gds(x_+),\etabar\Id}, w\sim \normal{0,\etabar\Id}} \exp\prn*{ c_4\etabar ^{-1/3}\nrm{\nabla \Ds_k(x') w}^{2/3} }\leq 1+e^{\dbar}.
+\end{align*}
+Combining the inequalities above completes the proof.
+\end{proof}
+

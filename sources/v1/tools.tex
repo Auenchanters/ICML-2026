@@ -1,0 +1,283 @@
+For any function $f:\RR^d\to\RR$ such that $Z_f\deq \int_{\RR^d} e^{-f(x)}dx<+\infty$, we define $\mu_f$ to be the distribution over $\RR^d$ with density $\mu_f(x)=\frac{1}{Z_f}e^{-f(x)}$.
+
+For $\nu \ll \mu$, let $\Ren[\lambda]{\nu}{\mu} \deq \frac{1}{\lambda-1} \log \En_\mu[(\frac{d\nu}{d\mu})^\lambda]$ denote the R\'enyi divergence of order $\lambda > 1$.
+
+
+\subsection{Functional inequalities}
+
+
+\begin{definition}[PI]\label{def:PI}
+A probability distribution $\mu$ on $\R^d$ satisfies a Poincar\'e inequality (PI) with constant $C$ if for all smooth and compactly supported functions $\phi:\R^d\to \R$,
+\begin{align*}
+    \var_\mu(\phi)\leq C\En_\mu \nrm{\nabla \phi}^2\,.
+\end{align*}
+We let $\CPI(\mu)$ to be the smallest constant $C$ such that $\mu$ satisfies PI with constant $C$.
+\end{definition}
+
+\begin{definition}[LSI]\label{def:LSI}
+A probability distribution $\mu$ on $\R^d$ satisfies a log-Sobolev inequality (LSI) with constant $C$ if for all smooth and compactly supported functions $\phi:\R^d\to \R$,
+\begin{align*}
+    \En_\mu\brk[\Big]{ \phi^2 \log \frac{\phi^2}{\En_\mu[\phi^2]}}\leq 2C\En_\mu \nrm{\nabla \phi}^2\,.
+\end{align*}
+We let $\CLSI(\mu)$ to be the smallest constant $C$ such that $\mu$ satisfies LSI with constant $C$.
+\end{definition}
+
+The following facts are standard, see~\citet{BGL14} or~\citet[Chapter 2]{Chewi26Book}.
+
+\begin{lemma}[Bakry--\'Emery]\label{lem:LSI-SC}
+If $\mu$ is $\alpha$-strongly log-concave, then $\CLSI(\mu)\leq \frac{1}{\alpha}$.
+\end{lemma}
+
+\begin{lemma}[Holley--Stroock perturbation principle]\label{lem:HS-perturb}
+Let $\mu$ and $\nu$ be probability measures such that $\frac{1}{b}\leq \frac{d\nu}{d\mu}\leq b$ for some parameter $b>0$. Then $\CLSI(\nu)\leq b^2\,\CLSI(\mu)$.
+\end{lemma}
+
+
+
+
+
+\subsection{Lemmas}
+
+
+\begin{lemma}\label{lem:Gaussian-vMGF}
+\begin{align*}
+    \En_{W\sim \normal{0,\eta\Id}} \exp\prn*{\abs{\tri{W,v}}}\leq 2\exp\prn[\Big]{\frac{\eta\nrm{v}^2}{2}}\,.
+\end{align*}
+For $\lambda\leq \frac{1}{2\eta}$,
+\begin{align*}
+    \En_{W\sim \normal{0,\eta\Id}} \exp\prn[\Big]{\frac12\lambda\nrm{W+v}^2}\leq \exp\prn[\big]{d\lambda \eta+\lambda\nrm{v}^2}\,.
+\end{align*}
+Further, for $t\geq 0$,
+\begin{align*}
+    \PP_{x\sim \normal{v,\Sigma}}\prn*{\abs{x\tp Ax-v\tp A v-\tr(\Sigma A)}\geq t}&\leq 2\exp\prn*{ -\frac{1}{16\nrmop{\Sigma}}\min\crl*{\frac{t^2}{\nrmop{\Sigma}\nrmF{A}^2+\nrm{Av}^2}, \frac{t}{\nrmop{A}} }}\,.
+\end{align*}
+\end{lemma}
+\begin{proof}
+    \newcommand{\tSigma}{\wt{\Sigma}}
+The first two statements are standard. For the third, for any $A\preceq \frac12\Sigma^{-1}$, we can calculate
+\begin{align*}
+    \En_{x\sim \normal{v,\Sigma}}\exp\prn[\Big]{\frac12\,x\tp Ax-\frac12\,v\tp A v}
+    =\En_{W\sim \normal{0,\Sigma}} \exp\prn[\Big]{ v\tp A W+\frac12\, W\tp A W }
+    =\sqrt{\frac{\det(\tSigma)}{\det(\Sigma)}}\exp\prn[\Big]{ \frac12\nrm{Av}_{\tSigma}^2 }\,,
+\end{align*}
+where $\tSigma^{-1}=\Sigma^{-1}-A$. Noting that $\Sigma^{1/2}\tSigma^{-1}\Sigma^{1/2}=\Id-\Sigma^{1/2}A\Sigma^{1/2}\succeq \frac12\Id$, we can bound
+\begin{align*}
+    \frac{\det(\tSigma)}{\det(\Sigma)}=\frac{1}{\det\prn*{\Id-\Sigma^{1/2}A\Sigma^{1/2}}}\leq \exp\prn[\big]{\tr(\Sigma^{1/2}A\Sigma^{1/2})+\nrmF{\Sigma^{1/2}A\Sigma^{1/2}}^2}\,,
+\end{align*}
+where we use $-\log(1-\lambda)\leq \lambda+\lambda^2$ for $\lambda\leq \frac12$. Therefore, we have shown
+\begin{align*}
+    \En_{x\sim \normal{v,\Sigma}}\exp\prn[\Big]{\frac12\,\prn*{x\tp Ax-v\tp A v-\tr(\Sigma A)}}
+    \leq\exp\prn[\big]{\nrmF{\Sigma^{1/2}A\Sigma^{1/2}}^2+\nrm{Av}_{\Sigma}^2}\,, 
+\end{align*}
+as long as $A\preceq \frac12\Sigma^{-1}$. Then, by rescaling $A\leftarrow \lambda A$ and requiring $\abs{\lambda}\leq \frac{1}{2\nrmop{\Sigma^{1/2}A\Sigma^{1/2}}}$, we have
+\begin{align*}
+    \PP\prn*{\abs{x\tp Ax-v\tp A v-\tr(\Sigma A)}\geq t}\leq 2\exp\prn[\Big]{ \lambda^2\,\prn[\big]{\nrmF{\Sigma^{1/2}A\Sigma^{1/2}}^2+\nrm{Av}_{\Sigma}^2}-\frac12\lambda t }\,, \qquad \forall t>0\,.
+\end{align*}
+Suitably choosing $\lambda$ gives, for all $t\ge 0$,
+\begin{align*}
+    \PP\prn*{\abs{x\tp Ax-v\tp A v-\tr(\Sigma A)}\geq t}\leq&~ 2\exp\prn*{ -\min\crl*{\frac{t^2}{16(\nrmF{\Sigma^{1/2}A\Sigma^{1/2}}^2+\nrm{Av}_{\Sigma}^2)},\, \frac{t}{8\nrmop{\Sigma^{1/2}A\Sigma^{1/2}}} }} \\
+    \leq&~ 2\exp\prn*{ -\frac{1}{16\nrmop{\Sigma}}\min\crl*{\frac{t^2}{\nrmop{\Sigma}\nrmF{A}^2+\nrm{Av}^2},\, \frac{t}{\nrmop{A}} }}\,.
+\end{align*}
+\end{proof}
+
+
+\begin{lemma}\label{lem:Gaussian-s}
+Suppose that $\eta>0$ and $0\leq \lambda\leq \frac{d^{1-s}}{4s\eta^s}$. Then, it holds that
+\begin{align*}
+    \En_{W\sim \normal{0,\eta\Id}} \exp\prn*{\lambda\nrm{W}^{2s}}\leq \exp\prn*{2(\eta d)^s \lambda}\,.
+\end{align*}
+\end{lemma}
+
+\begin{proof}
+We use the inequality $w^s\leq s\cdot\frac{w}{(\eta d)^{1-s}}+(1-s)\cdot (\eta d)^s$ for $w\geq 0$. Therefore, as long as $\frac{s\lambda}{(\eta d)^{1-s}}\leq \frac{1}{4\eta}$, it holds that
+\begin{align*}
+    \En\exp\prn*{\lambda\nrm{W}^{2s}}
+    \leq \En\exp\prn[\Big]{\frac{s\lambda}{(\eta d)^{1-s}}\nrm{W}^{2}+(1-s)(\eta d)^s\lambda }
+    \leq \exp\prn*{2s(\eta d)^s\lambda+(1-s)(\eta d)^s\lambda }
+    \leq \exp\prn*{2(\eta d)^s \lambda}\,,
+\end{align*}
+where the second inequality follows from \cref{lem:Gaussian-vMGF}.
+\end{proof}
+
+\begin{lemma}\label{lem:Renyi-to-cov}
+For any $f:\cX\to [0,1]$, it holds that
+\begin{align*}
+    \En_{p}[f]-M\En_q[f]\leq \inf_{\lambda>1} M^{-(\lambda-1)}\,(1+\Dren{p}{q})\,,
+\end{align*}
+where $\Dren{p}{q} \deq \E_p\prn[\big]{\frac{dp}{dq}}^\lambda - 1$.
+\end{lemma}
+
+\begin{proof}
+By definition,
+\begin{align*}
+    \En_{p}[f]-M\En_q[f]=\En_q\brk[\Big]{\prn[\Big]{\frac{dp}{dq}-M}\,f}
+    \leq \En_q \prn[\Big]{\frac{dp}{dq}-M}_+\,.
+\end{align*}
+Note that for any random variable $Y\geq 0$, we have
+\begin{align*}
+    \En(Y-M)_+=\En[\indic{\{Y>M\}}\,(Y-M)_+]\leq \bbP(Y>M)^{1-\frac{1}{\lambda}}\prn*{\En[(Y-M)_+^\lambda]}^{\frac{1}{\lambda}}\leq \frac{\En[Y^\lambda]}{M^{\lambda-1}}\,.
+\end{align*}
+Combining these inequalities and taking infimum over $\lambda>1$ completes the proof.
+\end{proof}
+
+\begin{lemma}\label{lem:KL-triangle}
+
+\begin{align*}
+    \Dkl{\nu}{\muhat}\leq 2\Dkl{\nu}{\mu}+\log\prn*{1+\Dchis{\mu}{\muhat}}\,.
+\end{align*}
+\end{lemma}
+\begin{proof}
+We define $h=\log \frac{d\mu}{d\muhat}$. Then, we know that $\En_{\mu}[e^h]=1+\Dchis{\mu}{\muhat}$, and hence
+\begin{align*}
+    \Dkl{\nu}{\muhat}-\Dkl{\nu}{\mu}=&~\En_{\nu}\brk[\Big]{\log \frac{d\nu}{d\muhat}-\log \frac{d\nu}{d\mu}} 
+    = \En_\nu[h] \\
+    \leq&~ \Dkl{\nu}{\mu}+\log \En_{\mu}[e^{h}]
+    =\Dkl{\nu}{\mu}+\log\prn*{1+\Dchis{\mu}{\muhat}}\,,
+\end{align*}
+where we use the Donsker--Varadhan variational inequality.
+\end{proof}
+
+\begin{lemma}\label{lem:Dchis-perturb}
+Suppose that $\mu\propto pe^{h}$ and $\muhat\propto qe^{h}$, such that $\abs{h}\leq B$. Then it holds that
+\begin{align*}
+    \Dchis{\mu}{\muhat}\leq e^{4B}\Dchis{p}{q}\,.
+\end{align*} 
+\end{lemma}
+\begin{proof}
+By definition,
+\begin{align*}
+    1+\Dchis{\mu}{\muhat}
+    =&~ \En_{x\sim \mu}\brk[\Big]{\frac{\mu(x)}{\muhat(x)}}
+    =\frac{\En_q[e^h]}{(\En_p[e^h])^2}\cdot \En_{x\sim q}\brk[\Big]{ \frac{p(x)^2}{q(x)^2}\cdot e^{h(x)} }\,.
+\end{align*}
+Note that $\frac{p(x)^2}{q(x)^2}=\prn[\big]{\frac{p(x)}{q(x)}-1}^2+2\,\frac{p(x)}{q(x)}-1$, and hence
+\begin{align*}
+    \En_{x\sim q}\brk[\Big]{ \frac{p(x)^2}{q(x)^2}\cdot e^{h(x)} }
+    =\En_{x\sim q}\brk[\Big]{ \prn[\Big]{\frac{p(x)}{q(x)}-1}^2 \cdot e^{h(x)} }+2\En_p[e^h]-\En_q[e^h]\,.
+\end{align*}
+Hence, we can rewrite
+\begin{align*}
+    \Dchis{\mu}{\muhat}
+    =&~
+    \frac{\En_q[e^h]}{(\En_p[e^h])^2}\cdot \En_{x\sim q}\brk[\Big]{ \prn[\Big]{\frac{p(x)}{q(x)}-1}^2 \cdot e^{h(x)} } - \prn[\Big]{\frac{\En_q[e^h]}{\En_p[e^h]}-1}^2 \\
+    \leq&~ e^{4B}\En_{x\sim q}\brk[\Big]{ \prn[\Big]{\frac{p(x)}{q(x)}-1}^2  }
+    =e^{4B}\Dchis{p}{q}\,.
+\end{align*}
+\end{proof}
+
+\begin{lemma}\label{lem:KL-perturb}
+Suppose that $\muhat\propto \mu e^{-h}$, where $\abs{h}\leq \B$. Then for any distribution $\nu$, it holds that
+\begin{align*}
+    \Dkl{\nu}{\muhat}\leq 4e^B\Dkl{\nu}{\mu}+4e^B\En_\nu[h^2]\,.
+\end{align*} 
+\end{lemma}
+\begin{proof}
+By definition,
+\begin{align*}
+    \Dkl{\nu}{\muhat}-\Dkl{\nu}{\mu}=&~\En_{\nu}[\log \mu(x)-\log \muhat(x)] \\
+    =&~ \En_\nu[h]+\log \En_{\mu}[e^{-h}]
+    \leq \En_\nu[h]-\En_\mu[h]+c_B\En_\mu[h^2]\,,
+\end{align*}
+where $c_B=\frac{e^B-B-1}{B^2}$.
+It holds that %
+$\En_\mu[h^2]\leq 2\En_\nu[h^2]+2B^2\Dhels{\nu}{\mu}$ because
+\begin{align*}
+    \En_\mu[h^2]
+    &= \int h^2\,d(\sqrt\nu+\sqrt\mu-\sqrt\nu)^2
+    \le 2\int h^2\,d\nu + 2\int h^2\,(\sqrt\mu-\sqrt\nu)^2
+    \le 2\En_\nu[h^2] + 4B^2 \Dhels{\nu}{\mu}\,.
+\end{align*}
+Also,
+\begin{align*}
+    \abs{\En_\nu[h]-\En_\mu[h]}
+    &\leq \sqrt{\int h^2\,(\sqrt\mu+\sqrt\nu)^2\int (\sqrt\mu-\sqrt\nu)^2}
+    \le \sqrt{4\Dhels{\nu}{\mu}\,(\En_\mu[h^2] + \En_\nu[h^2])} \\
+    &\le \sqrt{4\Dhels{\nu}{\mu}\,(3\En_\nu[h^2] + 4B^2 \Dhels{\nu}{\mu})}
+    \le \sqrt{12\En_\nu[h^2]\Dhels{\nu}{\mu}} + 4B\Dhels{\nu}{\mu} \\
+    &\le 2\En_\nu[h^2] + (4B+2)\Dhels{\nu}{\mu}\,.
+\end{align*}
+Combining the inequalities above with $\Dhels{\nu}{\mu}\leq \frac12 \Dkl{\nu}{\mu}$ completes the proof.
+\end{proof}
+
+
+
+
+
+\begin{lemma}\label{lem:KL-decomp}
+Suppose that $\abs{f(x)-g(x)}\leq u(x)+v(x)$ such that $0\leq u(x)\leq \B$ for any $x$. Then
+\begin{align*}
+    \Dkl{\mu_f}{\mu_g}
+    \leq&~ e^\B \En_{\mu_f}[u(x)^2+(e^{v(x)}-1)_+]\,.
+\end{align*}
+\end{lemma}
+\begin{proof}
+By definition,
+\begin{align*}
+    \Dkl{\mu_f}{\mu_g}=\En_{\mu_f}[g(x)-f(x)]+\log \En_{\mu_f} e^{f(x)-g(x)}\,.
+\end{align*}
+Note that $e^{w}\leq 1+w+\frac{e^\B}{2}w^2$ for any $w\leq \B$. Now, we can verify that 
+\begin{align*}
+    e^r\leq 1+r+Cw^2+(e^{\abs{r}}-e^w)_+\,, \qquad r\in\RR\,,\, w\in[0,\B]\,,
+\end{align*}
+where $C=\frac{e^\B}{2}$. Specifically, when $\abs{r}\leq w$, this reduces to $e^r\leq 1+r+Cw^2$; when $r>w$, this reduces to $e^w\leq 1+r+Cw^2$; and when $r<-w$, this reduces to $e^w-1-w-Cw^2\leq e^{-r}-e^{r}+r-w$, and we can use $e^t-e^{-t}\geq 2t$ which holds for all $t\geq0$. Applying this inequality gives
+\begin{align*}
+    \Dkl{\mu_f}{\mu_g}\leq &~
+    \En_{\mu_f}[g(x)-f(x)]+\En_{\mu_f} e^{f(x)-g(x)}-1 \\
+    \leq&~ C\En_{\mu_f}[u(x)^2]+\En_{\mu_f}(e^{\abs{f(x)-g(x)}}-e^{u(x)})_+ \\
+    \leq&~ e^\B \En_{\mu_f}[u(x)^2+(e^{v(x)}-1)_+]\,.
+\end{align*}
+\end{proof}
+
+\begin{lemma}\label{lem:Renyi-to-diff}
+For any $\ell>1$, it holds that
+\begin{align}
+    \max\crl{ \Dren[\ell]{\mu_f}{\mu_g}, \Dren[\ell]{\mu_g}{\mu_f} }
+    \leq \En_{x\sim \mu_f}\brk{e^{2\ell\,\abs{f(x)-g(x)}}-1}\,.
+\end{align}
+\end{lemma}
+\begin{proof}
+By definition, we can write
+\begin{align*}
+    \frac{\mu_f(x)}{\mu_g(x)}=e^{g(x)-f(x)}\En_{\mu_f}[e^{f-g}]\,.
+\end{align*}
+Therefore, we have
+\begin{align*}
+    1+\Dren[\ell]{\mu_f}{\mu_g}=&~\En_{\mu_f}\prn[\big]{\frac{\mu_f}{\mu_g}}^{\ell-1}
+    = \prn*{\En_{\mu_f}[e^{f-g}]}^{\ell-1}\cdot \En_{\mu_f}[e^{(\ell-1)(g-f)}] \\
+    \leq&~ \prn[\big]{\En_{\mu_f}e^{(\ell-1)\abs{f-g}}}^2
+    \leq \En_{\mu_f}[e^{2\ell\abs{f-g}}]\,.
+\end{align*}
+Similarly,
+\begin{align*}
+    1+\Dren[\ell]{\mu_g}{\mu_f}=&~\En_{\mu_f}\prn[\big]{\frac{\mu_g}{\mu_f}}^{\ell}= \prn*{\En_{\mu_f}[e^{f-g}]}^{-\ell}\cdot \En_{\mu_f}[e^{\ell(f-g)}] 
+    \leq \En_{\mu_f}[e^{-\ell(f-g)}]\cdot \En_{\mu_f}[e^{\ell(f-g)}]\\
+    \leq&~ \prn[\big]{\En_{\mu_f}e^{\ell\abs{f-g}}}^2
+    \leq \En_{\mu_f}[e^{2\ell\abs{f-g}}]\,.
+\end{align*}
+Combining both inequalities completes the proof.
+\end{proof}
+
+The following lemma can be regarded as a ``chain rule'' of Hellinger distance~\citep{jayram2009hellinger}, see also \citet[Lemma 11.5.3]{duchi-notes} or \citet[Lemma D.2]{foster2024online}.
+\begin{lemma}[Sub-additivity for squared Hellinger distance]
+\label{lem:Hellinger-chain}
+Suppose that $X_1\to \cdots\to X_T$ is a Markov chain. Given a family of transition kernels $\rho=(\rho_t: \cX\to \Delta(\cX))_{t\in [T]}$, we let $\PP_\rho$ be the law of $X_1,\ldots,X_T$ under $X_1\sim \rho_1$, $X_t\sim\rho_t(\cdot\mid X_{t-1})$. Then, for any families of transition kernels $\rho, \rho'$, it holds that
+\begin{align*}
+  \Dhels{\PP_\rho}{\PP_{\rho'}}\leq 
+7\sum_{t=1}^{T} \En_{X_{t-1}\sim \PP_{\rho}}\brk*{\Dhels{\rho_t(\cdot\mid X_{t-1})}{\rho'_t(\cdot\mid X_{t-1})}}\,,
+\end{align*}
+where we regard $X_0= {\perp}$ and $\rho_1(\cdot\mid \perp)=\rho_1$.
+\end{lemma}
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,65 @@
+\section{Analysis of FORS}
+
+
+\subsection{Proof of Theorem~\ref{thm:fors}}
+
+
+\begin{proof}[Proof of~\cref{thm:fors}]
+    Let $x_{\rm out}$ denote the output of~\cref{alg:fors}.
+    On a given iteration of the algorithm, conditional on the draw $x\sim q$, the probability that the algorithm terminates on that iteration is
+    \begin{align*}
+        a(x)
+        &= \E\Bigl[\prod_{j=1}^J \frac{B+W_j}{2B}\Bigm\vert x\Bigr]
+        =\E\Bigl[\Bigl(\frac{B+\E[W_1\mid x]}{2B}\Bigr)^J\Bigr]\\
+        &= \sum_{J\geq 0} \frac{e^{-2B}\,(2B)^J}{J!} \,\Bigl(\frac{B+\E[W_1\mid x]}{2B}\Bigr)^J
+        = e^{\E[W_1\mid x]-B}\,.
+    \end{align*}
+    Thus, the acceptance probability of a given iteration is $A \deq \int a(x)\,q(dx)$.
+    Then,
+    \begin{align*}
+        \Pr(x_{\rm out} \in dx)
+        &= \sum_{i=1}^\infty \Pr(x_{\rm out} \in dx, \, \text{\cref{alg:fors} succeeds on iteration}~i) \\
+        &= \sum_{i=1}^\infty (1-A)^{i-1}\,q(dx)\,a(x)
+        = \frac{q(dx)\,a(x)}{A}\,.
+    \end{align*}
+    For the second statement, let $J_1,J_2,J_3,\dotsc$ be an i.i.d.\ sequence of $\Poi(2B)$ random variables.
+    The probability that the number $N$ of draws from $\mathcal W$ exceeds $m$ is $\Pr(N\geq m)=\Pr(\sum_{i=1}^I J_i \ge m)$, where $I$ is the number of iterations of the algorithm.
+    For any $i_0$, we take $m = (2+c)\,i_0 B$ and bound
+    \begin{align*}
+        \Pr\Bigl(\sum_{i=1}^I J_i \ge m\Bigr)
+        &\le \Pr(I > i_0) + \Pr\Bigl(\sum_{i=1}^{i_0} J_i \ge (2+c)\,i_0 B\Bigr)\,.
+    \end{align*}
+    Note that if any $J_i = 0$, then $I \le i$, so the first term is bounded by $(1-e^{-2B})^{i_0} \le \exp(-e^{-2B}\,i_0)$.
+    The second term, using a concentration bound for the Poisson random variable, is bounded by $\exp(-\frac{c^2}{c+2}\,i_0 B)$.
+    Setting $i_0 = e^{2B} \log(2/\delta)$ and $c=e^{-2B}$ suffices to bound both terms by $\delta/2$.
+
+    Note that this also implies $\En[\exp\prn{N/(CBe^{2B})}]\leq 2$ for an absolute constant $C>0$, where $N=\sum_{i=1}^I J_i$ is the total number of draws from $\cW$.
+    So, the last statement follows immediately.
+\end{proof}
+
+
+\scedit{
+\subsection{Clipping error}
+
+
+In order to control the error incurred by FORS, we often use the following argument.
+
+\begin{lemma}\label{lem:fors_clip}
+    Let $p(x) \propto q(x)\,e^{\E W_x}$ and $\phat(x) \propto q(x)\,e^{\E\pclip{W_x}}$.
+    Then, for any $\ell > 1$,
+    \begin{align*}
+        \Dsys[\ell]{p}{\phat}
+        \le e^{2B}\En_{x\sim q}[e^{2\ell\,(|W_x| - B)_+} - 1]\,.
+    \end{align*}
+\end{lemma}
+\begin{proof}
+    By~\cref{lem:Renyi-to-diff},
+    \begin{align*}
+        \Dsys[\ell]{p}{\phat}
+        &\le \En_{x\sim \phat}[e^{2\ell\En \trunc[\B]{W_x}} - 1]
+        \le e^{2B} \En_{x\sim q}[e^{2\ell\En \trunc[\B]{W_x}} - 1]
+    \end{align*}
+    where we recall $\trunc[\B]{y}\deq(\abs{y}-\B)_+=|y-\pclip{y}|$ and we used $\frac{d\phat}{dq} \le e^{2B}$.
+    The result follows from the convexity of $w\mapsto e^w$.
+\end{proof}
+}

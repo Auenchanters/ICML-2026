@@ -1,0 +1,49 @@
+
+
+
+Here, we apply~\cref{thm:gaussian_tilt} at each step of \cref{alg:prox-sampler} to sample from the RGO distribution.
+Note that \cref{thm:gaussian_tilt} requires the choice of a point $x_+$ which is close to $\text{prox}_{\eta f}(x_0)$.
+For simplicity, we assume that this error is zero, which amounts to assuming that we have access to the proximal oracle for $f$.
+When $f$ is $\beta$-smooth and $h\le 1/(2\beta)$, then computation of the proximal map is a convex optimization problem, and error analysis can be done as in~\citet{AltChe24Warm}.
+Otherwise, one could generalize the analysis to consider obtaining a stationary point of the proximal map optimization as in~\citet{FanYuaChe23ImprovedProx}.
+
+We recall the definitions of PI and LSI in \cref{def:PI} and \cref{def:LSI}.
+
+\begin{theorem}
+    Let $\lambda\geq 2$ be a fixed constant, and $\varepsilon\in(0,\frac12]$.
+    Suppose that $\mu\propto e^{-f}$ and that $f$ satisfies \cref{ass:holder}.
+    Choose
+    \begin{align*}
+        \eta^{-1} = C\,\prn[\big]{\beta_s^2 d^s\log(1/\varepsilon) + \beta_s^2 d^{-(1-s)} \log^2(1/\varepsilon)}^{1/(1+s)}
+    \end{align*}
+    for a sufficiently large universal constant $C\fcedit{=C_\lambda} > 0$.
+    Let $\wh\mu$ denote the law of the output of \cref{alg:prox-sampler} initialized at $\mu_0$, where in each step the RGO is implemented by \cref{alg:fors} via \cref{thm:gaussian_tilt}.
+    Then, the following holds. 
+    \begin{enumerate}
+        \item Suppose that $\mu$ satisfies a log-Sobolev inequality with constant $\CLSI(\mu) < \infty$, which can only hold if $s = 1$ (i.e., $f$ is smooth).
+        Then, $\Ren{\wh\mu}{\mu} \le \varepsilon^2$ using at most
+        \begin{align*}
+            N = \wt O\prn[\Big]{\kappa d^{1/2} \log^{3/2} \frac{\Ren{\mu_0}{\mu}}{\varepsilon^2} + \kappa \log^2 \frac{\Ren{\mu_0}{\mu}}{\varepsilon^2}} \qquad\text{first-order queries in expectation}\,,
+        \end{align*}
+        where $\kappa \deq \CLSI(\mu)\, \beta_1$ is the condition number. %
+        \item Suppose that $\mu$ satisfies a Poincar\'e inequality with constant $\CPI(\mu) < \infty$.
+        Then, $\Dchis{\wh\mu}{\mu} \le \varepsilon^2$ using at most
+        \begin{align*}
+            N = \wt O\prn[\Big]{\CPI(\mu)\,\beta_s^{2/(1+s)}\,d^{s/(1+s)} \log^{1/(1+s)}\prn[\big]{\frac{1}{\varepsilon}} \,\prn[\Big]{1 + \frac{\log^{1/(1+s)}(1/\varepsilon)}{d^{(1-s)/s}}}\log \frac{\Dchis{\mu_0}{\mu}}{\varepsilon^2}}
+        \end{align*}
+        first-order queries in expectation.
+        \item Suppose that $\mu$ is log-concave.
+        Then, $\Dkl{\wh\mu}{\mu} \le \varepsilon^2$ using at most
+        \begin{align*}
+            N = \wt O\prn[\Big]{\beta_s^{2/(1+s)}\,d^{s/(1+s)} \,\frac{W_2^2(\mu_0,\mu)}{\varepsilon^2}}\qquad\text{first-order queries in expectation}\,.
+        \end{align*}
+    \end{enumerate}
+\end{theorem}
+\begin{proof}
+    This follows from tracking the error of the RGO implementation and choosing $\delta$ appropriately, exactly as in~\citet{AltChe24Warm}, and is therefore omitted.
+\end{proof}
+
+This theorem can be generalized in several directions.
+One could assume that $\mu$ satisfies a Lata\l{}a--Oleszkiewicz inequality which interpolates between Poincar\'e and log-Sobolev, as in~\citet{Chen+22ProxSampler, Che+24LMC}.
+One could also consider RGO implementations under more complicated settings, such as composite settings~\citep{FanYuaChe23ImprovedProx}.
+For brevity, we omit such extensions.

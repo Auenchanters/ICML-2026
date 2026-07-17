@@ -1,0 +1,222 @@
+
+
+A key insight is that sampling from the backward transition kernel~\eqref{eq:backward_kernel}, given access to a score estimate $\scf_k$, is a special case of the setup of Section~\ref{sec:gaussian_tilts}, except that we only have approximately correct first-order evaluations.
+This leads to the template~\cref{alg:DM} for high-accuracy diffusion sampling. Throughout this section, we adopt the following proposal distribution $\rhobar$:
+\begin{align}\label{def:DDPM-proposal}
+    \rhobar_k(\cdot\mid{}\xr{k+1})=\normal{ \alp_k^{-1} \xr{k+1} + \alpha_k \eta_k \scf_{k+1}(\xr{k+1}), \etabar_k \Id },
+\end{align}
+where $\etabar_k$ is given by $1/\etabar_k=1/\eta_k+1/\sigma_k^2$. This corresponds to appropriately applying the \emph{exponential integrator} to the backward SDE. The reason we choose \cref{def:DDPM-proposal} as the proposal is detailed in \cref{thm:DDPM-KL-exact}, where we show that this choice is almost the minimizer of the KL divergence to the true transition distribution $\rho_k$.
+
+
+In the following, we show how to choose the ``corrector'' distributions $\mathcal W_x^k$ for $k\in [K]$.
+
+
+
+
+\begin{algorithm}[H]
+  \caption{Backward diffusion sampling}\label{alg:DM}
+\begin{algorithmic}
+\STATE \textbf{Input:} Score estimates $\crl{\scf_k}_{k\in [K]}$, initial distribution $\phat_K$, parameters $(\alp_k,\eta_k)_{k\in [K]}$
+\STATE Sample $\xr{K}\sim \phat_K$.
+\FOR{$k=K-1,\dotsc,1$}
+\STATE Sample $\xr{k}\leftarrow \AlgWSC(B, q_k, (\mathcal W^k_x)_{x\in\R^d})$.
+\ENDFOR
+\STATE \textbf{Output:} $\xr{1}$
+\end{algorithmic}
+\end{algorithm}
+
+We state all our guarantees for sampling from the early stopped distribution $p_1$, the law of $X_1 \sim \normal{\alpha_0 X_0, \sigma_{\scedit{0}}^2 \Id}$ with $X_0 \sim \pdata$; see the discussion after the theorem. 
+
+\subsection{Intrinsic dimension}\label{ssec:intrinsic}
+
+Our result will be based on the following notion of \emph{intrinsic dimension} of the data distribution $\pdata$~\citep{li2024adapting}.
+
+\begin{definition}[Intrinsic dimension]\label{def:intrinsic}
+For any distribution $p$ and $r\geq 0$, let $N(p;r)$ be the $r$-covering number of $\supp(p)$ under Euclidean norm $\nrm{\cdot}$. Define the \emph{intrinsic dimension} of $p$ as
+\begin{align*}
+    \dim_{\sigma^2}(p)\deq 1\vee \inf_{r\geq 0} \prn[\Big]{ \log N(p;r)+\frac{r^2}{\sigma^2} }\wedge d.
+\end{align*}
+We denote $\dstar\deq \dim_{\sigma_0^2/\alpha_0^2}(\pdata)$ to be the intrinsic dimension of the data distribution (note that $\sigma_0^2/\alpha_0^2$ is the ``real'' variance of $X_1\sim \normal{\alpha_0X_0,\sigma_0^2\Id}$), and the intrinsic dimension $\dstar$ is no larger than the embedding dimension $d$. 
+\end{definition}
+
+
+\begin{example}[Low-dimensional manifold]
+Suppose that the data distribution $\pdata$ is supported on a compact $k$-dimensional manifold $\cX\subset \RR^d$. Then it holds that $\log N(\pdata;r)\leqsim k\log(R/r)$ (where $R$ is the diameter of $\cX$) and hence $\dstar=\wt{O}(k)$.
+\end{example}
+
+We note that $\dstar$ also captures various ``dimension-free'' settings.\footnote{Formally, in the setting of \cite{li2025dimension,gatmiry2026high}, the data distribution is assumed to be of the form $p_\star*\normal{0,\sigma_\star^2 \Id}$, where $p_\star$ is either supported on $N$ points~\citep{li2025dimension} or the ball $B(R)$~\citep{gatmiry2026high}. Our results encompass such settings as we can regard $\pdata=p_\star$, $\alp_0=1$, and $\sigma_0=\sigma_\star$, and then \cref{thm:DM-intrinsic} provides guarantees for $p_1=p_\star*\normal{0,\sigma_\star^2}$.} For example, when the support of $\pdata$ has at most $N$ elements, then $\dstar\leq \log N$, and this is exactly the setting considered in \cite{li2025dimension}. Further, when the support of $\pdata$ is contained in a ball of radius $R$, it is clear that $\dstar\leq \frac{\alpha_0^2R^2}{\sigma_0^2}$, and this captures the setting of \citet{gatmiry2026high}.
+
+\subsection{Algorithm}
+
+Consider instantiating the subroutine $\AlgWSC$ in \cref{alg:DM} with the following choices: $\Xbar_k=\alpha_k^{-1} X_{k+1}+\alpha_k \eta_k \scf_{k+1}(X_{k+1})$, $q_k = \normal{\Xbar_k , \etabar_k I}$, and $\mc W_x^k$ is the law of
+\begin{align*}
+    \widehat W_{r,z,\xhat,x} \deq \mathsf{Clip}_B\bigl(\lambda_k \langle \dot \gamma_{z,r,\xhat}(x),&~\Dn_k(\gamma_{z,r,\xhat}(x)) - \Dn_{k+1}(X_{k+1})\rangle\bigr)\,,
+\end{align*}
+where $\lambda_k=\frac{\alpbar_k}{\sigma_k^2}$, $z\sim \normal{0,\frac12\etabar_k I}$, $\xhat \sim \normal{\Xbar_k,\frac12\etabar_k I}$, $r\sim\Unif([0,1])$, 
+and $\gamma_{z,r,\Xbar_k}$ is the path function given by
+\begin{align}
+    &\gamma_{z,r,\xhat}(x) \deq\alr x + (1-\alr) \xhat + \blr z\,, \label{eq:path_fn_new_1} \\
+    &\alr\deq \frac13\,\prn[\Big]{1+2\cos\prn[\big]{\frac{2\pi}{3}\,(1-r)}}\,, ~~\blr\deq \frac{2}{\sqrt{3}}\sin\prn[\big]{\frac{2\pi}{3}\,(1-r)}\,.\label{eq:path_fn_new_2}
+\end{align}
+The crucial property is that $a_0=b_1=0$ and $a_1=b_0=1$,
+\begin{align}
+    \alr^2+\frac{1}{2}\,(1-\alr)^2+\frac12\,\blr^2\equiv 1\,, \qquad \forall r\in[0,1]\,.
+\end{align}
+
+\begin{theorem}\label{thm:DM-intrinsic}
+Suppose that $\delta\in(0,\frac12]$, $\B=\Theta(1)$, and for any $k\in [K]$, it holds that $\alpha_k^2\eta_k\scedit{\ll} \eta_{k+1}$ and
+\begin{align}\label{eq:DM-intrinsic-eta}
+    \frac{\sigma_k^2}{\eta_k} \gg \dstar\log(1/\delta)+\log^2(1/\delta)\,.
+\end{align}
+
+Consider instantiating the subroutine $\AlgWSC$ in \cref{alg:DM} as above.
+Let $\phat_1$ be the law of $\xr{1}$ generated by \cref{alg:DM}. Then
+\begin{align*}
+    \Dkl{p_1}{\phat_1}\leqsim&~ \kl{p_K}{\phat_K}+K\delta 
+    +\sum_{k=1}^{K} \eta_k \epssct^2\,,
+\end{align*}
+\end{theorem}
+
+Next, we describe the implications of~\cref{thm:DM-intrinsic} for diffusion model sampling.
+We should always choose $\B=\Theta(1)$ %
+and we denote $G\deq C(\dstar+\log(K/\delta))\log(K/\delta)$ for a sufficiently large constant $C$ from \cref{eq:DM-intrinsic-eta}.
+Then, in the variance-preserving setting:%
+\begin{itemize}
+    \item \scedit{Recall that} $\alp_k^2=\frac{1-\sigma_{k+1}^2}{1-\sigma_k^2}$ and $\sigma_{k+1}^2=\frac{1-\sigma_{k+1}^2}{1-\sigma_k^2}\,(\sigma_k^2+\eta_k)$.
+    \item The condition $\eta_k\leq \frac{\sigma_k^2}{G}$ reduces to $\frac{\sigma_{k+1}^2}{1-\sigma_{k+1}^2}\leq \frac{\sigma_k^2}{1-\sigma_k^2}\cdot \prn*{1+\frac{1}{G}}$. 
+    \item This implies that as long as $K\geq O(G\log(1/(\bar\delta \sigma_0^2)))$, we can guarantee that $1-\sigma_K^2\leq \bar\delta$.
+    \item From known results on the convergence of the forward process, $1-\sigma_K^2 \le \bar\delta$ and $\phat_K=\normal{0,\sigma_K^2\Id}$ imply that $\kl{p_K}{\phat_K}\lesssim \bar\delta \En\nrm{X_0}^2$.
+\end{itemize}
+By the above calculation, we can show the following corollary. We denote $\mathsf M_2^2 \deq \E_{X_0\sim \pdata}\|X_0\|^2$ to be the second moment of $\pdata$.
+
+\begin{corollary}\label{cor:poly-log}
+In the variance-preserving setting, for any $\delta\in(0,\frac12]$, $\sigma_0>0$, there exists a schedule $(\sigma_k)_{k\in [K]}$ such that
+\begin{align*}
+    K\leq O\prn[\big]{(\dstar+\log(\kappa/\delta))\log^2(\dstar\kappa/\delta)}\,,
+\end{align*}
+where $\kappa\deq \mathsf M_2^2/\sigma_0^2+ 1$, 
+and \cref{alg:DM} can be instantiated with $\phat_K=\normal{0,\sigma_K^2\Id}$, so that
+\begin{align*}
+    \kl{p_1}{\phat_1}\leqsim&~ \delta^2+\sum_{k=1}^{K} \eta_k \epssct^2\,.
+\end{align*}
+Further, the number of queries made by~\cref{alg:DM} is $O(K)$ \whp.
+\end{corollary}
+
+This governs the complexity of sampling from the early stopped distribution $p_1$.
+    To convert this into a guarantee for sampling from $\pdata$ itself, we can note that $W_2^2(\pdata, p_1)\le (1-\alpha_0)^2\,\E\|X_0\|^2 + \sigma_0^2 d$.
+    This can be made at most $\delta^2$ by choosing $\sigma_0^2 \asymp \delta^2/(d+\mathsf M_2^2)$.
+
+In terms of the bounded Lipschitz metric, this implies that $\Dbl{\pdata}{\widehat p_1}^2 \lesssim \delta^2 + \sum_{k=1}^{K} \eta_k \epssct^2$ with a total complexity of %
+\begin{align*}
+    \boxed{\dstar\cdot \log^3\prn[\Big]{\frac{d+\mathsf M_2^2}{\delta^2}}}.
+\end{align*}
+Note that this guarantee imposes no assumptions on $\pdata$ beyond a second moment bound, and depends on $\pdata$ through the \emph{intrinsic} dimension $\dstar$ of $\pdata$ instead of the embedding dimension $d$.
+This improves upon prior works~\citet{Ben+24Diffusion, ConDurSil25KLDiffusion} which achieved $\widetilde O(d/\delta^2)$ under these assumptions, and~\citet{LiYan25Diffusion, JaiZha26SharpKL} which recently improved the complexity to $\widetilde O(d/\delta)$.
+
+Additionally, we can derive KL convergence to $\pdata$ assuming that the data distribution $\pdata$ is log-smooth with parameter $L$ (in this case necessarily $\dstar=d$). In this case, we consider generating $X_0\sim \normal{ \alp_0^{-1} \xr{1} + \alpha_0 \eta_0 \scf_{1}(\xr{1}), \eta_0 \Id }$ by one \emph{extra} DDPM step.\footnote{We do not apply $\AlgWSC$ so that we do not need access to $\scf_0\approx \nabla \log \pdata$.} Then, by \cref{cor:DDPM-p0}, we can choose $\sigma_0^2\asymp \delta/(dL)$ to ensure that $\Dkl{\pdata}{\widehat p_0} \lesssim \delta^2 + \sum_{k=1}^{K} \eta_k \epssct^2$ with a total complexity of
+\begin{align*}
+    \boxed{d\cdot \log^3\prn[\Big]{\frac{d+L+\mathsf M_2^2}{\delta^2}}}.
+\end{align*} 
+
+
+\subsection{Refined analysis with non-uniform Lipschitz condition}
+
+
+
+
+
+
+In the following, we provide a refined upper bound, showing that our algorithm in fact achieves $\sqrt{d}$-complexity under the \emph{non-uniform Lipschitz condition}, following~\citet{jiao2024instance, jiao2025optimal}.
+
+From now on, we focus on the \emph{variance-exploding} setting, i.e., $\alp_k\equiv 1$ for all $k\in [K]$.\footnote{This is without loss of generality, because we can always rescale $\wt{X}_k=\frac{1}{\alpbar_k} X_k$.}
+To describe the non-uniform Lipschitz condition, we consider the continuous process $q_\tau\deq \pdata*\normal{0,\tau\Id}$ (i.e., $p_k=q_{\sigma_k^2}$). We define $m_\tau(y)\deq \En[Y_0\mid Y_\tau=y]$ to be the conditional mean function (i.e., $\Ds_k(\cdot)=m_{\sigma_k^2}(\cdot)$), and $\nabla m_\tau(y)=\frac{1}{\tau}\Cov(Y_0\mid Y_\tau=y)$.
+
+\begin{assumption}[Non-uniform Lipschitz condition]\label{asmp:non-unif-Lip}
+For any $\delta>0$, there is a parameter $\Lipop\geq 1$ such that for any $\tau\geq \sigma_0^2$,
+\begin{align}
+    \bbP_{Y_\tau\sim q_\tau}\prn[\Big]{ \nrmop{\nabla m_\tau(Y_\tau)}> \Lipop }\leq \frac{\delta}{\dstar^5}\,.
+\end{align}
+\end{assumption}
+
+We note that by \cref{cor:MGF-intrinsic}, \cref{asmp:non-unif-Lip} holds unconditionally with $\Lipop=O(\dstar+\log(1/\delta))$. \sccomment{$\log(\dstar/\delta)$?}\fccomment{$\log \dstar\leq \dstar$} In other words, the score function $\scfs_k$ is smooth ``with high probability''. Further, when $\pdata$ is log-concave, \cref{asmp:non-unif-Lip} holds with $\Lipop\equiv 1$ for any $\delta\geq 0$. 
+As shown in~\citet{jiao2025optimal}, when $\pdata=\sum_{h=1}^H p_h\normal{\mu_h,\sigma_h^2}$ is a mixture of $H$ Gaussian distributions, it holds that $\Lipop\leq O(\log(H)\log(d/\delta))$ (see also \cref{prop:logp-adapt}).
+
+
+\paragraph{Lipschitz condition under Frobenius norm}
+In addition to \cref{asmp:non-unif-Lip}, to state our result in the most unified form, we introduce the following assumption in terms of Frobenius norm. We will discuss later how it is in fact implied by \cref{asmp:non-unif-Lip}. \fcedit{In \cref{ssec:why-Frob}, we show that controlling the Frobenius norm of $\nabla m_\tau(Y_\tau)$ is in fact \emph{necessary} for any sampling scheme based on Gaussian approximations of the backward kernel~\eqref{eq:backward_kernel}. }
+\begin{assumption}[Non-uniform Lipschitz condition; Frobenius norm]\label{asmp:Lip-Frob}
+For any $\delta>0$, there is a parameter $\LipF\geq 1$ such that for any $\tau\geq \sigma_0^2$,
+\begin{align}
+    \bbP_{Y_\tau\sim q_\tau}\prn[\Big]{ \nrmF{\nabla m_\tau(Y_\tau)}> \LipF }\leq \frac{\delta}{\dstar^5}\,.
+\end{align}
+\end{assumption}
+
+
+\newcommand{\LF}{L_{\rm F}}
+\newcommand{\Lop}{L_{\rm op}}
+
+\begin{proposition}\label{prop:Lip-op-to-Frob}
+Suppose that \cref{asmp:non-unif-Lip} holds with $\Lipop$. Then \cref{asmp:Lip-Frob} also holds with
+\begin{align*}
+    \LipF\leq C\sqrt{\Lipop[\delta/2]\,(\dstar+\log(1/\delta))}\,, \qquad \forall \delta\in(0,1)\,.
+\end{align*}
+\end{proposition}
+
+For any $k\in [K]$, we define $\wt{p}_k$ to be the distribution of $X_k'$ generated by \emph{one-step DDPM with true score function}, i.e., $X_{k+1}\sim p_{k+1}$ and $X_k'\sim \normal{ \alp_k^{-1} \xr{k+1} + \alpha_k \eta_k \scfs_{k+1}(\xr{k+1}), \etabar_k \Id }$. The following assumption requires that the denoiser function $m_{\sigma_k^2}$ is also smooth with high probability under the distribution $\wt{p}_k$. 
+
+\begin{assumption}\label{asmp:Lip-DDPM}
+For any $\delta$, the parameter $\LipF$ in \cref{asmp:Lip-Frob} also 
+satisfies
+\begin{align}
+    \bbP_{X_k'\sim \wt{p}_k}\prn[\Big]{ \nrmF{\nabla m_{\sigma_k^2}(X_k')}> \LipF }\leq \frac{\delta}{\dstar^5}\,.
+\end{align}
+\end{assumption}
+
+\newcommand{\Ldel}{L_\delta}
+\newcommand{\piz}[2][\xz]{\nu_{#1}(#2)}
+
+
+
+\begin{theorem}\label{thm:DM-Lip}
+Suppose that \cref{asmp:Lip-Frob} and \cref{asmp:Lip-DDPM} hold, $\delta\in(0,\frac12]$, $\B=\Theta(1)$, and
+\begin{align}
+    \frac{\sigma_k^2}{\eta_k}\gg \LipF\log(\dstar/\delta)+\log^2(1/\delta)\,.
+\end{align}
+Consider instantiating the subroutine $\AlgWSC$ in \cref{alg:DM} as above.
+Let $\phat_1$ be the law of $\xr{1}$ generated by \cref{alg:DM}. Then
+\begin{align*}
+    \Dkl{p_1}{\phat_1} \icml{\\
+    &}\leqsim \kl{p_K}{\phat_K}+K\delta+\sum_{k=1}^{K} \eta_k \epssct^2\,.
+\end{align*}
+\end{theorem}
+
+Following the reasoning of the preceding subsection, \cref{thm:DM-Lip} implies a complexity of
+\begin{align*}
+    \boxed{\LipF\cdot \log^3\prn[\Big]{\frac{d+\mathsf M_2^2}{\delta^2}}}
+\end{align*}
+to reach $\Dbl{\wh p_1}{\pdata}^2 \lesssim K\delta + \sum_{k=1}^{K} \eta_k \epssct^2$.
+
+
+
+\begin{proposition}\label{prop:DDPM-Lip}
+Suppose that there are parameters $\LF\geq \Lop\geq 1$ and $M\geq 1$ such that \cref{asmp:non-unif-Lip} and \cref{asmp:Lip-Frob} hold, and $\Lipop\leq \Lop\cdot \polylog(M/\delta)$. 
+Then, \cref{asmp:Lip-DDPM} holds with $\LipF'\leq \LipF[\delta/4]$ as long as
+\begin{align*}
+    \frac{\sigma_k^2}{\eta_k} \gg (\LipF[\delta/4]+\min\crl{d^{1/3}\Lop^{2/3}, \dstar^{2/3}\Lop^{1/3}})\cdot \polylog(\dstar M/\delta).
+\end{align*}
+\end{proposition}
+
+Therefore, the implied complexity in terms of $\Lop$ is
+\begin{align*}
+    \boxed{\min\crl*{\sqrt{d\Lop}, \dstar^{2/3}\Lop^{1/3}}\cdot \polylog\prn[\Big]{\frac{\dstar+M+\mathsf M_2^2}{\delta^2}}}.
+\end{align*}
+\sccomment{By~\cref{prop:Lip-op-to-Frob}, why can't we get $\sqrt{\dstar \Lop}$ instead of $\sqrt{d\Lop}$?}
+\fccomment{This is because we have to use the above proposition, which requires $\dstar^{2/3}\Lop^{1/3}$...}
+
+
+
+
+
+
+
+

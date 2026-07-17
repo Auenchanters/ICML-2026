@@ -1,0 +1,219 @@
+
+\DeclarePairedDelimiter{\abs}{\lvert}{\rvert} %
+\DeclarePairedDelimiter{\brk}{[}{]}
+\DeclarePairedDelimiter{\crl}{\{}{\}}
+\DeclarePairedDelimiter{\prn}{(}{)}
+\DeclarePairedDelimiter{\nrm}{\|}{\|}
+\DeclarePairedDelimiter{\tri}{\langle}{\rangle}
+\DeclarePairedDelimiter{\dtri}{\llangle}{\rrangle}
+
+\DeclarePairedDelimiter{\ceil}{\lceil}{\rceil}
+\DeclarePairedDelimiter{\floor}{\lfloor}{\rfloor}
+
+\newcommand{\minc}[1]{\min\crl*{#1}}
+\newcommand{\maxc}[1]{\max\crl*{#1}}
+
+\DeclarePairedDelimiter{\nrmlip}{\|}{\|_{\mathrm{Lip}}}
+\DeclarePairedDelimiter{\nrmnuc}{\|}{\|_{*}}
+
+\def\ddefloop#1{\ifx\ddefloop#1\else\ddef{#1}\expandafter\ddefloop\fi}
+\def\ddef#1{\expandafter\def\csname bb#1\endcsname{\ensuremath{\mathbb{#1}}}}
+\ddefloop ABCDEFGHIJKLMNOPQRSTUVWXYZ\ddefloop
+\def\ddefloop#1{\ifx\ddefloop#1\else\ddef{#1}\expandafter\ddefloop\fi}
+\def\ddef#1{\expandafter\def\csname b#1\endcsname{\ensuremath{\mathbf{#1}}}}
+\ddefloop ABCDEFGHIJKLMNOPQRSTUVWXYZ\ddefloop
+\def\ddef#1{\expandafter\def\csname sf#1\endcsname{\ensuremath{\mathsf{#1}}}}
+\ddefloop ABCDEFGHIJKLMNOPQRSTUVWXYZ\ddefloop
+\def\ddef#1{\expandafter\def\csname c#1\endcsname{\ensuremath{\mathcal{#1}}}}
+\ddefloop ABCDEFGHIJKLMNOPQRSTUVWXYZ\ddefloop
+\def\ddef#1{\expandafter\def\csname h#1\endcsname{\ensuremath{\widehat{#1}}}}
+\ddefloop ABCDEFGHIJKLMNOPQRSTUVWXYZ\ddefloop
+\def\ddef#1{\expandafter\def\csname hc#1\endcsname{\ensuremath{\widehat{\mathcal{#1}}}}}
+\ddefloop ABCDEFGHIJKLMNOPQRSTUVWXYZ\ddefloop
+\def\ddef#1{\expandafter\def\csname t#1\endcsname{\ensuremath{\widetilde{#1}}}}
+\ddefloop ABCDEFGHIJKLMNOPQRSTUVWXYZ\ddefloop
+\def\ddef#1{\expandafter\def\csname tc#1\endcsname{\ensuremath{\widetilde{\mathcal{#1}}}}}
+\ddefloop ABCDEFGHIJKLMNOPQRSTUVWXYZ\ddefloop
+\def\ddef#1{\expandafter\def\csname #1#1\endcsname{\ensuremath{\mathbb{#1}}}}
+\ddefloop ABCDEFGHIJKLMNOPQRSTUVWXYZ\ddefloop
+\def\ddef#1{\expandafter\def\csname #1\endcsname{\ensuremath{\mathbb{#1}}}}
+\ddefloop ABCDEFGHIJKLMNOPQRSTUVWXYZ\ddefloop
+\def\ddef#1{\expandafter\def\csname D#1\endcsname{\ensuremath{\Delta(\mathcal{#1})}}}
+\ddefloop ABCDEFGHIJKLMNOPQRSTUVWXYZ\ddefloop
+\def\ddefloop#1{\ifx\ddefloop#1\else\ddef{#1}\expandafter\ddefloop\fi}
+\def\ddef#1{\expandafter\def\csname scr#1\endcsname{\ensuremath{\mathscr{#1}}}}
+\ddefloop ABCDEFGHIJKLMNOPQRSTUVWXYZ\ddefloop
+
+
+\let\Pr\undefined
+\let\P\undefined
+\DeclareMathOperator{\En}{\mathbb{E}}
+\DeclareMathOperator{\Enbar}{\widebar{\mathbb{E}}}
+\newcommand{\Ep}{\wt{\bbE}}
+\DeclareMathOperator{\P}{P}
+\DeclareMathOperator{\Pr}{Pr}
+
+\newcommand{\sgn}{\mathrm{sign}}
+
+\DeclareMathOperator*{\maximize}{maximize} %
+\DeclareMathOperator*{\minimize}{minimize} %
+
+
+\DeclareMathOperator*{\argmin}{arg\,min} %
+\DeclareMathOperator*{\argmax}{arg\,max}             
+
+\newcommand{\mc}[1]{\mathcal{#1}}
+\newcommand{\mb}[1]{\boldsymbol{#1}}
+\newcommand{\wt}[1]{\widetilde{#1}}
+\newcommand{\wh}[1]{\widehat{#1}}
+\newcommand{\wb}[1]{\widebar{#1}}
+
+
+
+\renewcommand{\M}{M}
+
+\newcommand{\kl}[2]{D_{\mathsf{KL}}\prn*{#1\,\|\,#2}}
+\newcommand{\Dkl}[2]{D_{\mathsf{KL}}\prn*{#1\,\|\,#2}}
+\newcommand{\Dce}[2]{D_{\mathsf{CE}}\prn*{#1\,\|\,#2}}
+\newcommand{\Dcov}[3][{\M}]{\cE_{#1}\prn*{#2\,\|\,#3}}
+\newcommand{\Dcmp}[3][{\M}]{\mathsf{d}_{#1}\prn*{#2\,\|\,#3}}
+\newcommand{\Dklshort}{D_{\mathsf{KL}}}
+\newcommand{\Dhel}[2]{D_{\mathsf{H}}\prn*{#1,#2}}
+\newcommand{\Dgen}[2]{D\prn*{#1\dmid{}#2}}
+\newcommand{\Dgent}[2]{D\ind{t}\prn*{#1\dmid{}#2}}
+\newcommand{\Dhels}[2]{D^{2}_{\mathsf{H}}\prn*{#1,#2}}
+\newcommand{\Ddel}[2]{D_{\Delta}\prn*{#1,#2}}
+\newcommand{\Dhelshort}{D^{2}_{\mathsf{H}}}
+\newcommand{\Dchis}[2]{D_{\chi^2}\prn*{#1\dmid{}#2}}
+\newcommand{\DchisX}[3]{D_{\chi^2}\prn[#1]{#2\dmid{}#3}}
+\newcommand{\Dtris}[2]{D^{2}_{\Delta}\prn*{#1,#2}}
+\newcommand{\Dtri}[2]{D_{\Delta}\prn*{#1,#2}}
+\newcommand{\Dtv}[2]{D_{\mathsf{TV}}\prn*{#1,#2}}
+\newcommand{\DTV}[1]{D_{\mathsf{TV}}\prn*{#1}}
+\newcommand{\Dtvs}[2]{D^2_{\mathsf{TV}}\prn*{#1,#2}}
+\newcommand{\Dbl}[2]{D_{\mathsf{BL}}\prn*{#1,#2}}
+\newcommand{\dkl}[2]{d_{\mathsf{KL}}\prn*{#1\,\|\,#2}}
+\newcommand{\Dphi}[2]{D_{\phi}(#1\;\|\;#2)}
+\newcommand{\dphi}[2]{d_{\phi}(#1\;\|\;#2)}
+\newcommand{\klr}[2]{D_{\mathsf{re}}(#1\;\|\;#2)}
+\newcommand{\tv}[2]{D_{\mathsf{tv}}(#1\;\|\;#2)}
+\newcommand{\Dren}[3][\lambda]{D_{#1}\prn*{#2\,\|\,#3}}
+\newcommand{\Ren}[3][\lambda]{\mathcal{R}_{#1}\prn*{#2\,\|\,#3}}
+\newcommand{\Dsys}[3][\lambda]{\bar{D}_{#1}\prn*{#2\,\|\,#3}}
+\newcommand{\EM}[3][M]{\cE_{#1}\prn*{#2,#3}}
+
+\newcommand{\FI}[2]{\mathsf{FI}\prn*{#1\,\|\,#2}}
+
+\newcommand{\DhelsX}[3]{D^{2}_{\mathsf{H}}\prn[#1]{#2,#3}}
+\newcommand{\DhelX}[3]{D_{\mathsf{H}}\prn[#1]{#2,#3}}
+\newcommand{\DtvX}[3]{D_{\mathsf{TV}}\prn[#1]{#2,#3}}
+
+
+
+\newcommand{\ind}{\mathbbm{1}}    %
+\newcommand{\eps}{\epsilon}
+\newcommand{\veps}{\varepsilon}
+
+\newcommand{\ldef}{\vcentcolon=}
+\newcommand{\rdef}{=\vcentcolon}
+
+
+\newcommand{\clip}[1]{\mathsf{Clip}_{[0,1]}(#1)}
+\newcommand{\Clip}{\mathsf{Clip}}
+\newcommand{\pclip}[2][\B]{\mathsf{Clip}_{#1}(#2)}
+\newcommand{\trunc}[2][\B]{\tau_{#1}(#2)}
+\newcommand{\inv}{^{-1}}
+
+
+\newcommand{\AlgWSC}{\textsf{FORS}}
+\newcommand{\xc}{x_{\sf c}}
+\newcommand{\fc}{f_{\sf c}}
+
+\newcommandx{\gam}[3][1=x,2=z]{\gamma_{#2,#3}(#1)}
+\newcommandx{\gamp}[3][1=x,2=z]{\dot\gamma_{#2,#3}(#1)}
+
+\newcommandx{\gamz}[4][1=x,2=z,3=\lr,4=\xz]{\gamma_{#2,#3,#4}(#1)}
+\newcommandx{\gamzp}[4][1=x,2=z,3=\lr,4=\xz]{\dot\gamma_{#2,#3,#4}(#1)}
+
+\newcommand{\xz}{x_0}
+\newcommand{\const}{\mathrm{const}}
+\newcommand{\lr}{r}
+
+\renewcommand{\B}{B}
+
+\newcommand{\hrho}{\wh{\rho}}
+\newcommand{\rhohz}[2][\xz]{\hrho_{#1}(#2)}
+\newcommand{\rhotz}[2][\xz]{\wt{\rho}_{#1}(#2)}
+\newcommand{\rhosz}[2][\xz]{\rho^\star_{#1}(#2)}
+\newcommand{\rhoz}{\rho_{\xz}}
+\newcommand{\Lawx}{\mathrm{Law}(x)}
+
+\newcommand{\xstar}{x^\star}
+\newcommand{\xhat}{\wh{x}}
+
+\newcommand{\tp}{^\top}
+\newcommand{\nrmF}[1]{\nrm{#1}_{\mathrm{F}}}
+\newcommand{\tr}{\mathrm{tr}}
+
+\newcommand{\Cov}{\mathrm{Cov}}
+
+\newcommand{\epssc}{\varepsilon_{\mathsf{score}}}
+\newcommand{\epssct}[1][t]{\varepsilon_{#1,\mathsf{score}}}
+
+\newcommand{\bepssc}{\wb{\varepsilon}_{\mathsf{score}}}
+\newcommand{\bepssct}[1][t]{\wb{\varepsilon}_{#1,\mathsf{score}}}
+\newcommand{\epsjac}{\varepsilon_{\mathsf{Jacobi}}}
+
+\newcommand{\CLSI}{C_{\mathsf{LSI}}}
+\newcommand{\CPI}{C_{\mathsf{PI}}}
+
+\newcommand{\rgo}{\nu}
+\newcommand{\pif}[1]{\mu_{#1}}
+\newcommand{\etabar}{\wb{\eta}}
+
+\newcommand{\Neta}{\normal{0,\eta\Id}}
+\newcommand{\scfs}{\scf^\star}
+\newcommand{\epsxz}{W^\star_{z,r,\xz}(x)}
+\newcommand{\epxz}{W_{z,r,\xz}(x)}
+
+\newcommand{\Poi}{\mathsf{Poisson}}
+
+\newcommand{\Nsigma}{\normal{0,\sigma^2\Id}}
+\newcommand{\xbar}{\bar{x}}
+
+\newcommand{\pconv}[1]{p*\normal{0,#1\Id}}
+
+\newcommand{\sigu}{\sigbar_U}
+\newcommand{\sigw}{\sigbar_W}
+\newcommand{\siguw}{\sigbar_{UW}}
+\newcommand{\sigbar}{\wb{\sigma}}
+\newcommand{\Sigbar}{\wb{\Sigma}}
+\newcommand{\Bbar}{\wb{B}}
+
+\newcommand{\phibar}{\wb{\phi}}
+
+\newcommand{\cXbar}{\wb{\cX}}
+\newcommand{\tsigma}{\wt{\sigma}}
+\newcommand{\Ndata}{N_{\mathsf{data}}}
+\newcommand{\dstar}{\mathsf{d}_\star}
+
+\newcommand{\alr}{a_{\lr}}
+\newcommand{\blr}{b_{\lr}}
+\newcommand{\alrp}{a_{\lr}'}
+\newcommand{\blrp}{b_{\lr}'}
+\newcommand{\scf}{\mathsf{s}}
+\newcommand{\nbf}{\nabla f}
+\newcommand{\xp}{x_+}
+
+
+\newcommand{\xr}[1]{X\sups{\leftarrow}_{#1}}
+\newcommand{\qhat}{\wh{q}}
+\newcommand{\pdata}{p_{\mathsf{data}}}
+\newcommand{\hscf}{\wh{\scf}}
+\newcommand{\alp}{\alpha}
+\newcommand{\alpbar}{\bar{\alpha}}
+
+\newcommand{\nuhat}{\wh{\nu}}
+
+\newcommand{\CP}{C_{\rm P}}
+

@@ -1,0 +1,130 @@
+
+\arxiv{
+\usepackage[letterpaper, left=1in, right=1in, top=1in,bottom=1in]{geometry}
+  \usepackage{parskip}
+  \usepackage[colorlinks=true, linkcolor=blue!70!black, citecolor=blue!70!black,urlcolor=black,breaklinks=true]{hyperref}
+  \usepackage[dvipsnames]{xcolor}
+}
+
+\icml{
+  \usepackage{parskip}
+    \usepackage[colorlinks=true, linkcolor=blue!70!black, citecolor=blue!70!black,urlcolor=black,breaklinks=true, bookmarks=true]{hyperref}
+}
+
+
+\PassOptionsToPackage{hypertexnames=false}{hyperref}  %
+
+\usepackage{amsmath}
+\usepackage{microtype}
+\usepackage{hhline}
+
+\usepackage{amsthm}
+
+\usepackage{bbm}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage[nameinlink,capitalize]{cleveref}
+
+\usepackage{mathtools}
+
+\usepackage{xargs}
+
+\arxiv{
+\usepackage{algorithm}
+
+
+
+\usepackage{natbib}
+\bibliographystyle{plainnat}
+\bibpunct{(}{)}{;}{a}{,}{,}
+}
+
+
+\usepackage{xpatch}
+
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{assumption}[theorem]{Assumption}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{example}[theorem]{Example}
+
+\newcommand{\pfref}[1]{Proof of \cref{#1}}
+\newcommand{\savehyperref}[2]{\texorpdfstring{\hyperref[#1]{#2}}{#2}}
+\renewcommand{\eqref}[1]{\texorpdfstring{\hyperref[#1]{(\ref*{#1})}}{(\ref*{#1})}}
+
+
+\crefformat{equation}{#2Eq.\,(#1)#3}
+\Crefformat{equation}{#2Eq.\,(#1)#3}
+\Crefformat{figure}{#2Figure~#1#3}
+\Crefformat{assumption}{#2Assumption~#1#3}
+\Crefname{assumption}{Assumption}{Assumptions}
+\crefname{fact}{Fact}{Facts}
+\Crefformat{figure}{#2Figure #1#3}
+\Crefformat{assumption}{#2Assumption #1#3}
+
+
+\usepackage{crossreftools}
+\pdfstringdefDisableCommands{%
+    \let\Cref\crtCref
+    \let\cref\crtcref
+  }
+\newcommand{\creftitle}[1]{\cref{#1}}
+
+\makeatletter
+\renewenvironment{proof}[1][Proof]%
+{%
+  \par\noindent{\bfseries\upshape {#1.}\ }%
+}%
+{\qed\newline}
+\makeatother
+
+\xpatchcmd{\proof}{\itshape}{\normalfont\proofnameformat}{}{}
+\newcommand{\proofnameformat}{\bfseries}
+\newcommand{\notimplies}{\nRightarrow}
+
+\usepackage[most]{tcolorbox}
+
+\tcbset {
+  base/.style={
+    arc=0mm, 
+    bottomtitle=0.5mm,
+    boxrule=0mm,
+    colbacktitle=!10!white, 
+    coltitle=black, 
+    fonttitle=\bfseries, 
+    left=2.5mm,
+    leftrule=1mm,
+    right=3.5mm,
+    title={#1},
+    toptitle=0.75mm, 
+  }
+}
+
+
+\newtcolorbox{mainbox}[1]{
+  colframe=blue!10!black,
+  colbacktitle=blue!50!black!30!white,
+  colback=blue!2!white,
+  enhanced,
+  fonttitle=\bfseries,
+  attach boxed title to top left={yshift=-2.5mm},
+  boxed title style={size=small,colframe=blue!40!black,colback=blue!40!black},
+  title={\small\textcolor{white}{\textsc{#1}}}
+}
+
+\newtcolorbox{minbox}[1]{
+  colframe=blue!10!black,
+  colbacktitle=blue!50!black!30!white,
+  colback=blue!2!white,
+  enhanced,
+  fonttitle=\bfseries,
+}
+
+

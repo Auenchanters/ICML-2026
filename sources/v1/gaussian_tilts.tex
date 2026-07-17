@@ -1,0 +1,93 @@
+
+
+In this section, we focus on the problem of sampling from a Gaussian tilt of the form
+\begin{align}\label{eq:RGO}
+    \rgo(x)\propto \exp\prn[\Big]{-f(x)-\frac{\nrm{x-\xz}^2}{2\eta}}\,,
+\end{align}
+where we assume access to first-order queries for $f$. For our eventual application to diffusion models, we will choose $f=\log p_t$ in view of \cref{eq:backward_kernel} and approximate $\nabla f\approx \scf_t$. 
+
+\subsection{First-order rejection sampling (FORS)}\label{sec:motivation}
+\input{sec_motivation}
+
+\subsection{Sampling from Gaussian tilts with an exact oracle}
+
+To perform rejection sampling, we have to appropriately choose the proposal distribution $q$. By Taylor's expansion, for a fixed  $\xp\in\RR^d$, we have
+\begin{align*}
+    f(x)\approx f(\xp)+\tri{x-\xp, \nabla f(\xp)}\,,
+\end{align*}
+and hence it is natural to choose $q=\normal{\xz-\eta \nabla f(\xp),\eta\Id}$ so that
+\begin{align*}
+    q(x) \propto \exp\Bigl(-\tri{x-\xp, \nabla f(\xp)} - \frac{1}{2\eta}\norm{x-x_0}^2\Bigr)\,.
+\end{align*}
+Then, we can express
+\begin{align*}
+    \icml{&~}\log \rgo(x)-\log q(x)-\const \icml{\\}
+    =&~\tri{x-\xp, \nabla f(\xp)}-f(x) + f(x_+) \\
+    =&~\int_{0}^1 \tri{x-\xp, \nabla f(\xp)-\nabla f(\lr x+(1-\lr)\xp)}\,d\lr\,.
+\end{align*}
+In particular, we can set
+\begin{align*}
+    W_{r,x}\ldef \tri{x-\xp, \nabla f(\xp)-\nabla f(\lr x+(1-\lr)\xp)}\,,
+\end{align*}
+so that
+\begin{align*}
+    \rgo(x)\propto q(x)\exp\prn*{ \En_{r} W_{r,x}}\,,
+\end{align*}
+where the expectation $\En_r[\cdot]$ is taken over $r\sim \unif([0,1])$. 
+
+Further, assuming that $\nabla f$ is $\beta$-Lipschitz, we can bound $\abs{W_{r,x}}\leq \beta\,\nrm{x-\xp}^2$. Therefore, as long as $\xp\approx \xz-\eta\nabla f(\xp)$ and $\beta d\eta\ll 1$, we can guarantee that $\sup_{r}{\abs{W_{r,x}}}\leq 1$ with high probability over $x\sim q$. This implies the following distribution is a good approximation of $\rgo$:
+\begin{align*}
+    \wh{\rgo}(x)\propto q(x)\exp\prn{\En_{r} \hW_{r,x}}\,,
+\end{align*}
+where $\hW_{r,x}=\pclip{W_{r,x}}$ and $B=\Theta(1)$ is a tuneable parameter.
+
+\paragraph{General path integral}
+We can generalize the above pipeline with any \emph{path integral} and demonstrate (a) that in the gradient Lipschitz case, we in fact only need to ensure $\beta\sqrt{d} \eta\ll 1$, and (b) the Lipschitz continuity of $\nabla f$ can be weakened to H\"older continuity for any exponent $s \in [0,1]$.
+
+Fix a distribution $P$ (to be determined later) over $\RR^d$ and a \emph{path function} $\gam{\lr}\ldef \gamma(x;z,r)$ such that $\gam{1}=x$ and $\gam{0}=\wb{\gamma}(z)$ is independent of $x$. Then we can express any smooth function $h:\RR^d\to \RR$ as
+\begin{align}\label{eq:path-integral}
+\begin{aligned}
+    \icml{&~}h(x)-\En_{z\sim P}[h(\wb{\gamma}(z))] \icml{\\}
+    =&~\int_{0}^1 \En_{z\sim P}\tri{\gamp{\lr}, \nabla h(\gam{\lr})}\,d\lr \\
+    =&~\En_{z\sim P,\,r\sim \unif([0,1])}\tri{\gamp{\lr}, \nabla h(\gam{\lr})}\,,
+\end{aligned}
+\end{align}
+where $\gamp{\lr}=\frac{d}{d\lr}\gam{\lr}$ is the path derivative with respect to $\lr$. 
+This inspires us to consider
+\begin{align}\label{eq:Wrzx}
+    W_{r,z,x}\ldef \tri{\gamp{\lr}, \nabla f(\xp)- \nabla f(\gam{\lr})}\,,
+\end{align}
+so that
+\begin{align*}
+    \rgo(x)\propto q(x)\exp\prn*{ \En_{r,z} W_{r,z,x}}\,,
+\end{align*}
+where the expectation $\En_{r,z}[\cdot]$ is taken over $r\sim \unif([0,1])$ and $z\sim P$. 
+Again, we will truncate $W_{r,z,x}$ to ensure that the estimator lies in $[-B,B]$.
+
+For better dimension dependence, we consider the following path function ($\xhat=\xz-\eta\nabla f(x_+)$): 
+\begin{align}\label{eq:def-path}
+\begin{aligned}
+    &~\gam{\lr}=\alr x + (1-\alr) \xhat + \blr z\,, \\
+    &~\alr=\sin(\pi\lr/2)\,, ~~\blr=\cos(\pi\lr/2)\,,
+\end{aligned}
+\end{align}
+so that $\gamp{\lr}=\alrp (x -\xz) + \blrp z$.
+
+\begin{assumption}\label{ass:holder}
+    There exists $s \in [0,1]$ and $\beta_s \ge 0$ such that $\norm{\nabla f(x) -\nabla f(y)} \le \beta_s\norm{x-y}^s$ for all $x,y\in\R^d$.
+\end{assumption}
+
+\begin{theorem}\label{thm:gaussian_tilt}
+    Suppose that~\cref{ass:holder} holds, $B=\Theta(1)$, and $\nrm{\xz-\eta\nabla f(x_+) - x_+} \leq (d\eta)^{1/2}$.
+    
+    Consider instantiating~\cref{alg:fors} with the choices $q = \normal{\xz-\eta \nabla f(\xp),\eta\Id}$, and $\mathcal W_x$ the law of $\pclip{W_{r,z,x}}$, where $W_{r,z,x}$ is defined in~\eqref{eq:Wrzx}-\eqref{eq:def-path} and $z\sim \normal{0,\eta\Id}$, $r\sim \unif([0,1])$. 
+    Then, the law $\wh\nu$ of~\cref{alg:fors} satisfies $\Dchis{\nu}{\wh\nu} \le \delta^2$, provided that
+    \begin{align*}
+        \eta^{-1} \gg \prn[\Big]{ \beta_s^2d^s\log(1/\delta)+\frac{s\beta_s^2}{d^{1-s}}\log^2(1/\delta) }^{1/(1+s)}.
+    \end{align*}
+\end{theorem}
+
+Note that $x_0 - \eta\nabla f(x_+) - x_+ = 0$ when $x_+ = \text{prox}_{\eta f}(x_0)$, that is, the requirement of~\cref{thm:gaussian_tilt} is that we can approximately take a proximal step on $f$ from $x_0$.
+
+\cref{thm:gaussian_tilt} interpolates between the Lipschitz case $s=0$, which requires $\eta^{-1} \gg \beta_1^2 \log(1/\delta)$, and the smooth case $s=1$, which requires $\eta^{-1} \gg \beta_2\, d^{1/2} \log(1/\delta)$.
+This recovers the result of~\citet{FanYuaChe23ImprovedProx}, except that we only use first-order queries; we spell out the implications for log-concave sampling in \cref{sec:log_concave}.

@@ -1,0 +1,13 @@
+{
+  "space_id": null,
+  "emoji": "🎯",
+  "created_at": "2026-07-17T08:00:54+00:00",
+  "paper": {
+    "arxiv_id": "2602.01338"
+  },
+  "tags": [
+    "icml2026-repro",
+    "paper-71132"
+  ],
+  "last_page": "foundations-fors-exactness"
+}

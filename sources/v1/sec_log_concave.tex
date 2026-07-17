@@ -1,0 +1,43 @@
+In this section, we briefly describe the implications of our results (\cref{thm:gaussian_tilt}) for the problem of sampling from a log-concave density $\mu \propto e^{-f}$.
+The key connection lies in the \emph{proximal sampler}~\citep{LeeSheTia21RGO, Chen+22ProxSampler}, which is an instance of the Gibbs sampler in which the target distribution is the augmented density
+\begin{align*}
+    \wt\mu(x,y)\propto \exp\prn[\Big]{-f(x) - \frac{1}{2\eta}\,\nrm{y-x}^2}\,.
+\end{align*}
+See~\cref{alg:prox-sampler}.
+
+\begin{algorithm}
+\caption{Proximal sampler}\label{alg:prox-sampler}
+\begin{algorithmic}
+\STATE \textbf{Input:} Gradient $\nabla f$, step size $\eta > 0$
+\FOR{$n=1,2,3,\dotsc,N$}
+\STATE Sample $Y_n \sim \normal{X_n, \eta I}$.
+\STATE Sample $X_{n+1}\sim \mathsf{RGO}_{f,\eta,Y_n}$.
+\ENDFOR
+\STATE Output $X_N$.
+\end{algorithmic}
+\end{algorithm}
+
+\cref{alg:prox-sampler} hinges on being able to implement the \emph{restricted Gaussian oracle} (RGO):
+\begin{align*}
+    \mathsf{RGO}_{f,\eta,y}(x)     \propto_x \exp\prn[\Big]{-f(x) - \frac{1}{2\eta}\,\nrm{y-x}^2}\,.
+\end{align*}
+Convergence of~\cref{alg:prox-sampler} was shown in~\citet{LeeSheTia21RGO} under log-concavity of $\pi$, and in~\citet{Chen+22ProxSampler} under weaker isoperimetric assumptions.
+On the other hand, note that the RGO is exactly a Gaussian tilt distribution, which we considered in~\cref{sec:gaussian_tilts}.
+Hence, implementing the RGO step using \AlgWSC{} leads to novel high-accuracy sampling results for log-concave (and isoperimetric) distributions, \emph{without} assuming access to zeroth-order queries for $f$.
+Almost all previous approaches (e.g., rejection sampling, Metropolis--Hastings) required zeroth-order queries, whereas algorithms using only first-order queries typically arise as discretizations of diffusion processes and the resulting discretization error degraded their accuracy guarantees.
+A notable \textbf{exception} is the result of~\citet{LuWan22Zigzag} on the zigzag sampler, an example of a PDMP\@, which achieved a complexity of $\wt O(\kappa^2 d^{3/2} \log^{5/2}(1/\delta))$ evaluations of \emph{partial} derivatives of $f$, under strong-log-concavity and given a warm start, where $\kappa$ is the condition number. %
+
+We only summarize some representative results here, and defer a full presentation to~\cref{appdx:log-concave}.
+Let $\mu_0$, $\wh\mu$ denote the initialization and output of~\cref{alg:prox-sampler}, and in all cases we track the number of queries to a first-order and proximal oracle for $f$ in expectation.
+
+Suppose that $f$ is smooth ($s=1$ in \cref{ass:holder}).
+\begin{itemize}
+    \item Under a log-Sobolev inequality, we obtain $\Dchis{\wh\mu}{\mu} \le \varepsilon^2$ in $\wt O(\kappa \,(d^{1/2} \log^{3/2}(\cR/\varepsilon^2) + \log^2(\cR/\varepsilon^2)))$ queries, where $\cR \deq \log(1+\Dchis{\mu_0}{\mu})$ and $\kappa \deq \CLSI\,\beta_1$. %
+    \item Under a Poincar\'e inequality, we obtain $\Dchis{\wh\mu}{\mu} \le \varepsilon^2$ using $\wt O(\kappa\,( d^{1/2}\log^{1/2}(1/\varepsilon) + \log(1/\varepsilon)) \log(\chi^2/\varepsilon^2))$ queries, where $\chi^2 \deq \Dchis{\mu_0}{\mu}$ and $\kappa \deq \CPI\,\beta_1$.
+    \item Under log-concavity, we obtain $\Dkl{\wh\mu}{\mu}\le \varepsilon^2$ in $\wt O(\beta d^{1/2}\, W_2^2(\mu_0,\mu)/\varepsilon^2)$ queries.
+\end{itemize}
+Suppose now that $f$ is Lipschitz ($s=0$ in \cref{ass:holder}).
+\begin{itemize}
+    \item Under a Poincar\'e inequality, we obtain $\Dchis{\wh\mu}{\mu} \le \varepsilon^2$ in $\wt O(\CPI \,\beta_0^2 \log(1/\varepsilon) \log(\chi^2/\varepsilon^2))$ queries.
+    \item Under log-concavity, we obtain $\Dkl{\wh\mu}{\mu}\le \varepsilon^2$ in $\wt O(\beta_0^2 \,W_2^2(\mu_0,\pi)/\varepsilon^2)$ queries.
+\end{itemize}

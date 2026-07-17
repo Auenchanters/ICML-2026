@@ -1,0 +1,342 @@
+\documentclass{article} %
+
+
+\usepackage{etoolbox}
+\usepackage{comment}
+\newtoggle{icml}
+\togglefalse{icml}
+
+\newcommand{\icml}[1]{\iftoggle{icml}{#1}{}}
+\newcommand{\arxiv}[1]{\iftoggle{icml}{}{#1}}
+\newcommand{\loose}{\looseness=-1}
+
+\icml{
+  \usepackage{icml2026}
+}
+
+\input{arxiv_style}
+\input{macros}
+\input{prev_macros.tex}
+\let\underbar\undefined
+\input{widebar}
+
+\usepackage[utf8]{inputenc} %
+\usepackage[T1]{fontenc}    %
+\usepackage{url}            %
+\usepackage{booktabs}       %
+\usepackage{amsfonts}       %
+\usepackage{nicefrac}       %
+\usepackage{microtype}      %
+\usepackage{makecell}
+\usepackage{enumitem}
+\usepackage{breakcites}
+\usepackage{mathrsfs}
+
+\usepackage[normalem]{ulem}
+
+\arxiv{
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{verbatim}
+}
+
+\icml{
+\newcommand{\State}{\STATE}
+\newcommand{\For}{\FOR}
+\newcommand{\EndFor}{\ENDFOR}
+}
+
+\usepackage{multicol}
+\usepackage{colortbl}
+\usepackage{setspace}
+\usepackage{transparent}
+\usepackage{upgreek}
+
+\usepackage{inconsolata}
+\usepackage[scaled=.90]{helvet}
+\usepackage{xspace}
+
+\icml{
+\setlist[enumerate]{leftmargin=*}
+\setlist[itemize]{leftmargin=*}
+}
+
+\usepackage{graphicx}
+\icml{\usepackage{subfigure}}
+
+\usepackage[suppress]{color-edits}
+\addauthor{fc}{blue}
+\addauthor{sc}{orange}
+\addauthor{sr}{red}
+
+
+
+\let\oldparagraph\paragraph
+\newcommand{\paragraphi}[1]{\oldparagraph{\emph{#1}.}}
+\renewcommand{\paragraph}[1]{\oldparagraph{#1.}}
+
+\newcommand{\textbfc}[1]{\textbf{\textcolor{blue!40!black}{#1}}}
+
+
+\makeatletter
+\g@addto@macro\appendix{%
+  \crefalias{section}{appendixsection}%
+  \crefalias{subsection}{appendixsubsection}%
+  \crefalias{subsubsection}{appendixsubsubsection}%
+}
+\makeatother
+\crefname{appendixsection}{Appendix}{Appendices}
+\Crefname{appendixsection}{Appendix}{Appendices}
+\crefname{appendixsubsection}{Appendix}{Appendices}
+\Crefname{appendixsubsection}{Appendix}{Appendices}
+\crefname{appendixsubsubsection}{Appendix}{Appendices}
+\Crefname{appendixsubsubsection}{Appendix}{Appendices}
+
+
+\begin{document}
+
+\icml{
+\twocolumn[
+  \icmltitle{High-accuracy sampling for diffusion models and log-concave distributions}
+
+
+
+  \icmlsetsymbol{equal}{*}
+
+  \begin{icmlauthorlist}
+    \icmlauthor{Firstname1 Lastname1}{equal,yyy}
+    \icmlauthor{Firstname2 Lastname2}{equal,yyy,comp}
+    \icmlauthor{Firstname3 Lastname3}{comp}
+    \icmlauthor{Firstname4 Lastname4}{sch}
+    \icmlauthor{Firstname5 Lastname5}{yyy}
+    \icmlauthor{Firstname6 Lastname6}{sch,yyy,comp}
+    \icmlauthor{Firstname7 Lastname7}{comp}
+    \icmlauthor{Firstname8 Lastname8}{sch}
+    \icmlauthor{Firstname8 Lastname8}{yyy,comp}
+  \end{icmlauthorlist}
+
+  \icmlaffiliation{yyy}{Department of XXX, University of YYY, Location, Country}
+  \icmlaffiliation{comp}{Company Name, Location, Country}
+  \icmlaffiliation{sch}{School of ZZZ, Institute of WWW, Location, Country}
+
+  \icmlcorrespondingauthor{Firstname1 Lastname1}{first1.last1@xxx.edu}
+  \icmlcorrespondingauthor{Firstname2 Lastname2}{first2.last2@www.uk}
+
+  \icmlkeywords{Machine Learning, ICML}
+
+  \vskip 0.3in
+]
+
+
+
+\printAffiliationsAndNotice{}  %
+}
+
+\arxiv{
+  \title{High-accuracy sampling for diffusion models and log-concave distributions}
+\author{
+  Fan Chen \\ {\small MIT} \\ {\small \texttt{fanchen@mit.edu}} 
+  \and Sinho Chewi \\ {\small Yale University} \\ {\small \texttt{sinho.chewi@yale.edu}} 
+  \and Constantinos Daskalakis \\ {\small MIT} \\ {\small \texttt{costis@csail.mit.edu}}
+  \and Alexander Rakhlin \\ {\small MIT} \\ {\small \texttt{rakhlin@mit.edu}}
+}
+  \maketitle
+}
+
+\begin{abstract}
+We present algorithms for diffusion model sampling which obtain $\delta$-error in $\mathrm{polylog}(1/\delta)$ steps, given access to $\widetilde O(\delta)$-accurate score estimates in $L^2$. This is an exponential improvement over all previous results.
+Specifically, under minimal data assumptions, the complexity is $\widetilde O(d_\star\,\mathrm{polylog}(1/\delta))$ where $d_\star$ is the intrinsic dimension of the data. Further, under a non-uniform $L$-Lipschitz condition, the complexity reduces to $\widetilde O(L\,\mathrm{polylog}(1/\delta))$. 
+Our approach also yields the first $\mathrm{polylog}(1/\delta)$ complexity sampler for general log-concave distributions using only gradient evaluations.
+\end{abstract}
+
+
+\section{Introduction}
+
+
+What is the complexity of sampling from a continuous probability distribution, given access to evaluations of the gradient of the log-density?
+In particular, can one design algorithms whose iteration complexity scales as $\polylog(1/\delta)$, where $\delta$ is the target accuracy, or must they necessarily take $\poly(1/\delta)$ steps?
+
+Complexity bounds which scale as $\polylog(1/\delta)$, indicating that algorithms converge exponentially fast, are known as ``high-accuracy'' guarantees, as they ensure that one can draw an extremely accurate sample without too many iterations.
+When access to the log-density of the target distribution is available, and not just its gradient, then high-accuracy samplers abound, based on accept-reject mechanisms such as rejection sampling or the Metropolis--Hastings filter.
+
+Without density evaluations, the answer is less clear.
+In this setting, existing sampling methods are typically based on discretizations of stochastic differential equations, and the need to control the discretization error precludes high-accuracy guarantees.
+(Note that this is unlike the setting of optimization, in which gradient descent enjoys a high-accuracy guarantee under strong convexity---there, discretization does not bias the algorithm.)
+A notable exception is discretization of piecewise deterministic Markov processes (PDMPs), for which~\citet{LuWan22Zigzag} show that $\polylog(1/\delta)$ evaluations of the gradient suffice~\fcedit{from a warm start}.
+
+This question has become particularly interesting in light of recent developments on diffusion-based generative modeling.
+Such models are based on implementing a certain reverse Markov process, in which each iteration requires evaluation of a score function---the gradient of the log-density along a diffusion process.
+Since these models only learn the score function and not the density function itself (unlike earlier approaches such as energy-based models), it is natural to ask what the best achievable complexity is using score evaluations alone.
+
+More precisely, we are interested in bounding the number of steps (and queries to the score function) required to sample from a distribution $\phat$ such that
+\begin{align}\label{eq:goal}
+  D(\pdata,\phat)\leq \delta+ \Capx\cdot  \epssc\,,
+\end{align}
+where $D$ is a measure of discrepancy, $\delta\in(0,1)$ is the target accuracy, $\epssc$ measures the error in the score function estimates, and $\Capx$ is a target approximation factor.
+
+
+The initial work of~\citet{Chen+23SGM, LeeLuTan23SGMGeneral} showed that with $L^2$-accurate score estimates, Denoising Diffusion Probabilistic Models (DDPMs) achieve a query complexity of $1/\delta^2$ in total variation distance for sampling from an early stopped distribution, provided that $\pdata$ has bounded support, with an overhead that is polynomial in the dimension and radius, and with $\Capx = \wt O(1)$.
+By a standard argument, this can be converted to guarantees for sampling from $\pdata$ itself in a weaker metric.
+Importantly, these results impose almost no assumptions on the data distribution, providing strong theoretical justification for diffusion models. 
+
+
+Since then, there has been an explosion of works aimed at extending and refining these guarantees~\citep[e.g.,][]{chen2023improved,li2023towards,Ben+24Diffusion,gao2025wasserstein,ConDurSil25KLDiffusion, LiYan25Diffusion,Chen+23FlowODE,li2024sharp, GaoZhu25PFODE, huang2025convergence, JaiZha26SharpKL}, which we cannot fully survey here.
+However, it is known that a complexity of $\Omega(1/\delta)$ is unimprovable for DDPM~\citep{jiao2025optimal}, which motivates changing the algorithm.
+Under minimal assumptions, the algorithm of~\citet{li2024provable} achieves a query complexity of $1/\delta^{1/2}$.
+Other works achieved similar speed-ups assuming that the Jacobian of the score error is bounded~\citep{li2024accelerating,li2025faster}.
+
+A recent line of works~\citep[e.g.,][]{huang2025convergence, huang2025fast, li2025faster} studied higher-order discretization methods, with the resulting query complexity scaling roughly as $\CP\, d^{1+1/p}/\delta^{1/p}$,
+where $p\geq 1$ is the chosen acceleration order, and $\CP$ hides dependence on other problem parameters\footnote{For example, in the results of \citet{huang2024reverse,huang2025convergence,huang2025fast}, $\CP$ hides polynomial dependence on higher-order Lipschitz parameters or the diameter of the support of $\pdata$.} 
+along with an implicit (often exponential) dependence on $p$. These results show that diffusion sampling can be performed with sub-polynomial dependence on $1/\delta$,\footnote{
+  Roughly, we should expect $\CP\geq e^{\Omega(p)}$. Hence, the complexity is at least $d\exp(O(\sqrt{\log(d/\delta)}))$ with the best choice of acceleration order $p$, which is better than $\poly(1/\delta)$ but much worse than $\poly\log(1/\delta)$.
+}
+but they still fall well short of the desired poly-logarithmic complexity.\footnote{Furthermore, the approximation factor $\Capx$ in \citet{huang2025convergence,huang2025fast} scales polynomially in the early stopping time, and \citet{li2025faster} additionally relies on the second-order score error $\epsjac$, making the results sensitive to score errors.}
+
+Meanwhile, \citet{huang2024reverse, wainwright2025score} propose to use density evaluations to achieve high-accuracy samplers, and~\citet{Hua+25QuantizedDiffusion} propose a high-accuracy sampler which requires learning a certain ``quantized'' score.
+As discussed above, these are not compatible with the current practice of diffusion sampling, which only learns score estimates.
+
+Therefore, we state our main question of interest:
+\begin{center}
+    \emph{Is there a diffusion model sampler which achieves a high-accuracy guarantee using only score evaluations, under minimal assumptions on both the data distribution and the score error?}
+\end{center}
+
+
+
+
+
+\subsection{Our contribution}
+
+
+We answer this question affirmatively via a new meta-algorithm, which we call \emph{first-order rejection sampling} (\AlgWSC); see \cref{alg:fors}.
+This algorithm aims at simulating rejection sampling using only first-order (gradient) queries.
+We give consequences of our method for diffusion sampling and for log-concave sampling.
+
+\paragraph{Diffusion sampling}
+We show the following results, where the error is measured in the bounded Lipschitz metric~\eqref{def:BL-metric}, $\epssc$ denotes the $L^2$-error of the score estimates (\cref{def:score-error}), and $\dstar$ is the \emph{intrinsic} dimension of the data distribution (\cref{def:intrinsic}), which is always bounded by the embedding dimension $d$.
+\begin{itemize}
+    \item Under \textbf{minimal data assumptions}---namely, $\pdata$ has a finite second moment $\mathsf M_2^2$---we obtain $\delta$ error in $O(\dstar\log^3((d+\mathsf M_2^2)/\delta))$ queries with $\Capx=O(1)$.
+\end{itemize}
+This result strictly improves upon all prior results in the literature in this setting~\citep[e.g.,][]{chen2023improved,Ben+24Diffusion,ConDurSil25KLDiffusion,azangulov2024convergence, li2024adapting, li2025dimension, liang2025low, PotAzaDel25Manifold, tang2025adaptivity, HuaWeiChe26LowDim}.
+
+Beyond this setting, many works in the literature aim to sample with a number of steps which is sublinear in the dimension~\citep{Chen+23FlowODE, jiao2024instance,jiao2025optimal, zhang2025sublinear}.
+We also incorporate these advances into our framework. \fcedit{Specifically, we show that under a non-uniform $L$-Lipschitz condition (with respect to the \emph{Frobenius norm}, \cref{asmp:Lip-Frob}--\ref{asmp:Lip-DDPM}), we obtain $\delta$ error in $O(L\log^3((d+\mathsf M_2^2)/\delta))$ steps, with $\Capx = O(1)$. This result is ``almost dimension-free'' and it also recovers our previous result, as the non-uniform $L$-Lipschitz condition always holds with $L\leq \wt{O}(\dstar)$. Further, it also improves upon prior results in the setting with a non-uniform $L$-Lipschitz condition under operator norm (\cref{asmp:non-unif-Lip}), as the implied complexity is $\widetilde O(\min\{d_\star^{2/3}L^{1/3}, \sqrt{dL}\})$.}
+
+
+\paragraph{Log-concave sampling}
+For sampling from log-concave (and isoperimetric) densities with gradient evaluations of the log-density, we recover state-of-the-art results from~\citet{FanYuaChe23ImprovedProx}, except that \emph{we do not require density evaluations}; see \cref{sec:log_concave}.
+
+\subsection{Related work}
+
+As we do not have space to survey the vast literature on diffusion model guarantees, we focus on the ones most relevant to our work.
+
+\paragraph{High-accuracy diffusion sampling}
+Prior to this work, \citet{huang2024reverse,wainwright2025score} studied diffusion sampling with additional \emph{zeroth-order} queries. Specifically, given access to estimates of the unnormalized log-densities with bounded error, query complexity bounds of $\tO(d^2\log(1/\delta))$~\citep{huang2024reverse} and $\tO(\sqrt{d}\log^3(1/\delta))$~\citep{wainwright2025score} were shown under additional Lipschitz conditions on the score functions. Both works resort to standard high-accuracy sampling methods (e.g., Metropolis-adjusted Langevin). However, estimating the densities can be extremely challenging in practice. Moreover,~\citet{Hua+25QuantizedDiffusion} propose a method based on learning a quantized score, which requires changing the score matching objective.
+
+\paragraph{Concurrent work} In concurrent work,~\citet{gatmiry2026high} also obtain a high-accuracy guarantee for diffusion sampling.
+\fcedit{
+  Assuming that $\pdata$ is a Gaussian convolution, i.e., $\pdata = p_\star * \normal{0,\sigma^2 I}$ where $p_\star$ is supported on a ball of radius $R$, they obtain a query complexity of $\wt O((R/\sigma)^2 \log^2(1/\delta))$ assuming that the score errors are bounded in the \emph{sub-exponential} norm.
+  Our results also imply a query complexity of $\wt O((R/\sigma)^2 \log^3(1/\delta))$ through the intrinsic dimension (\cref{ssec:intrinsic}) while only requiring $L_2$-score errors.}
+We defer a lengthier comparison to
+\cref{sec:concurrent}.
+
+\paragraph{Log-concave sampling}
+Our application to log-concave sampling is based on the proximal sampler~\citep{LeeSheTia21RGO, Chen+22ProxSampler}, and our results can be compared to~\citet{AltChe24Warm, FanYuaChe23ImprovedProx}.
+See the book draft~\citet{Chewi26Book} for an overview of the subject.
+
+\subsection{Notation}
+
+
+We make use of the following divergences between probability distributions: the \emph{total variation} (TV) distance $\Dtv{\mu}{\nu} \deq \frac{1}{2}\int|\mu-\nu|$; the \emph{Hellinger distance} $\Dhels{\mu}{\nu} \deq \frac12\int (\sqrt\mu-\sqrt\nu)^2$; the \emph{KL divergence} $\Dkl{\mu}{\nu} \deq \En_\mu\log(\mu/\nu)$; the \emph{chi-squared divergence} $\Dchis{\mu}{\nu} \deq \E_\mu (\mu/\nu)^2 - 1$; and the \emph{Wasserstein distance} $W_2^2(\mu,\nu) \deq \inf_{\gamma~\text{coupling of }\mu,\nu} \En_{(X,Y)\sim\gamma}\|X-Y\|^2$.
+In addition, we consider the bounded Lipschitz metric which metrizes weak convergence:
+\begin{align}
+\label{def:BL-metric}
+    \Dbl{\mu}{\nu} \deq \sup\{\E_\mu f - \E_\nu f : |f| \le 1,\,\|f\|_{\rm Lip} \le 1\}.
+\end{align}
+We define
+\begin{align}\notag
+    \pclip[\B]{x}\deq \max\crl{-B,\min\crl{B,x}}\,, \qquad \forall x\in\RR\,.
+\end{align}
+We use $\leqsim$ and $O(\cdot)$ to hide absolute constants, i.e., $f\leqsim g$ (and $f=O(g)$) if there is an absolute constant such that $f\leq Cg$.
+The notation $\wt O(\cdot)$ hides logarithmic factors.
+
+
+\section{Background on diffusion models}
+\input{sec_prelim.tex}
+
+
+
+
+
+
+\section{Key subroutine: Gaussian tilts}\label{sec:gaussian_tilts}
+\input{gaussian_tilts}
+
+\section{Diffusion sampling}\label{sec:diffusion}
+\input{sec_DM.tex}
+
+\section{Log-concave sampling}\label{sec:log_concave}
+\input{sec_log_concave}
+
+
+\section{Conclusion}
+
+
+In this work, we have presented high-accuracy algorithms for diffusion sampling which operate under minimal data assumptions (\cref{thm:DM-intrinsic}), with improved dimension dependence under a Lipschitz score assumption (\cref{thm:DM-Lip}).
+With regards to the dependence on the target accuracy, our results improve exponentially over all prior works.
+Our framework also has implications for log-concave sampling (\cref{sec:log_concave}) using only first-order queries. 
+
+Although this is a primarily theoretical work, we are working toward implementation and experimental evaluation, which will be left for future work.
+
+\icml{
+\section{Impact Statement}
+
+
+Our work provides new algorithms for diffusion sampling with potential speed-ups.
+This could lead to many potential impacts, none of which we feel the need to specifically highlight here.
+}
+
+\arxiv{
+  \section*{Acknowledgments}
+  We thank Sam Power for bringing to our attention useful references.
+  We acknowledge support from ARO through award W911NF-21-1-0328, Simons Foundation, and the NSF through awards DMS-2031883 and PHY-2019786,  the DARPA AIQ program, and AFOSR FA9550-25-1-0375. CD is supported by a Simons Investigator Award, a Simons Collaboration on Algorithmic Fairness, ONR MURI grant N00014-25-1-2116, and ONR grant N00014-25-1-2296.
+}
+
+
+
+
+
+\bibliography{ref.bib}
+\icml{
+\bibliographystyle{icml2026}
+}
+
+\appendix
+\newpage
+\icml{
+\onecolumn
+}
+
+
+\section{Discussion}
+\input{sec_compare.tex}
+
+\section{Additional notation and technical tools}
+\input{tools.tex}
+
+
+\input{appdx_fors}
+\section{Proofs for Section~\ref{sec:gaussian_tilts}}\label{appdx:proof-gaussian-tilts}
+\input{appdx_RGO.tex}
+
+\section{Structural properties of the diffusion process}\label{appdx:structure}
+\input{appdx_structural.tex}
+\section{Proofs for Section~\ref{sec:diffusion}}
+\input{appdx_DM_path.tex}
+
+
+\section{Log-concave sampling}\label{appdx:log-concave}
+\input{appdx_log_concave}
+
+
+
+\end{document}
