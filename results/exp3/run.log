@@ -19,3 +19,6 @@
 [G*sub] d=128 seed=0: G* = 4.6 [4.4, 4.8]
 [G*sub] d=128 seed=1: G* = 5.4 [5.2, 5.7]
 [G*sub] d=128 seed=2: G* = 5.9 [5.7, 6.2]
+[FIT] subspace G* ~ d^0.022 (accept |slope| <= 0.15)
+[E2E] d=128: K=2600 (d*-schedule G=188), proj-KL=6.74e-04 (floor 1.3e-03), acc=0.368, q/step=5.44, 16207s
+done in 16301s -> C:\Users\Utkarsh\Desktop\Project\ICML 2026\results\exp3

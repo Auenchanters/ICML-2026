@@ -190,21 +190,32 @@ def nc3(d=32, delta=1e-3):
                        ("generic_d_schedule", G_generic)]:
             rng = np.random.default_rng(11)
             sched = vp_schedule(1e-4, G, 1e-2)
-            vals = [subspace_chi2(mix, sched, max(1, int(f * sched.K)),
+            # the mode-splitting ridge for separation S sits where
+            # sigma^2/(1-sigma^2) ~ (S/2)^2; probe it plus +- half/full
+            # e-folds (one e-fold of rho = G steps) and a mid-chain control
+            rho = sched.sigma2[:-1] / np.maximum(sched.tbar[:-1], 1e-300)
+            k_r = int(np.argmin(np.abs(np.log(rho) - 2 * np.log(S / 2.0))))
+            step = max(int(G) // 2, 1)
+            ks = sorted({min(max(1, k), sched.K - 1) for k in
+                         [k_r - 2 * step, k_r - step, k_r, k_r + step,
+                          k_r + 2 * step, sched.K // 2]})
+            vals = [subspace_chi2(mix, sched, k,
                                   24 if QUICK else 48, 32 if QUICK else 48,
                                   64, rng)[0]
-                    for f in (0.3, 0.6, 0.9)]
+                    for k in ks]
             rows.append(dict(S=S, G=G, tag=tag, worst_chi2=max(vals),
-                             target_delta=delta))
-            print(f"[NC-3] sep={S} {tag} (G={G:.0f}): worst chi2 = "
-                  f"{max(vals):.3e} vs delta = {delta:.0e}", flush=True)
+                             k_ridge=k_r, K=sched.K, target_delta=delta))
+            print(f"[NC-3] sep={S} {tag} (G={G:.0f}, ridge k={k_r}/{sched.K}): "
+                  f"worst chi2 = {max(vals):.3e} vs delta = {delta:.0e}",
+                  flush=True)
     pd.DataFrame(rows).to_csv(OUT / "nc3.csv", index=False)
 
 
 if __name__ == "__main__":
     t0 = time.time()
-    check_logconcave_opnorm()
-    check_mixture_tails(n=20000 if QUICK else 100000)
-    ve_sweep()
+    if "--nc3-only" not in sys.argv:
+        check_logconcave_opnorm()
+        check_mixture_tails(n=20000 if QUICK else 100000)
+        ve_sweep()
     nc3()
     print(f"done in {time.time()-t0:.0f}s -> {OUT}")

@@ -9,3 +9,11 @@
 [A(b,c)] H=32 tau=0.1: L_op(1-d)=0.71 L_F(1-d)=2.86 C=0.96
 [A(b,c)] H=32 tau=0.5: L_op(1-d)=1.25 L_F(1-d)=1.80 C=0.46
 [VE] d=4: G* = 7.0
+[VE] d=16: G* = 11.8
+[VE] d=64: G* = 21.7
+[FIT] VE Gaussian G* ~ d^0.406 (Thm 4.9: 0.5 +- 0.1)
+[NC-3] sep=4.0 sqrt_d_budget (G=26): worst chi2 = 6.724e-06 vs delta = 1e-03
+[NC-3] sep=4.0 generic_d_schedule (G=591): worst chi2 = 0.000e+00 vs delta = 1e-03
+[NC-3] sep=8.0 sqrt_d_budget (G=26): worst chi2 = 6.724e-06 vs delta = 1e-03
+[NC-3] sep=8.0 generic_d_schedule (G=591): worst chi2 = 0.000e+00 vs delta = 1e-03
+done in 3547s -> C:\Users\Utkarsh\Desktop\Project\ICML 2026\results\exp4

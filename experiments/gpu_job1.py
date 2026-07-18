@@ -19,7 +19,7 @@ sampler, Sec-4.2 instantiation, stable tbar VP schedule):
          operational claim-3 signature).
 
 All results printed as CSV blocks between BEGIN/END markers for logbook
-capture. Deterministic seeds. Est. wall-clock < 30 min on a10g-small.
+capture. Deterministic seeds. Flavor: a100-large (A10G fp64 is 1/32-rate and the first attempt timed out; A100 fp64 is full-rate). Est. < 40 min.
 """
 import sys
 import time
@@ -111,14 +111,17 @@ def path(r):
             -(2 / np.sqrt(3)) * TWO_PI_3 * torch.cos(u))
 
 
-def sample_chain(mix, sch, n, seed, chunk=200_000):
-    """Algorithm 2, FORS steps, k = K-1 .. 1. Returns samples + stats."""
+def sample_chain(mix, sch, n, seed, chunk=1_000_000):
+    """Algorithm 2, FORS steps, k = K-1 .. 1. Returns samples + stats.
+    GPU-resident counters: one host sync per proposal round (jmax only)."""
     sig2, tbar, eta, alpha = sch
     K = len(eta)
     abar = np.sqrt(tbar)
     g = torch.Generator(device=DEV).manual_seed(seed)
     out = []
-    tot_draws = tot_props = tot_acc = 0
+    tot_props = 0
+    draws_t = torch.zeros((), dtype=torch.long, device=DEV)
+    acc_t = torch.zeros((), dtype=torch.long, device=DEV)
     for c0 in range(0, n, chunk):
         m0 = min(chunk, n - c0)
         x = (torch.randn(m0, mix.d, generator=g, device=DEV, dtype=DT)
@@ -156,14 +159,14 @@ def sample_chain(mix, sch, n, seed, chunk=200_000):
                     W = lam * ((gdot * (Dg - d_next[alive][:, None, :])).sum(-1))
                     W = W.clamp(-B, B)
                     mask = (torch.arange(jmax, device=DEV)[None, :] < J[:, None])
-                    tot_draws += int(J.sum().item())
+                    draws_t += J.sum()
                     ratio = torch.where(mask, (B + W) / (2 * B),
                                         torch.ones_like(W))
                     logp = torch.log(ratio.clamp_min(1e-300)).sum(1)
                 acc = torch.log(torch.rand(mm, generator=g, device=DEV,
                                            dtype=DT)) < logp
                 newx[alive[acc]] = prop[acc]
-                tot_acc += int(acc.sum().item())
+                acc_t += acc.sum()
                 alive = alive[~acc]
                 if len(alive) == 0:
                     break
@@ -174,6 +177,7 @@ def sample_chain(mix, sch, n, seed, chunk=200_000):
                 print(f"#   chunk@{c0}: k={k}", flush=True)
         out.append(x)
     xs = torch.cat(out)
+    tot_draws, tot_acc = int(draws_t.item()), int(acc_t.item())
     return xs, dict(draws=tot_draws, props=tot_props, accs=tot_acc,
                     q_per_step_chain=tot_draws / (n * (K - 1)),
                     accept_rate=tot_acc / max(tot_props, 1))
@@ -232,7 +236,7 @@ def job_b():
     K = len(sch[2])
     t0 = time.time()
     n = 100_000
-    xs, st = sample_chain(mix, sch, n, seed=7, chunk=20_000)
+    xs, st = sample_chain(mix, sch, n, seed=7, chunk=50_000)
     abar1 = np.sqrt(sch[1][1])
     kl0 = hist_kl(xs[:, 0], [0.5, 0.5], [abar1 * -2, abar1 * 2],
                   [abar1**2 * 0.25 + sch[0][1]] * 2)

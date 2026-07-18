@@ -1,0 +1,5 @@
+[NC-3] sep=4.0 sqrt_d_budget (G=20, ridge k=213/278): worst chi2 = 4.545e-06 vs delta = 1e-03
+[NC-3] sep=4.0 generic_d_schedule (G=591, ridge k=6271/8170): worst chi2 = 0.000e+00 vs delta = 1e-03
+[NC-3] sep=8.0 sqrt_d_budget (G=20, ridge k=241/278): worst chi2 = 4.547e-06 vs delta = 1e-03
+[NC-3] sep=8.0 generic_d_schedule (G=591, ridge k=7091/8170): worst chi2 = 0.000e+00 vs delta = 1e-03
+done in 21s -> C:\Users\Utkarsh\Desktop\Project\ICML 2026\results\exp4
