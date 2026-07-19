@@ -4,3 +4,5 @@ __pycache__/
 .env
 .pytest_cache/
 .trackio/**/.serve.log
+tools/posterly/
+poster/poster_preview.pdf
