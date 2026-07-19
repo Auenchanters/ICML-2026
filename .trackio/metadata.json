@@ -10,7 +10,7 @@
     "paper-GW3umRqsZZ",
     "paper-10218"
   ],
-  "last_page": "conclusion",
+  "last_page": "claim-5-log-concave-sampling-section-5",
   "local_path_artifacts": [
     {
       "path": "results/exp0/acceptance_identity.csv",
@@ -88,6 +88,12 @@
       "path": "results/exp1/arm_b.csv",
       "abs_path": "C:\\Users\\Utkarsh\\Desktop\\Project\\ICML 2026\\results\\exp1\\arm_b.csv",
       "size": 408,
+      "artifact_type": "dataset"
+    },
+    {
+      "path": "results/exp5/multid.csv",
+      "abs_path": "C:\\Users\\Utkarsh\\Desktop\\Project\\ICML 2026\\results\\exp5\\multid.csv",
+      "size": 471,
       "artifact_type": "dataset"
     }
   ],
