@@ -1420,6 +1420,7 @@ k,kl
 
 ## Headline numbers
 
+- **What the degree measures (stated plainly):** K(δ) is *determined by the Corollary-4.4 schedule construction* (η_k = σ_k²/G with c₀ calibrated once, not per-rung); the certificates then prove that construction actually delivers KL ≤ δ² at each δ. So the fitted degree characterizes the schedule construction's step count against a certified accuracy guarantee — a legitimate upper-bound check — not an independently-observed convergence rate. With that framing:
 - **Fitted step-count degree in log(1/δ): 2.24 vs theory's ≤ 3 (log³); R² = 0.997** over the 8-rung ladder δ ∈ {1e-1 … 1e-8} (`fors_ladder.csv`).
 - **Certified end-to-end KL ≤ 3.0e-10 at every rung** — at least **6 orders of magnitude below the δ² target at every δ**, and equal to the numerical resolution floor K·3e-15 (every certified per-step KL is below the float64 log-density cancellation floor 3e-15; we report "≤ floor", not fabricated precision).
 - **NC-1 (DDPM baseline, same exponential-integrator proposal mean AND variance, corrector removed): K ~ (1/δ)^2.06, R² = 0.9995** over 12 G-points spanning K = 659 → 2,160,723 (`ddpm_sweep.csv`). The paper's "exponential improvement over all prior works" is exactly this separation, and both curves are on the money plot above.

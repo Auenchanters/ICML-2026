@@ -95,9 +95,9 @@ Algorithm 2 run end-to-end at ambient **d = 128** on the subspace target using t
 
 - **On-subspace projection histogram-KL = 6.74e-4, below the sample-noise floor 1.3e-3** — the output is statistically indistinguishable from the true early-stopped marginal.
 - **Ambient moments correct** (worst off-subspace variance error at the 1e-4 level, dominated by n^{-1/2}).
-- **Acceptance rate 0.368 and queries/step/chain = 5.44** — identical to the 1D and d = 512 values: the FORS accept loop shows **zero degradation from ambient dimension** under the d⋆-budget. Had the complexity tracked ambient d, this schedule (16× too coarse for d = 128 by the generic budget) would collapse the acceptance rate — it does not.
+- **Acceptance rate 0.368 and queries/step/chain = 5.44** — identical to the 1D value: the FORS accept loop shows **zero degradation from ambient dimension** under the d⋆-budget. Had the complexity tracked ambient d, this schedule (16× too coarse for d = 128 by the generic budget) would collapse the acceptance rate — it does not.
 
-Raw: `results/exp3/end_to_end.json` (seed 7, 16,207s CPU; the d = 512 version runs on HF GPU Job #2 and is reported below when complete).
+Raw: `results/exp3/end_to_end.json` (seed 7, 16,207s CPU). A larger ambient d = 512 sampling run was planned for HF GPU Job #2, which timed out (see the Conclusion page's GPU account); the **deterministic structural certification already extends to d = 512** (the E[tr ∇m] plot above), so the intrinsic-dimension mechanism is verified to d = 512 without the sampling run.
 
 
 ---

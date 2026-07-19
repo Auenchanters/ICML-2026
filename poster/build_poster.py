@@ -316,7 +316,7 @@ T = T.replace(
             <tr class="ours"><td class="method">2 &mdash; polylog</td><td class="best">deg 2.24</td><td>&#8804;3</td></tr>
             <tr class="ours"><td class="method">3 &mdash; &#8730;(dL)</td><td class="best">d&#8304;&#8901;&#8308;&sup1;</td><td>0.5</td></tr>
             <tr class="ours"><td class="method">4 &mdash; d&#9733;</td><td class="best">flat</td><td>d&#9733;&#8810;d</td></tr>
-            <tr class="ours"><td class="method">5 &mdash; log-concave</td><td class="best">deg 0.92</td><td>&#8804;2</td></tr>
+            <tr class="ours"><td class="method">5 &mdash; log-concave</td><td class="best">deg 0.93</td><td>&#8804;2</td></tr>
           </tbody>
         </table>
       </div>''')
