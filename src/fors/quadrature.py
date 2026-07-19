@@ -34,12 +34,12 @@ SQRT2 = np.sqrt(2.0)
 
 
 def _phi(x):
-    # standard normal pdf; clip the argument so |x| beyond ~40 sigma (where the
-    # density is < 1e-300 anyway) does not overflow x*x in float64 — the result
-    # underflows to 0 correctly, this only silences a benign RuntimeWarning.
+    # standard normal pdf; clip the argument so x*x stays within float64 range
+    # (1e150^2 = 1e300 < 1.8e308). Beyond ~40 sigma the density is < 1e-300 and
+    # underflows to 0 correctly. The clip alone removes the overflow — no
+    # per-call errstate context (that was ~2x slower in the hot quadrature loop).
     x = np.clip(x, -1e150, 1e150)
-    with np.errstate(over="ignore", under="ignore"):
-        return np.exp(-0.5 * x * x) / np.sqrt(2.0 * np.pi)
+    return np.exp(-0.5 * x * x) / np.sqrt(2.0 * np.pi)
 
 
 def clip_gauss_mean(B, lam, m, s):
