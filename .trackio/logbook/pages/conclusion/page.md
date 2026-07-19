@@ -30,7 +30,7 @@ trackio-artifact://fors-repro/repro-bundle:v0
 |---|---|---|
 | Scope | All 5 claims verified on analytic targets (Gaussian mixtures, 1–2D log-concave potentials) with exact scores — the theorems' own regime; per-step error certified by deterministic quadrature through the paper's Sec. F.2 decomposition | N/A — the paper is theoretical with no experiments; this **is** the empirical instantiation of its theorems |
 | Hardware | CPU (float64) for all certified results AND all scaled sampling corroboration (n = 10⁵, d = 128); 2× HF GPU Jobs submitted for larger runs, both timed out | — |
-| Compute time | ~10 h CPU wall-clock total across all arms; GPU jobs < 1 h each | — |
+| Compute time | ~10 h CPU wall-clock total across all arms; the 2 GPU jobs each ran to their wall-clock cap and timed out (no usable output) | — |
 | Cost | ~$4 of the $20 GPU credit (both GPU jobs — a10g-small and a100-large — hit wall-clock timeout on a launch-latency-bound accept loop; diagnosed, fixed, logged honestly; the verdicts rest on CPU results) | — |
 | Outcome | **5 / 5 claims reproduced, quality high** — certified to numerical precision, with negative controls establishing test power | — |
 

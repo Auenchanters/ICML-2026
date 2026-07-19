@@ -32,7 +32,7 @@ def money_plot():
                   line=dict(color="#c0392b", width=3, dash="dot"),
                   marker=dict(size=9, symbol="square"))
     f.update_layout(
-        title=("Money plot #1 — steps to reach KL ≤ δ²: polylog (FORS) vs "
+        title=("Money plot #1 — steps K(δ) (step count vs target δ): polylog (FORS) vs "
                "poly(1/δ) (DDPM), certified by quadrature"),
         xaxis_type="log", yaxis_type="log",
         xaxis_title="1/δ (final accuracy)", yaxis_title="K (backward steps)",
