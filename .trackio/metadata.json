@@ -10,7 +10,7 @@
     "paper-GW3umRqsZZ",
     "paper-10218"
   ],
-  "last_page": "claim-5-log-concave-sampling-section-5",
+  "last_page": "claim-2-polylog-minimal-assumptions",
   "local_path_artifacts": [
     {
       "path": "results/exp0/acceptance_identity.csv",

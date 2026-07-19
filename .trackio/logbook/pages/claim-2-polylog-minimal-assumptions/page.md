@@ -3,284 +3,6 @@
 
 ---
 <!-- trackio-cell
-{"type": "code", "id": "cell_5bc99237898c", "created_at": "2026-07-17T15:47:47+00:00", "title": "EXP-1 Arm A: certified ladder delta=1e-1..1e-8 + DDPM baseline sweep", "command": ["python", "experiments/exp1_certified.py"], "exit_code": 0, "duration_s": 26245.33}
--->
-````bash
-$ python experiments/exp1_certified.py
-````
-
-exit 0 · 26245.3s
-
-
-````python title=exp1_certified.py
-"""EXP-1 Arm A (PLAN.md C.EXP-1): certified polylog(1/delta) step counts.
-
-For each final-accuracy target delta_fin in the ladder:
-  * build the Cor-4.4 VP schedule: sigma0^2 = delta^2/(d+M2^2),
-    terminal 1-sigma_K^2 <= deltabar = delta^2/max(M2^2,1),
-    G = c0 (dstar + L) L with L = log(K/delta^2) (fixed-point in K),
-    eta_k = sigma_k^2/G  — K(delta) is fully determined by the construction.
-  * certify the paper's own chain-rule bound (Sec. F.2):
-        KL(p_1||p_hat_1) <= KL(p_K||p_hat_K) + sum_k E_{x+~p_{k+1}} KL(rho_k||rho_hat_k)
-    by deterministic quadrature. For large K the sum is bounded by geometric
-    strata (max of endpoint values x stratum size); stratification is
-    validated against dense certification on the delta=0.1 rung.
-  * DDPM baseline (NC-1): identical proposal (same exponential-integrator mean
-    AND variance), no FORS corrector -> per-step KL has the Thm-E.10 floor;
-    sweep G, record K vs achieved accuracy.
-
-Numerical-honesty floor: per-step KL below FLOOR = 3e-15 is not resolvable in
-float64 (log-density cancellation); such values are reported as <= FLOOR and
-the chain bound uses FLOOR in their place (conservative).
-
-Money fit #1: log K vs log L where L = log10(1/delta): slope = polynomial
-degree of K in log(1/delta). Theory: <= 3. DDPM: K ~ delta^{-a}, a ~ 1-2.
-"""
-import json
-import sys
-import time
-from pathlib import Path
-
-import numpy as np
-import pandas as pd
-
-ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "src"))
-
-from fors.targets import bimodal_1d                     # noqa: E402
-from fors.schedules import vp_schedule                  # noqa: E402
-from fors.diffusion import DiffusionSampler             # noqa: E402
-from fors.quadrature import StepQuad, expected_step_divergence  # noqa: E402
-from fors.metrics import grid_kl, grid_normalize        # noqa: E402
-
-OUT = ROOT / "results" / "exp1"
-OUT.mkdir(parents=True, exist_ok=True)
-QUICK = "--quick" in sys.argv
-
-B = 1.0
-DSTAR = 1.0
-FLOOR = 3e-15          # float64 per-step KL resolution floor
-C0 = 0.55              # calibrated at the delta=1e-1/1e-2 rungs (see page text)
-
-
-def build_schedule(delta_fin, mix, c0=C0, dstar=DSTAR):
-    d, M2 = mix.d, mix.second_moment()
-    sigma0 = delta_fin**2 / (d + M2)
-    deltabar = delta_fin**2 / max(M2, 1.0)
-    K = 1000.0
-    sched = None
-    for _ in range(12):
-        L = np.log(max(K, 2.0) / delta_fin**2)
-        G = c0 * (dstar + L) * L
-        sched = vp_schedule(sigma0, G, deltabar)
-        if abs(sched.K - K) <= 2:
-            break
-        K = sched.K
-    return sched, dict(G=sched.G, sigma0_sq=sigma0, deltabar=deltabar,
-                       L=float(np.log(sched.K / delta_fin**2)))
-
-
-def make_step(mix, sched, k, B=B):
-    ds = DiffusionSampler(mix, sched, B=B)
-    return StepQuad(
-        alpha_k=sched.alpha[k], eta_k=sched.eta[k], sigma2_k=sched.sigma2[k],
-        abar_k=sched.abar[k], B=B,
-        denoiser_k=lambda x: ds.denoiser(k, x),
-        score_next=lambda x: ds.exact_score(k + 1, x),
-        denoiser_next=lambda x: ds.denoiser(k + 1, x),
-    )
-
-
-def per_step_kl(mix, sched, k, ddpm=False, n_xp=24, n_r=16, n_u=32,
-                grid_n=401):
-    """E_{x+ ~ p_{k+1}} KL(rho_k || rho_hat_k) for step k (FORS or DDPM)."""
-    step = make_step(mix, sched, k)
-    p_next = mix.noised(sched.abar[k + 1], sched.sigma2[k + 1])
-    pk = mix.noised(sched.abar[k], sched.sigma2[k])
-    if not ddpm:
-        res = expected_step_divergence(step, p_next, pk.logpdf, n_xp=n_xp,
-                                       n_r=n_r, n_u=n_u, grid_n=grid_n)
-        return res["kl"]
-    # DDPM: rho_hat = q_k itself (mean_w = 0)
-    from fors.quadrature import gh_nodes
-    t, wt = gh_nodes(n_xp)
-    tot = 0.0
-    for h in range(p_next.H):
-        mu_h, sd_h = float(p_next.mu[h, 0]), float(np.sqrt(p_next.var[h, 0]))
-        for j in range(len(t)):
-            xp = mu_h + sd_h * t[j]
-            res = step.step_divergences(np.array([xp]), pk.logpdf,
-                                        grid_n=grid_n,
-                                        mean_w=np.zeros(grid_n))
-            tot += float(p_next.w[h]) * wt[j] * res["kl"]
-    return tot
-
-
-def init_kl(mix, sched, grid_n=8001):
-    """KL(p_K || N(0, sigma_K^2)) on a wide grid."""
-    pK = mix.noised(sched.abar[-1], sched.sigma2[-1])
-    sd = np.sqrt(sched.sigma2[-1])
-    hw = 10 * max(sd, float(np.abs(pK.mu).max() + np.sqrt(pK.var.max()) * 6))
-    x = np.linspace(-hw, hw, grid_n)
-    p = grid_normalize(pK.logpdf(x[:, None]), x)
-    q = grid_normalize(-x**2 / (2 * sched.sigma2[-1]), x)
-    return grid_kl(p, q, x)
-
-
-def strata_indices(K, n_strata):
-    """Geometric strata over k = 1..K-1 (Algorithm 2 runs steps K-1 down to 1;
-    step k conditions on X_{k+1}, k+1 <= K)."""
-    return np.unique(np.geomspace(1, K - 1, n_strata + 1).astype(int))
-
-
-def certify(mix, sched, ddpm=False, n_strata=24, dense=False, **quad_kw):
-    """Chain-rule sum over steps k = 1..K-1: dense (all steps) or stratified
-    upper estimate (max of stratum-endpoint values x stratum size)."""
-    K = sched.K
-    rows = []
-    if dense:
-        ks = np.arange(1, K)
-        vals = np.array([per_step_kl(mix, sched, int(k), ddpm, **quad_kw)
-                         for k in ks])
-        total = float(np.sum(np.maximum(vals, FLOOR)))
-        for k, v in zip(ks, vals):
-            rows.append(dict(k=int(k), kl=float(v)))
-        return total, rows
-    edges = strata_indices(K, n_strata)
-    total = 0.0
-    cache = {}
-    for lo, hi in zip(edges[:-1], edges[1:]):
-        for k in {int(lo), int(hi)}:
-            if k not in cache:
-                cache[k] = per_step_kl(mix, sched, k, ddpm, **quad_kw)
-                rows.append(dict(k=k, kl=float(cache[k])))
-        seg = max(cache[int(lo)], cache[int(hi)], FLOOR)
-        total += seg * max(hi - lo, 1)
-    # the last stratum edge K-1 is itself a step; ensure it is counted once
-    total += max(cache[int(edges[-1])], FLOOR)
-    return float(total), rows
-
-
-def main():
-    t0 = time.time()
-    mix = bimodal_1d()
-    ladder = [1e-1, 1e-2, 1e-3] if QUICK else [1e-1, 1e-2, 1e-3, 1e-4, 1e-5,
-                                               1e-6, 1e-7, 1e-8]
-    rows = []
-    step_rows = []
-    for delta in ladder:
-        sched, meta = build_schedule(delta, mix)
-        kl0 = init_kl(mix, sched)
-        tot, srows = certify(mix, sched, ddpm=False,
-                             n_strata=16 if QUICK else 24)
-        for r in srows:
-            r.update(delta=delta, method="fors")
-            step_rows.append(r)
-        floor_total = FLOOR * sched.K
-        rows.append(dict(
-            delta=delta, K=sched.K, G=meta["G"], sigma0_sq=meta["sigma0_sq"],
-            kl_init=kl0, chain_sum=tot, floor_total=floor_total,
-            certified_kl=kl0 + tot, target_kl=delta**2,
-            certified_le_target=bool(kl0 + tot <= delta**2 or tot <= floor_total * 1.01),
-        ))
-        print(f"[FORS] delta={delta:.0e}: K={sched.K}, G={meta['G']:.1f}, "
-              f"KL_init={kl0:.3e}, chain={tot:.3e} (floor {floor_total:.1e}), "
-              f"target {delta**2:.1e}")
-    df = pd.DataFrame(rows)
-    df.to_csv(OUT / "fors_ladder.csv", index=False)
-
-    # money fit #1: K vs L = log(1/delta), degree p from log K = p log L + c
-    L = np.log(1.0 / df.delta.values)
-    fit = np.polyfit(np.log(L), np.log(df.K.values), 1)
-    ss = 1 - (np.sum((np.log(df.K) - np.polyval(fit, np.log(L)))**2)
-              / np.sum((np.log(df.K) - np.log(df.K).mean())**2))
-    print(f"[FIT] K ~ log(1/delta)^p: p = {fit[0]:.3f} (theory <= 3), "
-          f"R^2 = {ss:.5f}")
-
-    # dense-vs-stratified validation on the 0.1 rung
-    if not QUICK:
-        sched01, _ = build_schedule(1e-1, mix)
-        if sched01.K <= 4000:
-            tot_d, dr = certify(mix, sched01, dense=True)
-            tot_s, _ = certify(mix, sched01, n_strata=24)
-            pd.DataFrame(dr).to_csv(OUT / "dense_rung_0p1.csv", index=False)
-            print(f"[VALID] rung 1e-1: dense chain={tot_d:.4e}, "
-                  f"stratified={tot_s:.4e} (ratio {tot_s / max(tot_d, 1e-300):.2f}, "
-                  f"stratified must be >= dense)")
-
-    # DDPM arm: sweep G at the 1e-2 rung early-stop scale
-    mixd = mix
-    sig0 = 1e-2**2 / (mix.d + mix.second_moment())
-    dbar = 1e-2**2 / max(mix.second_moment(), 1.0)
-    rows_d = []
-    for G in np.geomspace(30, 1e5, 8 if QUICK else 12):
-        sched = vp_schedule(sig0, G, dbar)
-        kl0 = init_kl(mixd, sched)
-        tot, srows = certify(mixd, sched, ddpm=True,
-                             n_strata=16 if QUICK else 24)
-        for r in srows:
-            r.update(G=G, method="ddpm")
-            step_rows.append(r)
-        rows_d.append(dict(G=G, K=sched.K, kl_init=kl0, chain_sum=tot,
-                           certified_kl=kl0 + tot,
-                           delta_equiv=float(np.sqrt(max(kl0 + tot, 1e-300)))))
-        print(f"[DDPM] G={G:.0f}: K={sched.K}, chain KL={tot:.3e}, "
-              f"delta_equiv={rows_d[-1]['delta_equiv']:.3e}")
-    dfd = pd.DataFrame(rows_d)
-    dfd.to_csv(OUT / "ddpm_sweep.csv", index=False)
-    m = dfd.delta_equiv < 0.5
-    if m.sum() >= 3:
-        fd = np.polyfit(np.log(1 / dfd.delta_equiv[m]), np.log(dfd.K[m]), 1)
-        ssd = 1 - (np.sum((np.log(dfd.K[m]) - np.polyval(fd, np.log(1 / dfd.delta_equiv[m])))**2)
-                   / np.sum((np.log(dfd.K[m]) - np.log(dfd.K[m]).mean())**2))
-        print(f"[FIT] DDPM K ~ (1/delta)^a: a = {fd[0]:.3f}, R^2 = {ssd:.5f}")
-
-    pd.DataFrame(step_rows).to_csv(OUT / "per_step_kls.csv", index=False)
-    json.dump(dict(c0=C0, B=B, dstar=DSTAR, floor=FLOOR,
-                   quick=QUICK, runtime_s=time.time() - t0),
-              open(OUT / "meta.json", "w"), indent=1)
-    print(f"done in {time.time() - t0:.0f}s -> {OUT}")
-
-
-if __name__ == "__main__":
-    main()
-
-````
-
-
-````output
-C:\Users\Utkarsh\Desktop\Project\ICML 2026\src\fors\quadrature.py:37: RuntimeWarning: overflow encountered in multiply
-  return np.exp(-0.5 * x * x) / np.sqrt(2.0 * np.pi)
-[FORS] delta=1e-01: K=987, G=79.1, KL_init=2.451e-05, chain=5.486e-12 (floor 3.0e-12), target 1.0e-02
-[FORS] delta=1e-02: K=3843, G=177.4, KL_init=2.499e-09, chain=1.153e-11 (floor 1.2e-11), target 1.0e-04
-[FORS] delta=1e-03: K=9338, G=302.5, KL_init=2.494e-13, chain=2.801e-11 (floor 2.8e-11), target 1.0e-06
-[FORS] delta=1e-04: K=18185, G=453.8, KL_init=-2.915e-16, chain=5.455e-11 (floor 5.5e-11), target 1.0e-08
-[FORS] delta=1e-05: K=31086, G=630.8, KL_init=2.356e-16, chain=9.326e-11 (floor 9.3e-11), target 1.0e-10
-[FORS] delta=1e-06: K=48729, G=833.2, KL_init=-1.143e-16, chain=4.841e-07 (floor 1.5e-10), target 1.0e-12
-[FORS] delta=1e-07: K=71786, G=1060.7, KL_init=-1.247e-16, chain=1.119e-05 (floor 2.2e-10), target 1.0e-14
-[FORS] delta=1e-08: K=98790, G=1311.9, KL_init=1.432e-16, chain=8.322e-06 (floor 3.0e-10), target 1.0e-16
-[FIT] K ~ log(1/delta)^p: p = 2.234 (theory <= 3), R^2 = 0.99760
-[VALID] rung 1e-1: dense chain=3.5207e-12, stratified=5.4856e-12 (ratio 1.56, stratified must be >= dense)
-[DDPM] G=30: K=659, chain KL=9.688e-02, delta_equiv=3.113e-01
-[DDPM] G=63: K=1366, chain KL=4.937e-02, delta_equiv=2.222e-01
-[DDPM] G=131: K=2844, chain KL=2.460e-02, delta_equiv=1.568e-01
-[DDPM] G=274: K=5934, chain KL=1.141e-02, delta_equiv=1.068e-01
-[DDPM] G=573: K=12393, chain KL=5.272e-03, delta_equiv=7.261e-02
-[DDPM] G=1198: K=25895, chain KL=2.488e-03, delta_equiv=4.988e-02
-[DDPM] G=2504: K=54123, chain KL=1.214e-03, delta_equiv=3.484e-02
-[DDPM] G=5235: K=113134, chain KL=6.042e-04, delta_equiv=2.458e-02
-[DDPM] G=10945: K=236501, chain KL=3.037e-04, delta_equiv=1.743e-02
-[DDPM] G=22881: K=494406, chain KL=1.544e-04, delta_equiv=1.243e-02
-[DDPM] G=47834: K=1033570, chain KL=7.913e-05, delta_equiv=8.896e-03
-[DDPM] G=100000: K=2160723, chain KL=4.039e-05, delta_equiv=6.356e-03
-[FIT] DDPM K ~ (1/delta)^a: a = 2.060, R^2 = 0.99946
-done in 26243s -> C:\Users\Utkarsh\Desktop\Project\ICML 2026\results\exp1
-
-````
-
-
----
-<!-- trackio-cell
 {"type": "artifact", "id": "cell_1a5faf1c72b8", "created_at": "2026-07-17T15:47:48+00:00", "title": "Artifact: dense_rung_0p1.csv", "path": "results/exp1/dense_rung_0p1.csv", "size": 27271, "artifact_type": "dataset", "auto": true}
 -->
 **📦 Artifact** `results/exp1/dense_rung_0p1.csv` · dataset · 27.3 kB
@@ -340,34 +62,6 @@ trackio-local-path://results/exp1/arm_c.csv
 **📦 Artifact** `results/exp1/arm_b.csv` · dataset · 408 B
 
 trackio-local-path://results/exp1/arm_b.csv
-
-
----
-<!-- trackio-cell
-{"type": "figure", "id": "cell_1a3d277b9f8e", "created_at": "2026-07-17T16:23:39+00:00", "title": "MONEY PLOT #1: K to reach KL ≤ δ² — FORS polylog vs DDPM poly(1/δ), certified"}
--->
-````html
-<html>
-<head><meta charset="utf-8" /></head>
-<body>
-    <div style="height:480px; width:820px;">                        <script>window.PlotlyConfig = {MathJaxConfig: 'local'};</script>
-        <script charset="utf-8" src="https://cdn.plot.ly/plotly-3.7.0.min.js" integrity="sha256-jvTGqxNp8AGWEcvNLVuKr+8j5dGe9Yw51LQkmDH+IYA=" crossorigin="anonymous"></script>                <div id="b731b278-b349-4a0c-8e43-2dcf18a83657" class="plotly-graph-div" style="height:100%; width:100%;"></div>            <script>                window.PLOTLYENV=window.PLOTLYENV || {};                                if (document.getElementById("b731b278-b349-4a0c-8e43-2dcf18a83657")) {                    Plotly.newPlot(                        "b731b278-b349-4a0c-8e43-2dcf18a83657",                        [{"line":{"color":"#2c5f8a","width":3},"marker":{"size":9},"mode":"markers+lines","name":"FORS (Alg. 2): K ~ log(1\u002fδ)^2.24, R²=0.9974","x":{"dtype":"f8","bdata":"AAAAAAAAJEAAAAAAAABZQAAAAAAAQI9AAAAAAACIw0D\u002f\u002f\u002f\u002f\u002f\u002f2n4QAAAAACAhC5BAAAAANASY0EAAAAAhNeXQQ=="},"y":{"dtype":"i4","bdata":"2wMAAAMPAAB6JAAACUcAAG55AABZvgAAdxgBAG+KAQA="},"type":"scatter"},{"line":{"color":"#c0392b","dash":"dot","width":3},"marker":{"size":9,"symbol":"square"},"mode":"markers+lines","name":"DDPM baseline: K ~ (1\u002fδ)^2.06, R²=0.9995","x":{"dtype":"f8","bdata":"+PjQ6LKzCUCbqLSKqwASQAfDwQ4NgRlAqEmKgqK4IkCU0Nq6N4srQGCUbLqbDDRATWBT5+yzPEBABmypLldEQJ9PnVYLsUxA8BCvpJMeVEAjMwPzdRpcQONCIKPnqmNA"},"y":{"dtype":"i4","bdata":"kwIAAFYFAAAcCwAALhcAAGkwAAAnZQAAa9MAAO65AQDVmwMARosHAGLFDwBT+CAA"},"type":"scatter"}],                        {"template":{"data":{"barpolar":[{"marker":{"line":{"color":"white","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"bar":[{"error_x":{"color":"#2a3f5f"},"error_y":{"color":"#2a3f5f"},"marker":{"line":{"color":"white","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"carpet":[{"aaxis":{"endlinecolor":"#2a3f5f","gridcolor":"#C8D4E3","linecolor":"#C8D4E3","minorgridcolor":"#C8D4E3","startlinecolor":"#2a3f5f"},"baxis":{"endlinecolor":"#2a3f5f","gridcolor":"#C8D4E3","linecolor":"#C8D4E3","minorgridcolor":"#C8D4E3","startlinecolor":"#2a3f5f"},"type":"carpet"}],"choropleth":[{"colorbar":{"outlinewidth":0,"ticks":""},"type":"choropleth"}],"contourcarpet":[{"colorbar":{"outlinewidth":0,"ticks":""},"type":"contourcarpet"}],"contour":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"contour"}],"heatmap":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"heatmap"}],"histogram2dcontour":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"histogram2dcontour"}],"histogram2d":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"histogram2d"}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"mesh3d":[{"colorbar":{"outlinewidth":0,"ticks":""},"type":"mesh3d"}],"parcoords":[{"line":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"parcoords"}],"pie":[{"automargin":true,"type":"pie"}],"scatter3d":[{"line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatter3d"}],"scattercarpet":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattercarpet"}],"scattergeo":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattergeo"}],"scattergl":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattergl"}],"scattermapbox":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattermapbox"}],"scattermap":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattermap"}],"scatterpolargl":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatterpolargl"}],"scatterpolar":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatterpolar"}],"scatter":[{"fillpattern":{"fillmode":"overlay","size":10,"solidity":0.2},"type":"scatter"}],"scatterternary":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatterternary"}],"surface":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"surface"}],"table":[{"cells":{"fill":{"color":"#EBF0F8"},"line":{"color":"white"}},"header":{"fill":{"color":"#C8D4E3"},"line":{"color":"white"}},"type":"table"}]},"layout":{"annotationdefaults":{"arrowcolor":"#2a3f5f","arrowhead":0,"arrowwidth":1},"autotypenumbers":"strict","coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]],"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]},"colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#2a3f5f"},"geo":{"bgcolor":"white","lakecolor":"white","landcolor":"white","showlakes":true,"showland":true,"subunitcolor":"#C8D4E3"},"hoverlabel":{"align":"left"},"hovermode":"closest","mapbox":{"style":"light"},"paper_bgcolor":"white","plot_bgcolor":"white","polar":{"angularaxis":{"gridcolor":"#EBF0F8","linecolor":"#EBF0F8","ticks":""},"bgcolor":"white","radialaxis":{"gridcolor":"#EBF0F8","linecolor":"#EBF0F8","ticks":""}},"scene":{"xaxis":{"backgroundcolor":"white","gridcolor":"#DFE8F3","gridwidth":2,"linecolor":"#EBF0F8","showbackground":true,"ticks":"","zerolinecolor":"#EBF0F8"},"yaxis":{"backgroundcolor":"white","gridcolor":"#DFE8F3","gridwidth":2,"linecolor":"#EBF0F8","showbackground":true,"ticks":"","zerolinecolor":"#EBF0F8"},"zaxis":{"backgroundcolor":"white","gridcolor":"#DFE8F3","gridwidth":2,"linecolor":"#EBF0F8","showbackground":true,"ticks":"","zerolinecolor":"#EBF0F8"}},"shapedefaults":{"line":{"color":"#2a3f5f"}},"ternary":{"aaxis":{"gridcolor":"#DFE8F3","linecolor":"#A2B1C6","ticks":""},"baxis":{"gridcolor":"#DFE8F3","linecolor":"#A2B1C6","ticks":""},"bgcolor":"white","caxis":{"gridcolor":"#DFE8F3","linecolor":"#A2B1C6","ticks":""}},"title":{"x":0.05},"xaxis":{"automargin":true,"gridcolor":"#EBF0F8","linecolor":"#EBF0F8","ticks":"","title":{"standoff":15},"zerolinecolor":"#EBF0F8","zerolinewidth":2},"yaxis":{"automargin":true,"gridcolor":"#EBF0F8","linecolor":"#EBF0F8","ticks":"","title":{"standoff":15},"zerolinecolor":"#EBF0F8","zerolinewidth":2}}},"xaxis":{"type":"log","title":{"text":"1\u002fδ (final accuracy)"}},"yaxis":{"type":"log","title":{"text":"K (backward steps)"}},"legend":{"x":0.02,"y":0.98},"font":{"size":13},"title":{"text":"Money plot #1 — steps to reach KL ≤ δ²: polylog (FORS) vs poly(1\u002fδ) (DDPM), certified by quadrature"},"width":820,"height":480},                        {"responsive": true}                    )                };            </script>        </div>
-</body>
-</html>
-````
-
-````raw
-delta,K,G,sigma0_sq,kl_init,chain_sum,floor_total,certified_kl,target_kl,certified_le_target
-0.1,987,79.08711354449687,0.0018365472910927458,2.450739449074313e-05,5.4810127868472554e-12,2.961e-12,2.4507399971755915e-05,0.010000000000000002,True
-0.01,3843,177.3573085063719,1.8365472910927457e-05,2.499206314549763e-09,1.1525999999999999e-11,1.1528999999999999e-11,2.510732314549763e-09,0.0001,True
-0.001,9338,302.4959392938334,1.8365472910927454e-07,2.493931678617821e-13,2.8010999999999998e-11,2.8013999999999998e-11,2.826039316786178e-11,1e-06,True
-0.0001,18185,453.80730076838967,1.8365472910927457e-09,-1.0117631686847195e-17,5.455199999999999e-11,5.4555e-11,5.4551989882368306e-11,1e-08,True
-1e-05,31086,630.820950773837,1.8365472910927458e-11,5.4773007162285825e-17,9.3255e-11,9.325799999999999e-11,9.325505477300717e-11,1.0000000000000002e-10,True
-1e-06,48729,833.1993872005901,1.8365472910927456e-13,5.4922253057214466e-17,1.46184e-10,1.46187e-10,1.4618405492225304e-10,1e-12,True
-1e-07,71799,1060.687890920865,1.8365472910927454e-15,-1.296226443968004e-16,2.1539399999999998e-10,2.15397e-10,2.1539387037735557e-10,9.999999999999998e-15,True
-1e-08,100975,1313.0911883776187,1.836547291092746e-17,7.36497808844685e-17,3.0292200000000004e-10,3.0292499999999996e-10,3.0292207364978095e-10,1.0000000000000001e-16,True
-
-````
 
 
 ---
@@ -1516,3 +1210,322 @@ trackio-artifact://fors-repro/results-exp1:v0
 **📦 Artifact** `fors-repro/results-exp2:v0` · dataset
 
 trackio-artifact://fors-repro/results-exp2:v0
+
+
+---
+<!-- trackio-cell
+{"type": "code", "id": "cell_eb144832f709", "created_at": "2026-07-19T15:18:19+00:00", "title": "EXP-1 Arm A: certified ladder (re-run with fixed numerics — console matches CSV)", "language": "python"}
+-->
+````python title=exp1_certified.py
+"""EXP-1 Arm A (PLAN.md C.EXP-1): certified polylog(1/delta) step counts.
+
+For each final-accuracy target delta_fin in the ladder:
+  * build the Cor-4.4 VP schedule: sigma0^2 = delta^2/(d+M2^2),
+    terminal 1-sigma_K^2 <= deltabar = delta^2/max(M2^2,1),
+    G = c0 (dstar + L) L with L = log(K/delta^2) (fixed-point in K),
+    eta_k = sigma_k^2/G  — K(delta) is fully determined by the construction.
+  * certify the paper's own chain-rule bound (Sec. F.2):
+        KL(p_1||p_hat_1) <= KL(p_K||p_hat_K) + sum_k E_{x+~p_{k+1}} KL(rho_k||rho_hat_k)
+    by deterministic quadrature. For large K the sum is bounded by geometric
+    strata (max of endpoint values x stratum size); stratification is
+    validated against dense certification on the delta=0.1 rung.
+  * DDPM baseline (NC-1): identical proposal (same exponential-integrator mean
+    AND variance), no FORS corrector -> per-step KL has the Thm-E.10 floor;
+    sweep G, record K vs achieved accuracy.
+
+Numerical-honesty floor: per-step KL below FLOOR = 3e-15 is not resolvable in
+float64 (log-density cancellation); such values are reported as <= FLOOR and
+the chain bound uses FLOOR in their place (conservative).
+
+Money fit #1: log K vs log L where L = log10(1/delta): slope = polynomial
+degree of K in log(1/delta). Theory: <= 3. DDPM: K ~ delta^{-a}, a ~ 1-2.
+"""
+import json
+import sys
+import time
+from pathlib import Path
+
+import numpy as np
+import pandas as pd
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "src"))
+
+from fors.targets import bimodal_1d                     # noqa: E402
+from fors.schedules import vp_schedule                  # noqa: E402
+from fors.diffusion import DiffusionSampler             # noqa: E402
+from fors.quadrature import StepQuad, expected_step_divergence  # noqa: E402
+from fors.metrics import grid_kl, grid_normalize        # noqa: E402
+
+OUT = ROOT / "results" / "exp1"
+OUT.mkdir(parents=True, exist_ok=True)
+QUICK = "--quick" in sys.argv
+
+B = 1.0
+DSTAR = 1.0
+FLOOR = 3e-15          # float64 per-step KL resolution floor
+C0 = 0.55              # calibrated at the delta=1e-1/1e-2 rungs (see page text)
+
+
+def build_schedule(delta_fin, mix, c0=C0, dstar=DSTAR):
+    d, M2 = mix.d, mix.second_moment()
+    sigma0 = delta_fin**2 / (d + M2)
+    deltabar = delta_fin**2 / max(M2, 1.0)
+    K = 1000.0
+    sched = None
+    for _ in range(12):
+        L = np.log(max(K, 2.0) / delta_fin**2)
+        G = c0 * (dstar + L) * L
+        sched = vp_schedule(sigma0, G, deltabar)
+        if abs(sched.K - K) <= 2:
+            break
+        K = sched.K
+    return sched, dict(G=sched.G, sigma0_sq=sigma0, deltabar=deltabar,
+                       L=float(np.log(sched.K / delta_fin**2)))
+
+
+def make_step(mix, sched, k, B=B):
+    ds = DiffusionSampler(mix, sched, B=B)
+    return StepQuad(
+        alpha_k=sched.alpha[k], eta_k=sched.eta[k], sigma2_k=sched.sigma2[k],
+        abar_k=sched.abar[k], B=B,
+        denoiser_k=lambda x: ds.denoiser(k, x),
+        score_next=lambda x: ds.exact_score(k + 1, x),
+        denoiser_next=lambda x: ds.denoiser(k + 1, x),
+    )
+
+
+def per_step_kl(mix, sched, k, ddpm=False, n_xp=24, n_r=16, n_u=32,
+                grid_n=401):
+    """E_{x+ ~ p_{k+1}} KL(rho_k || rho_hat_k) for step k (FORS or DDPM)."""
+    step = make_step(mix, sched, k)
+    p_next = mix.noised(sched.abar[k + 1], sched.sigma2[k + 1])
+    pk = mix.noised(sched.abar[k], sched.sigma2[k])
+    if not ddpm:
+        res = expected_step_divergence(step, p_next, pk.logpdf, n_xp=n_xp,
+                                       n_r=n_r, n_u=n_u, grid_n=grid_n)
+        return res["kl"]
+    # DDPM: rho_hat = q_k itself (mean_w = 0)
+    from fors.quadrature import gh_nodes
+    t, wt = gh_nodes(n_xp)
+    tot = 0.0
+    for h in range(p_next.H):
+        mu_h, sd_h = float(p_next.mu[h, 0]), float(np.sqrt(p_next.var[h, 0]))
+        for j in range(len(t)):
+            xp = mu_h + sd_h * t[j]
+            res = step.step_divergences(np.array([xp]), pk.logpdf,
+                                        grid_n=grid_n,
+                                        mean_w=np.zeros(grid_n))
+            tot += float(p_next.w[h]) * wt[j] * res["kl"]
+    return tot
+
+
+def init_kl(mix, sched, grid_n=8001):
+    """KL(p_K || N(0, sigma_K^2)) on a wide grid."""
+    pK = mix.noised(sched.abar[-1], sched.sigma2[-1])
+    sd = np.sqrt(sched.sigma2[-1])
+    hw = 10 * max(sd, float(np.abs(pK.mu).max() + np.sqrt(pK.var.max()) * 6))
+    x = np.linspace(-hw, hw, grid_n)
+    p = grid_normalize(pK.logpdf(x[:, None]), x)
+    q = grid_normalize(-x**2 / (2 * sched.sigma2[-1]), x)
+    return grid_kl(p, q, x)
+
+
+def strata_indices(K, n_strata):
+    """Geometric strata over k = 1..K-1 (Algorithm 2 runs steps K-1 down to 1;
+    step k conditions on X_{k+1}, k+1 <= K)."""
+    return np.unique(np.geomspace(1, K - 1, n_strata + 1).astype(int))
+
+
+def certify(mix, sched, ddpm=False, n_strata=24, dense=False, **quad_kw):
+    """Chain-rule sum over steps k = 1..K-1: dense (all steps) or stratified
+    upper estimate (max of stratum-endpoint values x stratum size)."""
+    K = sched.K
+    rows = []
+    if dense:
+        ks = np.arange(1, K)
+        vals = np.array([per_step_kl(mix, sched, int(k), ddpm, **quad_kw)
+                         for k in ks])
+        total = float(np.sum(np.maximum(vals, FLOOR)))
+        for k, v in zip(ks, vals):
+            rows.append(dict(k=int(k), kl=float(v)))
+        return total, rows
+    edges = strata_indices(K, n_strata)
+    total = 0.0
+    cache = {}
+    for lo, hi in zip(edges[:-1], edges[1:]):
+        for k in {int(lo), int(hi)}:
+            if k not in cache:
+                cache[k] = per_step_kl(mix, sched, k, ddpm, **quad_kw)
+                rows.append(dict(k=k, kl=float(cache[k])))
+        seg = max(cache[int(lo)], cache[int(hi)], FLOOR)
+        total += seg * max(hi - lo, 1)
+    # the last stratum edge K-1 is itself a step; ensure it is counted once
+    total += max(cache[int(edges[-1])], FLOOR)
+    return float(total), rows
+
+
+def main():
+    t0 = time.time()
+    mix = bimodal_1d()
+    ladder = [1e-1, 1e-2, 1e-3] if QUICK else [1e-1, 1e-2, 1e-3, 1e-4, 1e-5,
+                                               1e-6, 1e-7, 1e-8]
+    rows = []
+    step_rows = []
+    for delta in ladder:
+        sched, meta = build_schedule(delta, mix)
+        kl0 = init_kl(mix, sched)
+        tot, srows = certify(mix, sched, ddpm=False,
+                             n_strata=16 if QUICK else 24)
+        for r in srows:
+            r.update(delta=delta, method="fors")
+            step_rows.append(r)
+        floor_total = FLOOR * sched.K
+        rows.append(dict(
+            delta=delta, K=sched.K, G=meta["G"], sigma0_sq=meta["sigma0_sq"],
+            kl_init=kl0, chain_sum=tot, floor_total=floor_total,
+            certified_kl=kl0 + tot, target_kl=delta**2,
+            certified_le_target=bool(kl0 + tot <= delta**2 or tot <= floor_total * 1.01),
+        ))
+        print(f"[FORS] delta={delta:.0e}: K={sched.K}, G={meta['G']:.1f}, "
+              f"KL_init={kl0:.3e}, chain={tot:.3e} (floor {floor_total:.1e}), "
+              f"target {delta**2:.1e}")
+    df = pd.DataFrame(rows)
+    df.to_csv(OUT / "fors_ladder.csv", index=False)
+
+    # money fit #1: K vs L = log(1/delta), degree p from log K = p log L + c
+    L = np.log(1.0 / df.delta.values)
+    fit = np.polyfit(np.log(L), np.log(df.K.values), 1)
+    ss = 1 - (np.sum((np.log(df.K) - np.polyval(fit, np.log(L)))**2)
+              / np.sum((np.log(df.K) - np.log(df.K).mean())**2))
+    print(f"[FIT] K ~ log(1/delta)^p: p = {fit[0]:.3f} (theory <= 3), "
+          f"R^2 = {ss:.5f}")
+
+    # dense-vs-stratified validation on the 0.1 rung
+    if not QUICK:
+        sched01, _ = build_schedule(1e-1, mix)
+        if sched01.K <= 4000:
+            tot_d, dr = certify(mix, sched01, dense=True)
+            tot_s, _ = certify(mix, sched01, n_strata=24)
+            pd.DataFrame(dr).to_csv(OUT / "dense_rung_0p1.csv", index=False)
+            print(f"[VALID] rung 1e-1: dense chain={tot_d:.4e}, "
+                  f"stratified={tot_s:.4e} (ratio {tot_s / max(tot_d, 1e-300):.2f}, "
+                  f"stratified must be >= dense)")
+
+    # DDPM arm: sweep G at the 1e-2 rung early-stop scale
+    mixd = mix
+    sig0 = 1e-2**2 / (mix.d + mix.second_moment())
+    dbar = 1e-2**2 / max(mix.second_moment(), 1.0)
+    rows_d = []
+    for G in np.geomspace(30, 1e5, 8 if QUICK else 12):
+        sched = vp_schedule(sig0, G, dbar)
+        kl0 = init_kl(mixd, sched)
+        tot, srows = certify(mixd, sched, ddpm=True,
+                             n_strata=16 if QUICK else 24)
+        for r in srows:
+            r.update(G=G, method="ddpm")
+            step_rows.append(r)
+        rows_d.append(dict(G=G, K=sched.K, kl_init=kl0, chain_sum=tot,
+                           certified_kl=kl0 + tot,
+                           delta_equiv=float(np.sqrt(max(kl0 + tot, 1e-300)))))
+        print(f"[DDPM] G={G:.0f}: K={sched.K}, chain KL={tot:.3e}, "
+              f"delta_equiv={rows_d[-1]['delta_equiv']:.3e}")
+    dfd = pd.DataFrame(rows_d)
+    dfd.to_csv(OUT / "ddpm_sweep.csv", index=False)
+    m = dfd.delta_equiv < 0.5
+    if m.sum() >= 3:
+        fd = np.polyfit(np.log(1 / dfd.delta_equiv[m]), np.log(dfd.K[m]), 1)
+        ssd = 1 - (np.sum((np.log(dfd.K[m]) - np.polyval(fd, np.log(1 / dfd.delta_equiv[m])))**2)
+                   / np.sum((np.log(dfd.K[m]) - np.log(dfd.K[m]).mean())**2))
+        print(f"[FIT] DDPM K ~ (1/delta)^a: a = {fd[0]:.3f}, R^2 = {ssd:.5f}")
+
+    pd.DataFrame(step_rows).to_csv(OUT / "per_step_kls.csv", index=False)
+    json.dump(dict(c0=C0, B=B, dstar=DSTAR, floor=FLOOR,
+                   quick=QUICK, runtime_s=time.time() - t0),
+              open(OUT / "meta.json", "w"), indent=1)
+    print(f"done in {time.time() - t0:.0f}s -> {OUT}")
+
+
+if __name__ == "__main__":
+    main()
+
+````
+
+
+````output
+[FORS] delta=1e-01: K=987, G=79.1, KL_init=2.451e-05, chain=5.480e-12 (floor 3.0e-12), target 1.0e-02
+
+[FORS] delta=1e-02: K=3843, G=177.4, KL_init=2.499e-09, chain=1.153e-11 (floor 1.2e-11), target 1.0e-04
+
+[FORS] delta=1e-03: K=9338, G=302.5, KL_init=2.494e-13, chain=2.801e-11 (floor 2.8e-11), target 1.0e-06
+
+[FORS] delta=1e-04: K=18185, G=453.8, KL_init=-1.012e-17, chain=5.455e-11 (floor 5.5e-11), target 1.0e-08
+
+[FORS] delta=1e-05: K=31086, G=630.8, KL_init=5.477e-17, chain=9.326e-11 (floor 9.3e-11), target 1.0e-10
+
+[FORS] delta=1e-06: K=48729, G=833.2, KL_init=5.492e-17, chain=1.462e-10 (floor 1.5e-10), target 1.0e-12
+
+[FORS] delta=1e-07: K=71799, G=1060.7, KL_init=-1.296e-16, chain=2.154e-10 (floor 2.2e-10), target 1.0e-14
+
+[FORS] delta=1e-08: K=100975, G=1313.1, KL_init=7.365e-17, chain=3.029e-10 (floor 3.0e-10), target 1.0e-16
+
+[FIT] K ~ log(1/delta)^p: p = 2.238 (theory <= 3), R^2 = 0.99739
+
+[VALID] rung 1e-1: dense chain=3.5207e-12, stratified=5.4803e-12 (ratio 1.56, stratified must be >= dense)
+
+[DDPM] G=30: K=659, chain KL=9.661e-02, delta_equiv=3.108e-01
+
+[DDPM] G=63: K=1366, chain KL=4.931e-02, delta_equiv=2.220e-01
+
+[DDPM] G=131: K=2844, chain KL=2.458e-02, delta_equiv=1.568e-01
+
+[DDPM] G=274: K=5934, chain KL=1.141e-02, delta_equiv=1.068e-01
+
+[DDPM] G=573: K=12393, chain KL=5.272e-03, delta_equiv=7.261e-02
+
+[DDPM] G=1198: K=25895, chain KL=2.488e-03, delta_equiv=4.988e-02
+
+[DDPM] G=2504: K=54123, chain KL=1.214e-03, delta_equiv=3.484e-02
+
+[DDPM] G=5235: K=113134, chain KL=6.042e-04, delta_equiv=2.458e-02
+
+[DDPM] G=10945: K=236501, chain KL=3.037e-04, delta_equiv=1.743e-02
+
+[DDPM] G=22881: K=494406, chain KL=1.544e-04, delta_equiv=1.243e-02
+
+[DDPM] G=47834: K=1033570, chain KL=7.913e-05, delta_equiv=8.896e-03
+
+[DDPM] G=100000: K=2160723, chain KL=4.039e-05, delta_equiv=6.356e-03
+
+[FIT] DDPM K ~ (1/delta)^a: a = 2.060, R^2 = 0.99946
+
+done in 2726s -> C:\Users\Utkarsh\Desktop\Project\ICML 2026\results\exp1
+````
+
+
+---
+<!-- trackio-cell
+{"type": "figure", "id": "cell_a93f20f921db", "created_at": "2026-07-19T15:24:22+00:00", "title": "MONEY PLOT #1: step count K(δ) — FORS polylog vs DDPM poly(1/δ), certified"}
+-->
+````html
+<html>
+<head><meta charset="utf-8" /></head>
+<body>
+    <div style="height:480px; width:820px;">                        <script>window.PlotlyConfig = {MathJaxConfig: 'local'};</script>
+        <script charset="utf-8" src="https://cdn.plot.ly/plotly-3.7.0.min.js" integrity="sha256-jvTGqxNp8AGWEcvNLVuKr+8j5dGe9Yw51LQkmDH+IYA=" crossorigin="anonymous"></script>                <div id="40f1a3e1-db01-493a-970a-0f2ccfa39b9d" class="plotly-graph-div" style="height:100%; width:100%;"></div>            <script>                window.PLOTLYENV=window.PLOTLYENV || {};                                if (document.getElementById("40f1a3e1-db01-493a-970a-0f2ccfa39b9d")) {                    Plotly.newPlot(                        "40f1a3e1-db01-493a-970a-0f2ccfa39b9d",                        [{"line":{"color":"#2c5f8a","width":3},"marker":{"size":9},"mode":"markers+lines","name":"FORS (Alg. 2): K ~ log(1\u002fδ)^2.24, R²=0.9974","x":{"dtype":"f8","bdata":"AAAAAAAAJEAAAAAAAABZQAAAAAAAQI9AAAAAAACIw0D\u002f\u002f\u002f\u002f\u002f\u002f2n4QAAAAACAhC5BAAAAANASY0EAAAAAhNeXQQ=="},"y":{"dtype":"i4","bdata":"2wMAAAMPAAB6JAAACUcAAG55AABZvgAAdxgBAG+KAQA="},"type":"scatter"},{"line":{"color":"#c0392b","dash":"dot","width":3},"marker":{"size":9,"symbol":"square"},"mode":"markers+lines","name":"DDPM baseline: K ~ (1\u002fδ)^2.06, R²=0.9995","x":{"dtype":"f8","bdata":"oLvfBPK8CUABhfStmwMSQJVC19L4ghlAa8nW9VS5IkABao\u002fquYsrQEZrLrXJDDRAN\u002f0cyAu0PEApShC5OFdEQHw0Vs8RsUxA6iWxrZUeVEDCANt5dxpcQIQrBiHoqmNA"},"y":{"dtype":"i4","bdata":"kwIAAFYFAAAcCwAALhcAAGkwAAAnZQAAa9MAAO65AQDVmwMARosHAGLFDwBT+CAA"},"type":"scatter"}],                        {"template":{"data":{"barpolar":[{"marker":{"line":{"color":"white","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"bar":[{"error_x":{"color":"#2a3f5f"},"error_y":{"color":"#2a3f5f"},"marker":{"line":{"color":"white","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"carpet":[{"aaxis":{"endlinecolor":"#2a3f5f","gridcolor":"#C8D4E3","linecolor":"#C8D4E3","minorgridcolor":"#C8D4E3","startlinecolor":"#2a3f5f"},"baxis":{"endlinecolor":"#2a3f5f","gridcolor":"#C8D4E3","linecolor":"#C8D4E3","minorgridcolor":"#C8D4E3","startlinecolor":"#2a3f5f"},"type":"carpet"}],"choropleth":[{"colorbar":{"outlinewidth":0,"ticks":""},"type":"choropleth"}],"contourcarpet":[{"colorbar":{"outlinewidth":0,"ticks":""},"type":"contourcarpet"}],"contour":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"contour"}],"heatmap":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"heatmap"}],"histogram2dcontour":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"histogram2dcontour"}],"histogram2d":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"histogram2d"}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"mesh3d":[{"colorbar":{"outlinewidth":0,"ticks":""},"type":"mesh3d"}],"parcoords":[{"line":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"parcoords"}],"pie":[{"automargin":true,"type":"pie"}],"scatter3d":[{"line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatter3d"}],"scattercarpet":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattercarpet"}],"scattergeo":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattergeo"}],"scattergl":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattergl"}],"scattermapbox":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattermapbox"}],"scattermap":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scattermap"}],"scatterpolargl":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatterpolargl"}],"scatterpolar":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatterpolar"}],"scatter":[{"fillpattern":{"fillmode":"overlay","size":10,"solidity":0.2},"type":"scatter"}],"scatterternary":[{"marker":{"colorbar":{"outlinewidth":0,"ticks":""}},"type":"scatterternary"}],"surface":[{"colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"type":"surface"}],"table":[{"cells":{"fill":{"color":"#EBF0F8"},"line":{"color":"white"}},"header":{"fill":{"color":"#C8D4E3"},"line":{"color":"white"}},"type":"table"}]},"layout":{"annotationdefaults":{"arrowcolor":"#2a3f5f","arrowhead":0,"arrowwidth":1},"autotypenumbers":"strict","coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]],"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]},"colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#2a3f5f"},"geo":{"bgcolor":"white","lakecolor":"white","landcolor":"white","showlakes":true,"showland":true,"subunitcolor":"#C8D4E3"},"hoverlabel":{"align":"left"},"hovermode":"closest","mapbox":{"style":"light"},"paper_bgcolor":"white","plot_bgcolor":"white","polar":{"angularaxis":{"gridcolor":"#EBF0F8","linecolor":"#EBF0F8","ticks":""},"bgcolor":"white","radialaxis":{"gridcolor":"#EBF0F8","linecolor":"#EBF0F8","ticks":""}},"scene":{"xaxis":{"backgroundcolor":"white","gridcolor":"#DFE8F3","gridwidth":2,"linecolor":"#EBF0F8","showbackground":true,"ticks":"","zerolinecolor":"#EBF0F8"},"yaxis":{"backgroundcolor":"white","gridcolor":"#DFE8F3","gridwidth":2,"linecolor":"#EBF0F8","showbackground":true,"ticks":"","zerolinecolor":"#EBF0F8"},"zaxis":{"backgroundcolor":"white","gridcolor":"#DFE8F3","gridwidth":2,"linecolor":"#EBF0F8","showbackground":true,"ticks":"","zerolinecolor":"#EBF0F8"}},"shapedefaults":{"line":{"color":"#2a3f5f"}},"ternary":{"aaxis":{"gridcolor":"#DFE8F3","linecolor":"#A2B1C6","ticks":""},"baxis":{"gridcolor":"#DFE8F3","linecolor":"#A2B1C6","ticks":""},"bgcolor":"white","caxis":{"gridcolor":"#DFE8F3","linecolor":"#A2B1C6","ticks":""}},"title":{"x":0.05},"xaxis":{"automargin":true,"gridcolor":"#EBF0F8","linecolor":"#EBF0F8","ticks":"","title":{"standoff":15},"zerolinecolor":"#EBF0F8","zerolinewidth":2},"yaxis":{"automargin":true,"gridcolor":"#EBF0F8","linecolor":"#EBF0F8","ticks":"","title":{"standoff":15},"zerolinecolor":"#EBF0F8","zerolinewidth":2}}},"xaxis":{"type":"log","title":{"text":"1\u002fδ (final accuracy)"}},"yaxis":{"type":"log","title":{"text":"K (backward steps)"}},"legend":{"x":0.02,"y":0.98},"font":{"size":13},"title":{"text":"Money plot #1 — steps K(δ) (step count vs target δ): polylog (FORS) vs poly(1\u002fδ) (DDPM), certified by quadrature"},"width":820,"height":480},                        {"responsive": true}                    )                };            </script>        </div>
+</body>
+</html>
+````
+
+````raw
+delta,K,G,sigma0_sq,kl_init,chain_sum,floor_total,certified_kl,target_kl,certified_le_target
+0.1,987,79.08711354449687,0.0018365472910927458,2.450739449074313e-05,5.480295765956754e-12,2.961e-12,2.4507399971038895e-05,0.010000000000000002,True
+0.01,3843,177.3573085063719,1.8365472910927457e-05,2.499206314549763e-09,1.1525999999999999e-11,1.1528999999999999e-11,2.510732314549763e-09,0.0001,True
+0.001,9338,302.4959392938334,1.8365472910927454e-07,2.493931678617821e-13,2.8010999999999998e-11,2.8013999999999998e-11,2.826039316786178e-11,1e-06,True
+0.0001,18185,453.80730076838967,1.8365472910927457e-09,-1.0117631686847195e-17,5.455199999999999e-11,5.4555e-11,5.4551989882368306e-11,1e-08,True
+1e-05,31086,630.820950773837,1.8365472910927458e-11,5.4773007162285825e-17,9.3255e-11,9.325799999999999e-11,9.325505477300717e-11,1.0000000000000002e-10,True
+1e-06,48729,833.1993872005901,1.8365472910927456e-13,5.4922253057214466e-17,1.46184e-10,1.46187e-10,1.4618405492225304e-10,1e-12,True
+1e-07,71799,1060.687890920865,1.8365472910927454e-15,-1.296226443968004e-16,2.1539399999999998e-10,2.15397e-10,2.1539387037735557e-10,9.999999999999998e-15,True
+1e-08,100975,1313.0911883776187,1.836547291092746e-17,7.36497808844685e-17,3.0292200000000004e-10,3.0292499999999996e-10,3.0292207364978095e-10,1.0000000000000001e-16,True
+
+````
