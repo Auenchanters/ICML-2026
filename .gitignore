@@ -6,3 +6,5 @@ __pycache__/
 .trackio/**/.serve.log
 tools/posterly/
 poster/poster_preview.pdf
+.trackio_content/
+.trackio/
