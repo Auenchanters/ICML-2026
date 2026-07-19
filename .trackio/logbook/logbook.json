@@ -11,7 +11,7 @@
     "paper-GW3umRqsZZ",
     "paper-10218"
   ],
-  "updated_at": "2026-07-18T07:12:56+00:00",
+  "updated_at": "2026-07-19T06:41:46+00:00",
   "root": {
     "slug": "index",
     "title": "Repro - High-accuracy sampling for diffusion models and log-concave distributions",
@@ -64,9 +64,15 @@
         "title": "Conclusion",
         "file": "pages/conclusion/page.md",
         "children": []
+      },
+      {
+        "slug": "fors-repro",
+        "title": "fors-repro",
+        "file": "pages/fors-repro/page.md",
+        "children": []
       }
     ]
   },
-  "agent_view_tokens": 13802,
-  "revision": "1784358776714145600"
+  "agent_view_tokens": 16325,
+  "revision": "1784443306880874500"
 }

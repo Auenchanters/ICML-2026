@@ -14,3 +14,4 @@
 | [Conclusion](#/conclusion) |
 | [Claim 3: non-uniform Lipschitz refinement (Theorem 4.4 [v2: Thm 4.9])](#/claim-3-non-uniform-lipschitz-refinement-theorem-4-4-v2-thm-4-9) |
 | [Claim 2: polylog(1/δ) under minimal assumptions (Theorem 4.1 [v2: Thm 4.3])](#/claim-2-polylog-1-under-minimal-assumptions-theorem-4-1-v2-thm-4-3) |
+| [fors-repro](#/fors-repro) |

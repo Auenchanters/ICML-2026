@@ -10,7 +10,7 @@
     "paper-GW3umRqsZZ",
     "paper-10218"
   ],
-  "last_page": "claim-2-polylog-minimal-assumptions",
+  "last_page": "conclusion",
   "local_path_artifacts": [
     {
       "path": "results/exp0/acceptance_identity.csv",
@@ -90,5 +90,17 @@
       "size": 408,
       "artifact_type": "dataset"
     }
+  ],
+  "local_dashboards": {
+    "fors-repro": null
+  },
+  "local_artifacts": [
+    "fors-repro/repro-bundle:v0",
+    "fors-repro/results-exp0:v0",
+    "fors-repro/results-exp1:v0",
+    "fors-repro/results-exp2:v0",
+    "fors-repro/results-exp3:v0",
+    "fors-repro/results-exp4:v0",
+    "fors-repro/results-exp5:v0"
   ]
 }

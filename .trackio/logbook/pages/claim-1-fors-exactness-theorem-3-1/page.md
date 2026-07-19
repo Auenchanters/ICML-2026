@@ -1460,3 +1460,12 @@ B,seed,mean_draws,pred_mean,A,tail_0.1,bound_0.1,tail_0.01,bound_0.01,tail_0.001
 - **Path identities (pytest, see unit-test cell):** Eq. (15) residual < 1e-14 over 10^5 r-values; Lemma F.1 joint law confirmed at 4σ on 10^6 draws with c = 8π²/27.
 
 **Scope:** this page tests Algorithm 1 + Theorem 3.1 in the paper's own setting (bounded estimator support [−B, B], unbiased conditional mean), which is dimension-free and fully covered by a 1D instance. These exact identities are the foundation the diffusion (Claims 2–4) and log-concave (Claim 5) pages build on. The draw-count clause quoted by the claim is test (c) above: the 3Be^{2B}log(2/δ) bound holds with ~50× slack at every (B, δ) tested.
+
+
+---
+<!-- trackio-cell
+{"type": "artifact", "id": "cell_a15a463cdce7", "created_at": "2026-07-18T07:23:32+00:00", "title": "Raw data + figures (exp0)", "artifact": "fors-repro/results-exp0:v0", "artifact_type": "dataset"}
+-->
+**📦 Artifact** `fors-repro/results-exp0:v0` · dataset
+
+trackio-artifact://fors-repro/results-exp0:v0

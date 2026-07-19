@@ -1497,3 +1497,21 @@ The claim's complexity O(d·log²(1/δ) + log³(1/δ)) has two parts, both verif
 **The measured critical threshold** G⋆(d) grows as d^0.41 (R² = 0.996) — *below* linear. This is not slack in our pipeline (it resolves 13 orders of magnitude; NC-2 cross-ref): it is the paper's own refinement at work — the Gaussian is log-concave (L_op = 1), so the sharper non-uniform-Lipschitz route (Claim 3, Theorem 4.4) with √(dL) applies, and our measured exponent 0.41 matches it. The generic d-budget is what the claim promises under **minimal assumptions** (second moment only), and it is verified sufficient; the d^0.41 measurement quantifies exactly how much the Lipschitz refinement buys on nice targets — evidence for Claims 2 and 3 simultaneously.
 
 **Provenance:** the claim text quotes v1's Theorem 4.1 (boxed max{d, log(1/δ)}·log²((d+M₂²)/δ²)); v2's Theorem 4.3 sharpens d → d⋆ ≤ d, so the claim as written is implied a fortiori (see the version audit). Full-rank structural quantity: E[tr ∇m_τ] is exactly linear in d for these targets (structural figure on the Claim 4 page: 5.72 → 365.72 as d goes 8 → 512, deterministic quadrature) — the proof's mechanism behind the d-budget.
+
+
+---
+<!-- trackio-cell
+{"type": "artifact", "id": "cell_63cf285bab4e", "created_at": "2026-07-18T07:23:33+00:00", "title": "Raw data + figures (exp1)", "artifact": "fors-repro/results-exp1:v0", "artifact_type": "dataset"}
+-->
+**📦 Artifact** `fors-repro/results-exp1:v0` · dataset
+
+trackio-artifact://fors-repro/results-exp1:v0
+
+
+---
+<!-- trackio-cell
+{"type": "artifact", "id": "cell_06fb64f6eb32", "created_at": "2026-07-18T07:23:34+00:00", "title": "Raw data + figures (exp2)", "artifact": "fors-repro/results-exp2:v0", "artifact_type": "dataset"}
+-->
+**📦 Artifact** `fors-repro/results-exp2:v0` · dataset
+
+trackio-artifact://fors-repro/results-exp2:v0

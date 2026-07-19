@@ -49,3 +49,12 @@ d,delta,G_star,lo,hi,secs
 ## Scope
 
 The claim is an upper-bound statement; we verify it in its own regime: log-concave targets satisfying the assumption with L_op = 1 (Gaussian, exact linear scores) get √d critical scaling in both VP and Theorem 4.4's VE setting, and every ingredient of the assumption chain (op-norm bound, quantile tails, the v2 Frobenius bridge Prop 4.7) is checked exactly or with stated CIs. Not tested: targets outside the assumption class needing the paper's generic route (covered under Claim 2), and d > 64 for the critical-exponent fit (the chf engine's cost is d-independent; larger d adds no new mechanism). No falsification exists for this claim as written — it is a true consequence of both paper versions (see provenance).
+
+
+---
+<!-- trackio-cell
+{"type": "artifact", "id": "cell_55c8d7d67890", "created_at": "2026-07-18T07:23:36+00:00", "title": "Raw data + figures (exp4)", "artifact": "fors-repro/results-exp4:v0", "artifact_type": "dataset"}
+-->
+**📦 Artifact** `fors-repro/results-exp4:v0` · dataset
+
+trackio-artifact://fors-repro/results-exp4:v0

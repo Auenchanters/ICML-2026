@@ -638,3 +638,21 @@ Rerun: `python experiments/exp5_logconcave.py` (deterministic, ~15 min CPU).
 ## Scope
 
 Verified at d = 1 (both s = 1 and s = 0 estimator flavors) with fully certified error and query accounting — the regime where every claimed quantity (χ², queries, acceptance) is computable to numerical precision. The claim's LSI/isoperimetric generality beyond log-concavity and the d-dependence of Theorem G.1 (κ√d) are not certified here; d ∈ {8, 32} sample-based corroboration is folded into the GPU job. Cross-reference: NC-4 (this page) demonstrates the separation that motivates the paper; the FORS core identities feeding this construction are verified on the Foundations page.
+
+
+---
+<!-- trackio-cell
+{"type": "artifact", "id": "cell_568cf68a0f1c", "created_at": "2026-07-18T07:23:37+00:00", "title": "Raw data + figures (exp5)", "artifact": "fors-repro/results-exp5:v0", "artifact_type": "dataset"}
+-->
+**📦 Artifact** `fors-repro/results-exp5:v0` · dataset
+
+trackio-artifact://fors-repro/results-exp5:v0
+
+
+---
+<!-- trackio-cell
+{"type": "dashboard", "id": "cell_de10e2d205f5", "created_at": "2026-07-18T07:26:44+00:00", "title": "Dashboard: fors-repro", "dashboard_project": "fors-repro"}
+-->
+**🎯 Trackio dashboard** `fors-repro`
+
+trackio-local-dashboard://fors-repro

@@ -85,3 +85,34 @@ In v1 this was a separate adaptive theorem (`thm:DM-clip-path-adapt`, boxed max{
 ## Scope
 
 Ambient-space full-density certification is infeasible at d = 512 and is not claimed; what is tested is exactly the claim's content — that the complexity-determining quantities track d⋆ and not d — through (i) the structural quantity the proof runs on (deterministic, to d = 512), and (ii) the end-to-end critical schedule budget G⋆ (MC with CIs, to d = 128; d = 512 in the GPU job). Cross-reference: the full-rank comparison curve and its engine validation live on the Claim 2 page; test power comes from the same pipeline resolving the full-rank d-growth.
+
+
+---
+<!-- trackio-cell
+{"type": "markdown", "id": "cell_c7124f782c17", "created_at": "2026-07-18T07:16:17+00:00", "title": "End-to-end at d = 128 under the d*-schedule (adaptive step size)"}
+-->
+Algorithm 2 run end-to-end at ambient **d = 128** on the subspace target using the **d⋆-schedule** — G = 188 computed from d⋆ = 2, NOT from d = 128 (the claim's 'adaptive-step-size method' is exactly this geometric η_k = σ_k²/G schedule): K = 2,600 steps, n = 20,000 chains, exact scores.
+
+- **On-subspace projection histogram-KL = 6.74e-4, below the sample-noise floor 1.3e-3** — the output is statistically indistinguishable from the true early-stopped marginal.
+- **Ambient moments correct** (worst off-subspace variance error at the 1e-4 level, dominated by n^{-1/2}).
+- **Acceptance rate 0.368 and queries/step/chain = 5.44** — identical to the 1D and d = 512 values: the FORS accept loop shows **zero degradation from ambient dimension** under the d⋆-budget. Had the complexity tracked ambient d, this schedule (16× too coarse for d = 128 by the generic budget) would collapse the acceptance rate — it does not.
+
+Raw: `results/exp3/end_to_end.json` (seed 7, 16,207s CPU; the d = 512 version runs on HF GPU Job #2 and is reported below when complete).
+
+
+---
+<!-- trackio-cell
+{"type": "dashboard", "id": "cell_0bb4b538450f", "created_at": "2026-07-18T07:19:45+00:00", "title": "Dashboard: fors-repro", "dashboard_project": "fors-repro"}
+-->
+**🎯 Trackio dashboard** `fors-repro`
+
+trackio-local-dashboard://fors-repro
+
+
+---
+<!-- trackio-cell
+{"type": "artifact", "id": "cell_343921e07a1c", "created_at": "2026-07-18T07:23:35+00:00", "title": "Raw data + figures (exp3)", "artifact": "fors-repro/results-exp3:v0", "artifact_type": "dataset"}
+-->
+**📦 Artifact** `fors-repro/results-exp3:v0` · dataset
+
+trackio-artifact://fors-repro/results-exp3:v0
