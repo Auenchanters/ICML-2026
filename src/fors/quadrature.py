@@ -34,7 +34,12 @@ SQRT2 = np.sqrt(2.0)
 
 
 def _phi(x):
-    return np.exp(-0.5 * x * x) / np.sqrt(2.0 * np.pi)
+    # standard normal pdf; clip the argument so |x| beyond ~40 sigma (where the
+    # density is < 1e-300 anyway) does not overflow x*x in float64 — the result
+    # underflows to 0 correctly, this only silences a benign RuntimeWarning.
+    x = np.clip(x, -1e150, 1e150)
+    with np.errstate(over="ignore", under="ignore"):
+        return np.exp(-0.5 * x * x) / np.sqrt(2.0 * np.pi)
 
 
 def clip_gauss_mean(B, lam, m, s):

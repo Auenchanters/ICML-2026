@@ -1,0 +1,2 @@
+C:\Users\Utkarsh\Desktop\Project\ICML 2026\src\fors\quadrature.py:37: RuntimeWarning: overflow encountered in multiply
+  return np.exp(-0.5 * x * x) / np.sqrt(2.0 * np.pi)

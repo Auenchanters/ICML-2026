@@ -1,0 +1,24 @@
+[FORS] delta=1e-01: K=987, G=79.1, KL_init=2.451e-05, chain=5.480e-12 (floor 3.0e-12), target 1.0e-02
+[FORS] delta=1e-02: K=3843, G=177.4, KL_init=2.499e-09, chain=1.153e-11 (floor 1.2e-11), target 1.0e-04
+[FORS] delta=1e-03: K=9338, G=302.5, KL_init=2.494e-13, chain=2.801e-11 (floor 2.8e-11), target 1.0e-06
+[FORS] delta=1e-04: K=18185, G=453.8, KL_init=-1.012e-17, chain=5.455e-11 (floor 5.5e-11), target 1.0e-08
+[FORS] delta=1e-05: K=31086, G=630.8, KL_init=5.477e-17, chain=9.326e-11 (floor 9.3e-11), target 1.0e-10
+[FORS] delta=1e-06: K=48729, G=833.2, KL_init=5.492e-17, chain=1.462e-10 (floor 1.5e-10), target 1.0e-12
+[FORS] delta=1e-07: K=71799, G=1060.7, KL_init=-1.296e-16, chain=2.154e-10 (floor 2.2e-10), target 1.0e-14
+[FORS] delta=1e-08: K=100975, G=1313.1, KL_init=7.365e-17, chain=3.029e-10 (floor 3.0e-10), target 1.0e-16
+[FIT] K ~ log(1/delta)^p: p = 2.238 (theory <= 3), R^2 = 0.99739
+[VALID] rung 1e-1: dense chain=3.5207e-12, stratified=5.4803e-12 (ratio 1.56, stratified must be >= dense)
+[DDPM] G=30: K=659, chain KL=9.661e-02, delta_equiv=3.108e-01
+[DDPM] G=63: K=1366, chain KL=4.931e-02, delta_equiv=2.220e-01
+[DDPM] G=131: K=2844, chain KL=2.458e-02, delta_equiv=1.568e-01
+[DDPM] G=274: K=5934, chain KL=1.141e-02, delta_equiv=1.068e-01
+[DDPM] G=573: K=12393, chain KL=5.272e-03, delta_equiv=7.261e-02
+[DDPM] G=1198: K=25895, chain KL=2.488e-03, delta_equiv=4.988e-02
+[DDPM] G=2504: K=54123, chain KL=1.214e-03, delta_equiv=3.484e-02
+[DDPM] G=5235: K=113134, chain KL=6.042e-04, delta_equiv=2.458e-02
+[DDPM] G=10945: K=236501, chain KL=3.037e-04, delta_equiv=1.743e-02
+[DDPM] G=22881: K=494406, chain KL=1.544e-04, delta_equiv=1.243e-02
+[DDPM] G=47834: K=1033570, chain KL=7.913e-05, delta_equiv=8.896e-03
+[DDPM] G=100000: K=2160723, chain KL=4.039e-05, delta_equiv=6.356e-03
+[FIT] DDPM K ~ (1/delta)^a: a = 2.060, R^2 = 0.99946
+done in 2024s -> C:\Users\Utkarsh\Desktop\Project\ICML 2026\results\exp1
