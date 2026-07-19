@@ -7,7 +7,7 @@
 -->
 **📦 Artifact** `fors-repro/repro-bundle:v0` · dataset
 
-trackio-artifact://fors-repro/repro-bundle:v0
+https://huggingface.co/buckets/Auenchanters/repro-2602-01338-fors-artifacts#fors-repro/repro-bundle:v0
 
 
 ---

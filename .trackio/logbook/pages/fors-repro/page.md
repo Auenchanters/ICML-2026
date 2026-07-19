@@ -7,7 +7,7 @@
 -->
 **📦 Artifact** `fors-repro/repro-bundle:v0` · dataset · 1.5 MB
 
-trackio-artifact://fors-repro/repro-bundle:v0
+https://huggingface.co/buckets/Auenchanters/repro-2602-01338-fors-artifacts#fors-repro/repro-bundle:v0
 
 
 ---
@@ -16,7 +16,7 @@ trackio-artifact://fors-repro/repro-bundle:v0
 -->
 **📦 Artifact** `fors-repro/results-exp0:v0` · dataset · 0.1 MB
 
-trackio-artifact://fors-repro/results-exp0:v0
+https://huggingface.co/buckets/Auenchanters/repro-2602-01338-fors-artifacts#fors-repro/results-exp0:v0
 
 
 ---
@@ -25,7 +25,7 @@ trackio-artifact://fors-repro/results-exp0:v0
 -->
 **📦 Artifact** `fors-repro/results-exp1:v0` · dataset · 97.8 kB
 
-trackio-artifact://fors-repro/results-exp1:v0
+https://huggingface.co/buckets/Auenchanters/repro-2602-01338-fors-artifacts#fors-repro/results-exp1:v0
 
 
 ---
@@ -34,7 +34,7 @@ trackio-artifact://fors-repro/results-exp1:v0
 -->
 **📦 Artifact** `fors-repro/results-exp2:v0` · dataset · 14.7 kB
 
-trackio-artifact://fors-repro/results-exp2:v0
+https://huggingface.co/buckets/Auenchanters/repro-2602-01338-fors-artifacts#fors-repro/results-exp2:v0
 
 
 ---
@@ -43,7 +43,7 @@ trackio-artifact://fors-repro/results-exp2:v0
 -->
 **📦 Artifact** `fors-repro/results-exp3:v0` · dataset · 20.8 kB
 
-trackio-artifact://fors-repro/results-exp3:v0
+https://huggingface.co/buckets/Auenchanters/repro-2602-01338-fors-artifacts#fors-repro/results-exp3:v0
 
 
 ---
@@ -52,7 +52,7 @@ trackio-artifact://fors-repro/results-exp3:v0
 -->
 **📦 Artifact** `fors-repro/results-exp4:v0` · dataset · 12.1 kB
 
-trackio-artifact://fors-repro/results-exp4:v0
+https://huggingface.co/buckets/Auenchanters/repro-2602-01338-fors-artifacts#fors-repro/results-exp4:v0
 
 
 ---
@@ -61,4 +61,4 @@ trackio-artifact://fors-repro/results-exp4:v0
 -->
 **📦 Artifact** `fors-repro/results-exp5:v0` · dataset · 81.3 kB
 
-trackio-artifact://fors-repro/results-exp5:v0
+https://huggingface.co/buckets/Auenchanters/repro-2602-01338-fors-artifacts#fors-repro/results-exp5:v0

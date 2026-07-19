@@ -648,7 +648,7 @@ The δ-dependence (both s = 1 and s = 0 estimator flavors) is certified at d = 1
 -->
 **📦 Artifact** `fors-repro/results-exp5:v0` · dataset
 
-trackio-artifact://fors-repro/results-exp5:v0
+https://huggingface.co/buckets/Auenchanters/repro-2602-01338-fors-artifacts#fors-repro/results-exp5:v0
 
 
 ---
@@ -820,7 +820,7 @@ done in 224s -> C:\Users\Utkarsh\Desktop\Project\ICML 2026\results\exp5
 -->
 **📦 Artifact** `results/exp5/multid.csv` · dataset · 471 B
 
-trackio-local-path://results/exp5/multid.csv
+https://huggingface.co/buckets/Auenchanters/repro-2602-01338-fors-artifacts#logbook-files/results/exp5/multid.csv
 
 
 ---

@@ -274,7 +274,7 @@ done in 50.2s -> C:\Users\Utkarsh\Desktop\Project\ICML 2026\results\exp0
 -->
 **📦 Artifact** `results/exp0/acceptance_identity.csv` · dataset · 56.0 kB
 
-trackio-local-path://results/exp0/acceptance_identity.csv
+https://huggingface.co/buckets/Auenchanters/repro-2602-01338-fors-artifacts#logbook-files/results/exp0/acceptance_identity.csv
 
 
 ---
@@ -283,7 +283,7 @@ trackio-local-path://results/exp0/acceptance_identity.csv
 -->
 **📦 Artifact** `results/exp0/law_histogram.csv` · dataset · 5.5 kB
 
-trackio-local-path://results/exp0/law_histogram.csv
+https://huggingface.co/buckets/Auenchanters/repro-2602-01338-fors-artifacts#logbook-files/results/exp0/law_histogram.csv
 
 
 ---
@@ -292,7 +292,7 @@ trackio-local-path://results/exp0/law_histogram.csv
 -->
 **📦 Artifact** `results/exp0/query_complexity.csv` · dataset · 3.8 kB
 
-trackio-local-path://results/exp0/query_complexity.csv
+https://huggingface.co/buckets/Auenchanters/repro-2602-01338-fors-artifacts#logbook-files/results/exp0/query_complexity.csv
 
 
 ---
@@ -301,7 +301,7 @@ trackio-local-path://results/exp0/query_complexity.csv
 -->
 **📦 Artifact** `results/exp0/gof.csv` · dataset · 508 B
 
-trackio-local-path://results/exp0/gof.csv
+https://huggingface.co/buckets/Auenchanters/repro-2602-01338-fors-artifacts#logbook-files/results/exp0/gof.csv
 
 
 ---
@@ -310,7 +310,7 @@ trackio-local-path://results/exp0/gof.csv
 -->
 **📦 Artifact** `results/exp0/w1_scaling.csv` · dataset · 163 B
 
-trackio-local-path://results/exp0/w1_scaling.csv
+https://huggingface.co/buckets/Auenchanters/repro-2602-01338-fors-artifacts#logbook-files/results/exp0/w1_scaling.csv
 
 
 ---
@@ -319,7 +319,7 @@ trackio-local-path://results/exp0/w1_scaling.csv
 -->
 **📦 Artifact** `results/exp0/nc0.csv` · dataset · 63 B
 
-trackio-local-path://results/exp0/nc0.csv
+https://huggingface.co/buckets/Auenchanters/repro-2602-01338-fors-artifacts#logbook-files/results/exp0/nc0.csv
 
 
 ---
@@ -583,7 +583,7 @@ done in 65.9s -> C:\Users\Utkarsh\Desktop\Project\ICML 2026\results\exp0
 -->
 **📦 Artifact** `results/exp0/acceptance_identity.csv` · dataset · 56.0 kB
 
-trackio-local-path://results/exp0/acceptance_identity.csv
+https://huggingface.co/buckets/Auenchanters/repro-2602-01338-fors-artifacts#logbook-files/results/exp0/acceptance_identity.csv
 
 
 ---
@@ -592,7 +592,7 @@ trackio-local-path://results/exp0/acceptance_identity.csv
 -->
 **📦 Artifact** `results/exp0/law_histogram.csv` · dataset · 5.5 kB
 
-trackio-local-path://results/exp0/law_histogram.csv
+https://huggingface.co/buckets/Auenchanters/repro-2602-01338-fors-artifacts#logbook-files/results/exp0/law_histogram.csv
 
 
 ---
@@ -601,7 +601,7 @@ trackio-local-path://results/exp0/law_histogram.csv
 -->
 **📦 Artifact** `results/exp0/query_complexity.csv` · dataset · 3.8 kB
 
-trackio-local-path://results/exp0/query_complexity.csv
+https://huggingface.co/buckets/Auenchanters/repro-2602-01338-fors-artifacts#logbook-files/results/exp0/query_complexity.csv
 
 
 ---
@@ -610,7 +610,7 @@ trackio-local-path://results/exp0/query_complexity.csv
 -->
 **📦 Artifact** `results/exp0/gof.csv` · dataset · 508 B
 
-trackio-local-path://results/exp0/gof.csv
+https://huggingface.co/buckets/Auenchanters/repro-2602-01338-fors-artifacts#logbook-files/results/exp0/gof.csv
 
 
 ---
@@ -619,7 +619,7 @@ trackio-local-path://results/exp0/gof.csv
 -->
 **📦 Artifact** `results/exp0/w1_scaling.csv` · dataset · 157 B
 
-trackio-local-path://results/exp0/w1_scaling.csv
+https://huggingface.co/buckets/Auenchanters/repro-2602-01338-fors-artifacts#logbook-files/results/exp0/w1_scaling.csv
 
 
 ---
@@ -628,7 +628,7 @@ trackio-local-path://results/exp0/w1_scaling.csv
 -->
 **📦 Artifact** `results/exp0/nc0.csv` · dataset · 63 B
 
-trackio-local-path://results/exp0/nc0.csv
+https://huggingface.co/buckets/Auenchanters/repro-2602-01338-fors-artifacts#logbook-files/results/exp0/nc0.csv
 
 
 ---
@@ -1468,4 +1468,4 @@ B,seed,mean_draws,pred_mean,A,tail_0.1,bound_0.1,tail_0.01,bound_0.01,tail_0.001
 -->
 **📦 Artifact** `fors-repro/results-exp0:v0` · dataset
 
-trackio-artifact://fors-repro/results-exp0:v0
+https://huggingface.co/buckets/Auenchanters/repro-2602-01338-fors-artifacts#fors-repro/results-exp0:v0

@@ -7,7 +7,7 @@
 -->
 **📦 Artifact** `results/exp1/dense_rung_0p1.csv` · dataset · 27.3 kB
 
-trackio-local-path://results/exp1/dense_rung_0p1.csv
+https://huggingface.co/buckets/Auenchanters/repro-2602-01338-fors-artifacts#logbook-files/results/exp1/dense_rung_0p1.csv
 
 
 ---
@@ -16,7 +16,7 @@ trackio-local-path://results/exp1/dense_rung_0p1.csv
 -->
 **📦 Artifact** `results/exp1/per_step_kls.csv` · dataset · 21.6 kB
 
-trackio-local-path://results/exp1/per_step_kls.csv
+https://huggingface.co/buckets/Auenchanters/repro-2602-01338-fors-artifacts#logbook-files/results/exp1/per_step_kls.csv
 
 
 ---
@@ -25,7 +25,7 @@ trackio-local-path://results/exp1/per_step_kls.csv
 -->
 **📦 Artifact** `results/exp1/nc2.csv` · dataset · 1.8 kB
 
-trackio-local-path://results/exp1/nc2.csv
+https://huggingface.co/buckets/Auenchanters/repro-2602-01338-fors-artifacts#logbook-files/results/exp1/nc2.csv
 
 
 ---
@@ -34,7 +34,7 @@ trackio-local-path://results/exp1/nc2.csv
 -->
 **📦 Artifact** `results/exp1/ddpm_sweep.csv` · dataset · 1.4 kB
 
-trackio-local-path://results/exp1/ddpm_sweep.csv
+https://huggingface.co/buckets/Auenchanters/repro-2602-01338-fors-artifacts#logbook-files/results/exp1/ddpm_sweep.csv
 
 
 ---
@@ -43,7 +43,7 @@ trackio-local-path://results/exp1/ddpm_sweep.csv
 -->
 **📦 Artifact** `results/exp1/fors_ladder.csv` · dataset · 1.3 kB
 
-trackio-local-path://results/exp1/fors_ladder.csv
+https://huggingface.co/buckets/Auenchanters/repro-2602-01338-fors-artifacts#logbook-files/results/exp1/fors_ladder.csv
 
 
 ---
@@ -52,7 +52,7 @@ trackio-local-path://results/exp1/fors_ladder.csv
 -->
 **📦 Artifact** `results/exp1/arm_c.csv` · dataset · 414 B
 
-trackio-local-path://results/exp1/arm_c.csv
+https://huggingface.co/buckets/Auenchanters/repro-2602-01338-fors-artifacts#logbook-files/results/exp1/arm_c.csv
 
 
 ---
@@ -61,7 +61,7 @@ trackio-local-path://results/exp1/arm_c.csv
 -->
 **📦 Artifact** `results/exp1/arm_b.csv` · dataset · 408 B
 
-trackio-local-path://results/exp1/arm_b.csv
+https://huggingface.co/buckets/Auenchanters/repro-2602-01338-fors-artifacts#logbook-files/results/exp1/arm_b.csv
 
 
 ---
@@ -1200,7 +1200,7 @@ The claim's complexity O(d·log²(1/δ) + log³(1/δ)) has two parts, both verif
 -->
 **📦 Artifact** `fors-repro/results-exp1:v0` · dataset
 
-trackio-artifact://fors-repro/results-exp1:v0
+https://huggingface.co/buckets/Auenchanters/repro-2602-01338-fors-artifacts#fors-repro/results-exp1:v0
 
 
 ---
@@ -1209,7 +1209,7 @@ trackio-artifact://fors-repro/results-exp1:v0
 -->
 **📦 Artifact** `fors-repro/results-exp2:v0` · dataset
 
-trackio-artifact://fors-repro/results-exp2:v0
+https://huggingface.co/buckets/Auenchanters/repro-2602-01338-fors-artifacts#fors-repro/results-exp2:v0
 
 
 ---
